@@ -1,0 +1,21 @@
+SVN repository information:
+---------------------------
+$Id: FITDES 2191 2006-11-23 18:29:14Z niehaus $
+$URL: svn+ssh://svn/slako/tags/skful/mio-1-1/FITDES $
+
+
+Sulfur parametrization:
+-----------------------
+Originally the parametrization was performed in a minimal
+basis. Results were unacceptable. Too long S-C bonds and wrong SO2
+bond angle. Then d-orbitals were added, the d-onsite energy not
+changed with respect to the atomic calc. Compression radii of density
+and WF were systematically varied and tested on a benchmark set for
+geometries. The S-O bonding with two fit systems (one for single, one
+for double bond) lead to bad results, hence only one fit sytems was
+chosen. S-N interaction is not well tested.
+ 
+
+
+
+

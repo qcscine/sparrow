@@ -1,0 +1,13 @@
+# Find/Import Dependencies
+include(CMakeFindDependencyMacro)
+find_dependency(Scine REQUIRED COMPONENTS Core UtilsOS)
+
+# Compute paths
+get_filename_component(SPARROW_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+# Generate Target
+include("${CMAKE_CURRENT_LIST_DIR}/SparrowTargets.cmake")
+
+@PACKAGE_INIT@
+
+check_required_components(Sparrow)

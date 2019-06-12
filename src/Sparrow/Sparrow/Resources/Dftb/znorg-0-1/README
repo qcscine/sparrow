@@ -1,0 +1,18 @@
+The set has been developed for simulating Zn interactions with H,C,N,O, S
+and Zn in both solid state and molecular environments. The parameters have
+been tested for bulk solids (hcp-Zn, zb-ZnS and w-ZnO), ZnO surfaces (clean
+and with small adsorbates), ZnO nanostructures and Zn-containing molecular
+complexes [JCTC09].
+
+The parameters have showed good results in comparison with DFT methods. Bond
+length accuracies have been found better than 0.1 Å and bond angles better
+than 10°. Binding energies have been consistently overestimated
+(~0.5eV/bond). This parametrization has also furnished reliable electronic
+band structures for ZnO, including reasonable descriptions for the
+conduction band and band gap of ~4.1 eV.
+
+More details about this parametrization can be found in [JCTC09].
+
+Relevant Publications
+[JCTC09] Moreira, N. H., Dolgonos, G., Aradi, B., da Rosa, A.L. and
+Frauenheim Th. J. Chem. Theory and Comput., 5(3),  605-614 (2009).

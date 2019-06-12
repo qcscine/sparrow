@@ -1,0 +1,15 @@
+/**
+ * @file
+ * @copyright This code is licensed under the 3-clause BSD license.\n
+ *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            See LICENSE.txt for details.
+ */
+
+/*
+ * File "parameters_location.h", generated from "parameters_location.h.in" to set the paths of the parameters for use in
+ * unit tests.
+ */
+
+const char* const parameters_pm6 = "@parameter_dir@pm6/parameters.xml";
+const char* const parameters_mndo = "@parameter_dir@mndo/parameters.xml";
+const char* const parameters_am1 = "@parameter_dir@am1/parameters.xml";

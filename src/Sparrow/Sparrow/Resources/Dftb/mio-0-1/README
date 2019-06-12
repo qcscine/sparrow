@@ -1,0 +1,36 @@
+SVN repository information:
+---------------------------
+$Id: README 2191 2006-11-23 18:29:14Z niehaus $
+$URL: svn+ssh://svn/slako/tags/skful/mio-0-1/README $
+
+The set has been developed for organic molecules including O, N, C, H
+[PRB98], and S [JMS01]. Extensive test for molecules
+consisting of O N C and H can be found in [JCP05] and for the
+performance of S in [JMS01] and for the whole SONCH set in [JCTC06].
+
+The ONCH set works quite well for peptide structures and conformation
+energies [CP01], the geometries of H-bonded systems are well
+reproduced while bonding energies are slightly understimated [PSS00].
+
+Including dispersion energies, even stacked complexes like DNA base
+pairs are well treated [JCP01].
+
+Relevant Publications
+---------------------
+
+[PRB98]  	Phys. Rev. B 58 (1998) 7260 
+[JMS01]  	J. Mol. Struc. (THEOCHEM) 541 (2001) 185
+[JCP05] 	J. Chem. Phys 122 (122) 114110 
+[JCTC06] 	J. Chem. Theor. and Comput. 2006
+[JCP01] 	J. Chem. Phys. 114 (2001) 5149
+[CP01] 		Chem. Phys. 263 (2001) 203
+[PSS00] 	Phys. Stat. Sol. b 217 (2000) 357. 	 
+
+
+Publications to be cited
+------------------------
+O-N-C-H:  [PRB98]
+S-*:      [JMS01]
+
+Hyphenation of elements (A-B-C) means all possible combinations of SK files
+* stands for all available elements in this set

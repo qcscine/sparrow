@@ -1,0 +1,31 @@
+SVN repository information:
+---------------------------
+$Id: README 2555 2007-06-12 12:56:32Z niehaus $
+$URL: svn+ssh://svn@login.bccms.uni-bremen.de/slako/tags/skful/hyb-0-2/README $
+
+
+This special parameterization was used to investigate Sulfur
+passivated GaAs surface reconstructions. It was also used to study
+the adsorption of PTCDA on GaAs, Silver and Silicon surfaces.
+
+The files have been updated to allow for TD-DFTB calculations.
+
+ Relevant Publications
+----------------------
+
+- B. Szuecs, Z. Hajnal, T. Frauenheim, C. Gonzales, J. Ortega,
+R. Perez, and F. Flores, Appl.Surf.Sci., vol. 212, p. 861, 2003.
+
+- B. Szuecs, Z. Hajnal, R. Scholz, S. Sanna, and T. Frauenheim
+Appl.Surf.Sci., vol. 234, pp. 173-177, 2004.
+
+
+Publications to be cited
+------------------------
+
+None
+
+
+
+
+

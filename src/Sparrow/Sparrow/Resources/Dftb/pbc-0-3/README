@@ -1,0 +1,53 @@
+SVN repository information:
+---------------------------
+$Id:$
+$URL:$
+
+This set consists of mainly older Slater-Koster files with a focus on
+solid state systems [SiO,SiC]. The parameters might also
+be applicable for organic systems, but one usually would only expect a
+more qualitative accuracy. So use the "bio" set instead for bio molecules.
+
+The silicon parameters are good for silicon clusters (using a sp basis
+only) [Silicon], while the same parameters with d-orbitals on Si are
+used for silica.
+
+The fluorine parameters have been validated especially
+concerning the relative energetics of SiF_x and CF_x [Fluorine].
+
+The iron parameters have been applied to structural and magnetic
+properties of iron clusters [Iron], but should also give reasonable
+results for bcc bulk iron.
+
+Relevant Publications
+---------------------
+To many to give here one by one. In summary:
+
+- all publications since 1999 of the Frauenheim group dealing with SiC bulk, 
+  especially: Rauls, E. and Gutierrez, R. and Elsner, J. and Frauenheim, Th.,
+  Stoichiometric and Non-Stoichiometric (10-10) and (11-20) surfaces in 
+  {2H-SiC}: a theoretical study, Sol. State Comm., p. 459, vol. 111
+  (1999)
+- [SiO]: all publications of the Frauenheim group dealing with SiO polymorphs,
+  especially Koehler, C. and Hajnal, Z. and Deak, P. and Frauenheim,
+  Th. and Suhai, S.. Theoretical investigation of carbon defects and
+  diffusion in alpha-quartz. Phys. Rev. B, 64:085333, 2001.
+- [Silicon]: A. Sieck and Th. Frauenheim and K. A. Jackson
+  phys. stat. sol. (b), p. 537, year 2003, vol. 240
+- [Fluorine]: Koehler, C. and Frauenheim, T.. Molecular dynamics simulations of
+  CFx (x=2,3) molecules at Si3N4 and SiO2 surfaces. Surf. Sci., 600:453,
+  2006.
+- [Iron]: Koehler, C. and Seifert, G. and Frauenheim, T..
+  Density-Functional based calculations for Fe(n), (n<=32). Chem.
+  Phys., 309:23, 2005.
+
+Publications to be cited
+------------------------
+Si-Si: 	A. Sieck, PhD. Thesis, University of Paderborn, 2000.
+       	http://ubdata.uni-paderborn.de/ediss/06/2000/sieck/
+Si-O:   [SiO]
+F-*: 	[Fluorine]
+Fe-Fe:	[Iron]
+
+* stands for all available elements in this set
+

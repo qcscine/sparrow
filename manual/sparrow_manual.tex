@@ -1,0 +1,433 @@
+\documentclass[]{tufte-book}
+
+\hypersetup{colorlinks}% uncomment this line if you prefer colored hyperlinks (e.g., for onscreen viewing)
+
+%%
+% For graphics / images
+\usepackage{graphicx}
+\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
+\graphicspath{{graphics/}}
+\usepackage{hyperref}
+\usepackage{chemformula}
+
+%%
+% Book metadata
+
+%\newsavebox{\titleimage}
+%\savebox{\titleimage}{\includegraphics[height=10\baselineskip]{graphics/autocas-icon.pdf}\hspace{1cm}\Huge Version 1.0 -- May 2018}
+
+%\newsavebox{\scineimage}
+%\savebox{\scineimage}{\includegraphics[height=5\baselineskip]{scine_darkblue.png}}
+
+
+\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 1.0.0}}
+\author[The SCINE Sparrow Developers]{The SCINE Sparrow Developers: \newline \noindent Francesco Bosia, Tamara Husch, Alain Vaucher, and Markus Reiher}
+\publisher{ETH Z\"urich}
+
+%%
+% If they're installed, use Bergamo and Chantilly from www.fontsite.com.
+% They're clones of Bembo and Gill Sans, respectively.
+%\IfFileExists{bergamo.sty}{\usepackage[osf]{bergamo}}{}% Bembo
+%\IfFileExists{chantill.sty}{\usepackage{chantill}}{}% Gill Sans
+
+%\usepackage{microtype}
+
+%%
+% Just some sample text
+\usepackage{lipsum}
+
+%%
+% For nicely typeset tabular material
+\usepackage{booktabs}
+
+% The fancyvrb package lets us customize the formatting of verbatim
+% environments.  We use a slightly smaller font.
+\usepackage{fancyvrb}
+\fvset{fontsize=\normalsize}
+
+%%
+% Prints argument within hanging parentheses (i.e., parentheses that take
+% up no horizontal space).  Useful in tabular environments.
+\newcommand{\hangp}[1]{\makebox[0pt][r]{(}#1\makebox[0pt][l]{)}}
+
+%%
+% Prints an asterisk that takes up no horizontal space.
+% Useful in tabular environments.
+\newcommand{\hangstar}{\makebox[0pt][l]{*}}
+
+%%
+% Prints a trailing space in a smart way.
+\usepackage{xspace}
+
+%%
+% Some shortcuts for Tufte's book titles.  The lowercase commands will
+% produce the initials of the book title in italics.  The all-caps commands
+% will print out the full title of the book in italics.
+\newcommand{\vdqi}{\textit{VDQI}\xspace}
+\newcommand{\ei}{\textit{EI}\xspace}
+\newcommand{\ve}{\textit{VE}\xspace}
+\newcommand{\be}{\textit{BE}\xspace}
+\newcommand{\VDQI}{\textit{The Visual Display of Quantitative Information}\xspace}
+\newcommand{\EI}{\textit{Envisioning Information}\xspace}
+\newcommand{\VE}{\textit{Visual Explanations}\xspace}
+\newcommand{\BE}{\textit{Beautiful Evidence}\xspace}
+
+\newcommand{\TL}{Tufte-\LaTeX\xspace}
+
+% Prints the month name (e.g., January) and the year (e.g., 2008)
+\newcommand{\monthyear}{%
+  \ifcase\month\or January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or
+  December\fi\space\number\year
+}
+
+
+% Prints an epigraph and speaker in sans serif, all-caps type.
+\newcommand{\openepigraph}[2]{%
+  %\sffamily\fontsize{14}{16}\selectfont
+  \begin{fullwidth}
+  \sffamily\large
+  \begin{doublespace}
+  \noindent\allcaps{#1}\\% epigraph
+  \noindent\allcaps{#2}% author
+  \end{doublespace}
+  \end{fullwidth}
+}
+
+% Inserts a blank page
+\newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
+
+\usepackage{units}
+
+% Typesets the font size, leading, and measure in the form of 10/12x26 pc.
+\newcommand{\measure}[3]{#1/#2$\times$\unit[#3]{pc}}
+
+% Macros for typesetting the documentation
+\newcommand{\hlred}[1]{\textcolor{Maroon}{#1}}% prints in red
+\newcommand{\hangleft}[1]{\makebox[0pt][r]{#1}}
+\newcommand{\hairsp}{\hspace{1pt}}% hair space
+\newcommand{\hquad}{\hskip0.5em\relax}% half quad space
+\newcommand{\TODO}{\textcolor{red}{\bf TODO!}\xspace}
+\newcommand{\ie}{\textit{i.\hairsp{}e.}\xspace}
+\newcommand{\eg}{\textit{e.\hairsp{}g.}\xspace}
+\newcommand{\na}{\quad--}% used in tables for N/A cells
+\providecommand{\XeLaTeX}{X\lower.5ex\hbox{\kern-0.15em\reflectbox{E}}\kern-0.1em\LaTeX}
+\newcommand{\tXeLaTeX}{\XeLaTeX\index{XeLaTeX@\protect\XeLaTeX}}
+% \index{\texttt{\textbackslash xyz}@\hangleft{\texttt{\textbackslash}}\texttt{xyz}}
+\newcommand{\tuftebs}{\symbol{'134}}% a backslash in tt type in OT1/T1
+\newcommand{\doccmdnoindex}[2][]{\texttt{\tuftebs#2}}% command name -- adds backslash automatically (and doesn't add cmd to the index)
+\newcommand{\doccmddef}[2][]{%
+  \hlred{\texttt{\tuftebs#2}}\label{cmd:#2}%
+  \ifthenelse{\isempty{#1}}%
+    {% add the command to the index
+      \index{#2 command@\protect\hangleft{\texttt{\tuftebs}}\texttt{#2}}% command name
+    }%
+    {% add the command and package to the index
+      \index{#2 command@\protect\hangleft{\texttt{\tuftebs}}\texttt{#2} (\texttt{#1} package)}% command name
+      \index{#1 package@\texttt{#1} package}\index{packages!#1@\texttt{#1}}% package name
+    }%
+}% command name -- adds backslash automatically
+\newcommand{\doccmd}[2][]{%
+  \texttt{\tuftebs#2}%
+  \ifthenelse{\isempty{#1}}%
+    {% add the command to the index
+      \index{#2 command@\protect\hangleft{\texttt{\tuftebs}}\texttt{#2}}% command name
+    }%
+    {% add the command and package to the index
+      \index{#2 command@\protect\hangleft{\texttt{\tuftebs}}\texttt{#2} (\texttt{#1} package)}% command name
+      \index{#1 package@\texttt{#1} package}\index{packages!#1@\texttt{#1}}% package name
+    }%
+}% command name -- adds backslash automatically
+\newcommand{\docopt}[1]{\ensuremath{\langle}\textrm{\textit{#1}}\ensuremath{\rangle}}% optional command argument
+\newcommand{\docarg}[1]{\textrm{\textit{#1}}}% (required) command argument
+\newenvironment{docspec}{\begin{quotation}\ttfamily\parskip0pt\parindent0pt\ignorespaces}{\end{quotation}}% command specification environment
+\newcommand{\docenv}[1]{\texttt{#1}\index{#1 environment@\texttt{#1} environment}\index{environments!#1@\texttt{#1}}}% environment name
+\newcommand{\docenvdef}[1]{\hlred{\texttt{#1}}\label{env:#1}\index{#1 environment@\texttt{#1} environment}\index{environments!#1@\texttt{#1}}}% environment name
+\newcommand{\docpkg}[1]{\texttt{#1}\index{#1 package@\texttt{#1} package}\index{packages!#1@\texttt{#1}}}% package name
+\newcommand{\doccls}[1]{\texttt{#1}}% document class name
+\newcommand{\docclsopt}[1]{\texttt{#1}\index{#1 class option@\texttt{#1} class option}\index{class options!#1@\texttt{#1}}}% document class option name
+\newcommand{\docclsoptdef}[1]{\hlred{\texttt{#1}}\label{clsopt:#1}\index{#1 class option@\texttt{#1} class option}\index{class options!#1@\texttt{#1}}}% document class option name defined
+\newcommand{\docmsg}[2]{\bigskip\begin{fullwidth}\noindent\ttfamily#1\end{fullwidth}\medskip\par\noindent#2}
+\newcommand{\docfilehook}[2]{\texttt{#1}\index{file hooks!#2}\index{#1@\texttt{#1}}}
+\newcommand{\doccounter}[1]{\texttt{#1}\index{#1 counter@\texttt{#1} counter}}
+
+%attempt to allow footnotes in verbatim
+\usepackage{verbatim}
+\newcommand{\vfchar}[1]{%
+  % the usual trick for using a "variable" active character
+  \begingroup\lccode`~=`#1 \lowercase{\endgroup\def~##1~}{%
+    % separate the footnote mark from the footnote text
+    % so the footnote mark will occupy the same space as
+    % any other character
+    \makebox[0.5em][l]{\footnotemark}%
+    \footnotetext{##1}%
+  }%
+  \catcode`#1=\active
+}
+\newenvironment{fverbatim}[1]
+ {\verbatim\vfchar{#1}}
+ {\endverbatim}
+
+
+
+
+% Generates the index
+\usepackage{makeidx}
+\makeindex
+
+%\usepackage{natbib}
+\setcitestyle{numbers,square}
+
+\usepackage{parskip}
+
+
+\begin{document}
+
+\setlength{\parindent}{0pt}
+
+% Front matter
+\frontmatter
+
+
+% r.3 full title page
+\maketitle
+
+
+% v.4 copyright page
+\newpage
+\begin{fullwidth}
+~\vfill
+\thispagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\baselineskip}
+Copyright \copyright\ \the\year\ \thanklessauthor
+
+%\par\smallcaps{Published by \thanklesspublisher}
+
+\par\smallcaps{https://scine.ethz.ch/download/sparrow}
+
+\par Unless required by applicable law or agreed to in writing, the software 
+is distributed on an \smallcaps{``AS IS'' BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND}, either express or implied. \index{license}
+
+%\par\textit{First printing, \monthyear}
+\end{fullwidth}
+
+% r.5 contents
+\tableofcontents
+
+%\listoffigures
+
+%\listoftables
+
+
+%%
+% Start the main matter (normal chapters)
+\mainmatter
+
+\let\cleardoublepage\clearpage
+\chapter{Introduction}
+
+The availability of fast electronic energies and gradients is essential for the SCINE project. The SCINE \textsc{Sparrow} 
+module contains electronic structure models which were designed to yield electronic energies, energy gradients with 
+respect to the nuclear coordinates, and Hessians rapidly. The SCINE \textsc{Sparrow} module can be driven from SCINE 
+\textsc{Interactive}, SCINE \textsc{ReaDuct}, and SCINE \textsc{Chemoton}. However, as with all SCINE modules it is also 
+a stand-alone program which can be applied on its own or easily interfaced to other programs.
+
+SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 1.0.0 
+provides the PM6, MNDO, AM1, PM3, RM1, non-SCC DFTB (DFTB0), DFTB2, amd DFTB3 methods (open- and closed-shell formalisms are implemented). 
+The application of semiempirical models usually allows for rapid calculation of electronic energies and energy gradients 
+for a small molecular structure with a given charge and spin state.
+
+In this manual, we describe the installation of the software, an example calculation as a hands-on 
+introduction to the program, and the most import functions and options.\footnote{Throughout this manual, the most 
+import information is displayed in the main text, whereas useful additional information is given as a side note like this one.}
+A prospect on features in future releases and references for further reading are added at the end of this manual.\enlargethispage{\baselineskip}
+
+
+
+\chapter{Obtaining the Software}
+\label{ch:obtain}
+
+\textsc{Sparrow}  is distributed as open source software in the framework of the SCINE project (\href{https://scine.ethz.ch/}{www.scine.ethz.ch}).
+Visit our website (\href{https://scine.ethz.ch/download/sparrow}{www.scine.ethz.ch/download/sparrow}) to obtain the software. 
+
+\section{System Requirements}
+
+\textsc{Sparrow} can be used on any computer with a 64-bit x86 architecture. The software itself has only modest requirements
+regarding the hardware performance. However, the underlying quantum-chemical calculations might become resource intensive 
+if extremely large systems are studied.
+
+
+
+\chapter[Installation]{Installation}
+\label{ch:installation}
+
+\textsc{Sparrow} is distributed as an open source code. In order to compile \textsc{Sparrow} from this source code, you need
+\begin{itemize}
+ \item A C++ compiler supporting the C++14 standard (we recommend gcc 7.3.0),
+ \item cmake (at least version 3.9.0),
+ \item the Boost library (we recommend version 1.64.0), and
+ \item the Eigen3 library (we recommend version 3.3.2).
+\end{itemize}
+In order to compile the software, either directly clone the repository with git or extract the downloaded tarball, change 
+to the source directory and execute the following steps:
+\begin{verbatim}
+git submodule init
+git submodule update
+mkdir build install
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install ..
+make
+make test
+make install
+export PATH=$PATH:<source code directory>/install/bin
+\end{verbatim}
+This will configure everything, compile your software, run the tests, and install the software 
+into the folder ``install''. Finally, it will add the \textsc{Sparrow} binary to your \texttt{PATH}, such that you can use
+it without having to specify its full location. In this last command, you have to replace \texttt{<source code directory>}
+with the full path where you stored the source code of \textsc{Sparrow}.
+
+In case you need support with the setup of \textsc{Sparrow}, please contact us by writing to \href{scine@phys.chem.ethz.ch}{scine@phys.chem.ethz.ch}.
+
+
+
+\chapter{Example Calculation}
+
+\textsc{Sparrow} is a command-line-only binary; there is no graphical user interface. Therefore, you always work with the
+\textsc{Sparrow} binary on a command line such as the Gnome Terminal or KDE Konsole.
+All functionality is accessed via command line arguments. All possible command line options can be listed with the following command:
+\begin{verbatim}
+sparrow --help
+\end{verbatim}
+
+In order to provide a practical demonstration of the \textsc{Sparrow} program, we present here a step-by-step example calculation that guides 
+you through the complete process of calculating the total electronic energy as well as the nuclear gradient and Hessian of a molecular structure 
+with \textsc{Sparrow}. We start with the following
+Cartesian coordinates for water:
+\begin{verbatim}
+3
+
+O      -0.27939703       0.83823215       0.00973345
+H      -0.52040310       1.77677325       0.21391146
+H       0.54473632       0.90669722      -0.53501306
+\end{verbatim}
+Store these coordinates in a file named ``h2o.xyz''. Then, call \textsc{Sparrow} with the following command:
+\begin{verbatim}
+sparrow  --structure h2o.xyz --molecular_charge 0 --spin_multiplicity 1 --method PM6
+\end{verbatim}
+This will calculate the electronic energy for the neutral water molecule with PM6. You can also use the short options
+\begin{verbatim}
+sparrow -x h2o.xyz -c 0 -s 1 -M PM6
+\end{verbatim}
+to achieve the same result. If you also want to calculate the nuclear gradient, simply add the option \texttt{-{}-gradient}
+or \texttt{-G}. For the Hessian, specify \texttt{-{}-hessian} or \texttt{-H}.
+
+
+
+\chapter{Detailed Documentation}
+
+\section{Command Line Arguments}
+
+In this section, the full functionality of \textsc{Sparrow} is documented, \textit{i.e.}, all possible command line arguments
+are listed and explained.
+
+\begin{itemize}
+\item \texttt{-{}-structure}, \texttt{-x}: This argument specifies the structure which should be calculated. It must be given
+as a path to an XYZ file.
+\item \texttt{-{}-molecular\_charge}, \texttt{-c}: This is used to specify the overall charge of the system to be calculated, 
+\texttt{e.g.}, \texttt{-{}-molecular\_charge 0} or \texttt{-c -1}. The default charge is zero.
+\item \texttt{-{}-spin\_multiplicity}, \texttt{-s}: This is used to specify the spin multiplicity of the system to be
+calculated, \texttt{e.g.}, \texttt{-s 1}. The default multiplicity is one.
+\item \texttt{-{}-gradients}, \texttt{-G}: If given, the nuclear gradients will be calculated.
+\item \texttt{-{}-hessian}, \texttt{-H}: If given, the Hessian and the nuclear gradients will be calculated.
+\item \texttt{-{}-suppress\_normal\_modes}, \texttt{-N}: If given, the full Hessian will be printed instead of the normal 
+modes and the vibrational frequencies. This option has no effect if the Hessian is not calculated (see above).
+\item \texttt{-{}-bond\_orders}, \texttt{-B}: If given, the bond order matrix will be calculated.
+\item \texttt{-{}-method}, \texttt{-M}: With this option, the desired calculation method can be set. Options in
+\textsc{Sparrow} 1.0.0 are \texttt{MNDO}, \texttt{AM1}, \texttt{PM6}, \texttt{PM3}, \texttt{RM1}, \texttt{DFTB0}, \texttt{DFTB2}, and
+\texttt{DFTB3}. By default, \texttt{PM6} is selected.
+\item \texttt{-{}-output\_to\_file}, \texttt{-o}: If this option is given, the output will not only be printed to the screen, 
+but also to files. By default, the energy is stored in a file named ``energy.dat'', the nuclear gradients in a file named
+``gradients.dat'', the Hessian in a file named ``hessian.dat'', and the bond order matrix in a file named ``bond\_orders.dat''.
+If a description is given with the option \texttt{-d} (see below), this description will also be used in the file name.
+\item \texttt{-{}-description}, \texttt{-d}: This can be used to add a (short) description of the calculation. This
+description will appear in the output. This allows to quickly find a certain calculation output at a later point. The
+description should be enclosed by quotation marks, \textit{e.g.}, \texttt{-d "This is an example"}.
+\item \texttt{-{}-unrestricted\_calculation}, \texttt{-u}: If this option is given, an unrestricted (UHF) calculation
+will be performed. By default, a restricted calculation will be done.
+\end{itemize}
+
+The following options are usually not needed:
+
+\begin{itemize}
+\item \texttt{-{}-help}, \texttt{-h}: This prints a short help message listing and explaining all possible command line 
+arguments
+\item \texttt{-{}-scf\_mixer}, \texttt{-m}: With this option, the method used to accelerate the convergence of the self-
+consistent-field (SCF) calculations can be set. Possible options are `no\_mixer` (no convergence acceleration), `diis`
+(direct inversion of the iterative subspace, DIIS), `ediis` (extended DIIS), and `ediis\_diis`. The
+default is `diis`.
+\item \texttt{-{}-max\_scf\_iterations}, \texttt{-i}: This is used to specify the maximum number of SCF iterations. Default is 100.
+\item \texttt{-{}-self\_consistence\_criterion}, \texttt{-t}: This specifies the convergence threshold for the electronic energy.
+This value is given in hartree. By default, it is `1e-5`. 
+\item \texttt{-{}-parameter\_file}, \texttt{-p}: This option can be used to specify the path of the parameter file to be
+used. This option is usually not needed, since \textsc{Sparrow} provides default parameter files for all its methods.
+\item \texttt{-{}-parameter\_root}, \texttt{-P}: This option can be used to specify a directory in which \textsc{Sparrow}
+should search for its parameter files. This option is usually not needed, since \textsc{Sparrow} provides default parameter 
+files for all its methods.
+\item \texttt{-{}-log}, \texttt{-l}: This sets the log level for warning messages and errors. Supported levels are 
+\texttt{trace}, \texttt{info}, \texttt{warning}, \texttt{error}, and \texttt{fatal}. By default, the level is set to
+\texttt{info}, \textit{i.e.}, all warnings and errors are printed to STDERR. If you set this option to \texttt{error}, 
+only errors are printed. If you set this to \texttt{none}, neither warnings nor errors are printed.
+\end{itemize}
+
+
+\section{Running \textsc{Sparrow} in Parallel}
+
+By default, \textsc{Sparrow} will be compiled with \textsc{OpenMP} support and hence, it can be run in parallel. In order
+to use multiple CPU cores, simply specify
+\begin{verbatim}
+export OMP_NUM_THREADS=n
+\end{verbatim}
+where \texttt{n} is the number of CPUs you want to use. Note that by default, \textsc{Sparrow} uses all available cores,
+\textit{i.e.}, it will also run in parallel if you do not specify the above environment variable.
+
+
+
+\chapter{Extensions Planned in Future Releases}
+\begin{itemize}
+\item Availability of OMx models
+\item Availability of the GFN-xTB method
+\item Availability of the CISE approach
+\item Calculation of thermodynamic properties
+\item Calculation of excited states
+\item Implementation of periodic boundary conditions
+\end{itemize}
+
+
+
+\chapter{References}
+
+Please consult the following references for more details on \textsc{Sparrow}.
+We kindly ask you to cite the appropriate references in any publication of results obtained with \textsc{Sparrow}.
+\vspace{1.0cm}
+
+\begin{itemize}
+ \item Presentation of the formalism of MNDO-type and OMx models: \newline
+T.~Husch, A.~C.~Vaucher, M.~Reiher \href{https://doi.org/10.1002/qua.25799}{"Semiempirical Molecular Orbital Models Based on the Neglect of Diatomic Differential Overlap Approximation"}, \textit{Int.~J.~Quantum Chem.}, \textbf{2018}, \textit{118}, e25799.
+\item Presentation of DFTB approaches: \newline
+M.~Elstner, G.~Seifert, \href{https://doi.org/10.1098/rsta.2012.0483}{"Density functional tight binding"}, \textit{Phil. Trans.~R.~Soc.~A}, \textbf{2014}, \textit{371}, 20120483.
+\item Presentation of CISE: \newline
+T.~Husch, M.~Reiher \href{https://doi.org/10.1021/acs.jctc.8b00601}{"Comprehensive Analysis of the Neglect of Diatomic Differential Overlap Approximation"}, \textit{J.~Chem.~Theory Comput.}, \textbf{2018}, \textit{14}, 5169.
+\end{itemize}
+
+
+
+%%
+% The back matter contains appendices, bibliographies, indices, glossaries, etc.
+
+%\backmatter
+
+%\printindex
+
+\end{document}

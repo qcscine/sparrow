@@ -1,0 +1,26 @@
+SVN repository information:
+---------------------------
+$Id: README 3075 2008-11-11 17:47:38Z niehaus $
+$URL: svn+ssh://svn/slako/tags/skful/rare-0-2/README $
+
+This set has been developed for the simulation of rare earth defects in GaN
+[PRB07, PHD07]. Tests and results can be found in [PSSC07, JPCA07], while a
+proper validation of the set can be found in [PHD07].
+
+Relevant Publications
+---------------------
+
+[PRB07]  Phys. Rev. B; 76; pp. 155128 (2007)
+[PSSC07] Phys. Stat. Sol. (c); 5; pp. 2358 (2008)
+[JPCA07] J. Phys. Chem. A.; 111; 5665 (2007)
+[PHD07]  Simone Sanna, Ph.D Thesis, Univesitaet Paderborn (2007).
+
+The set works quite well for the simulation of geometric and electronic
+structure of the rare earth point defects in hexagonal GaN. The parameters are
+intended to be used in the framework of the LDA+U implementation of DFTB.
+The set is intended to be used for solid state simulations and not for
+molecules. The reliability in the simulation of surfaces is to be verified.
+
+Publications to be cited
+------------------------
+[PRB07]

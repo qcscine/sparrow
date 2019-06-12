@@ -1,0 +1,17 @@
+/**
+ * @file ParametersHeader.h
+ * @copyright This code is licensed under the 3-clause BSD license.\n
+ *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            See LICENSE.txt for details.
+ */
+
+/*
+ * File "ParametersHeader.h", generated from "ParametersHeader.h.in" to set the paths of the parameters for use in
+ * module.
+ */
+
+namespace Scine {
+namespace Sparrow {
+static constexpr const char* const parametersRootDir = "@parameter_dir@";
+} // namespace Sparrow
+} // namespace Scine

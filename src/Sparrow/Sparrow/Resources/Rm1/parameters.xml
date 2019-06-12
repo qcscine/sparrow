@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Parameters of the RM1 method
+	============================
+
+	File created by F. Bosia and J. P. Unsleber on Feb 15, 2019,
+	based on output by MOPAC2016.
+
+	Description of the parameters, with, in parenthesis,
+	corresponding name in MOPAC output
+
+	- uss (USS) one-center energy for s orbital (eV)
+	- upp (UPP) one-center energy for p orbital (eV)
+	- udd (UDD) one-center energy for d orbital (eV)
+	- zs (ZS) orbital exponent for s (bohr-1)
+	- zp (ZP) orbital exponent for p (bohr-1)
+	- zd (ZD) orbital exponent for d (bohr-1)
+	- bs (BETAS) beta parameter for s (eV)
+	- bp (BETAP) beta parameter for p (eV)
+	- bd (BETAD) beta parameter for d (eV)
+	- gss (GSS) one-center Coulomb integral s-s (eV)
+	- gpp (GPP) one-center Coulomb integral p-p (eV)
+	- gsp (GSP) one-center Coulomb integral s-p (eV)
+	- gp2 (GP2) one-center Coulomb integral p-p' (eV)
+	- hsp (HSP) one-center exchange integral s-p (eV)
+	- zsn (ZSN) internal exponent for s, needed for SC parameters (bohr-1)
+	- zpn (ZPN) internal exponent for p, needed for SC parameters (bohr-1)
+	- zdn (ZDN) internal exponent for d, needed for SC parameters (bohr-1)
+	- pcore (PO9) Klopman-Ohno term for the core-core repulsion, sometimes unequal to pss0
+	- f0sd (F0SD) Slater-Condon parameter F0sd (eV)
+	- g2sd (G2SD) Slater-Condon parameter G2sd (eV)
+	- grepa (FN11) gaussian repulsion parameter a (-)
+	- grepb (FN21) gaussian repulsion parameter b (A^-2)
+	- grepc (FN31) gaussian repulsion parameter c (A)
+
+The diatomic parameters are not needed for the AM1 method, and the diatomic map is empty:
+	- exponent (ALPB) (A^-1)
+	- factor (XFAC) (-)
+
+The following is still not understood (alpha not a parameter but given for some elements) or not needed (eHeat, eisol):
+	- alpha (ALP) ALPHA PARAMETER FOR CORE (1/A)
+
+The following are not needed anymore as they are calculated during the initialization if needed:
+	- charge (CORE) core charge of atom (e)
+	- f0dd (F0DD) Slater-Condon parameter F0dd (eV)
+	- f2dd (F2DD) Slater-Condon parameter F2dd (eV)
+	- f4dd (F4DD) Slater-Condon parameter F4dd (eV)
+	- f0pd (F0PD) Slater-Condon parameter F0pd (eV)
+	- f2pd (F2PD) Slater-Condon parameter F3pd (eV)
+	- g1pd (G1PD) Slater-Condon parameter G1pd (eV)
+	- g3pd (G3PD) Slater-Condon parameter G3pd (eV)
+	- dsp1 (DD2) Charge separation in multipole, for sp1 (bohr)
+	- dpp2 (DD3) Charge separation in multipole, for pp2 (bohr)
+	- dsd2 (DD4) Charge separation in multipole, for sd2 (bohr)
+	- dpd1 (DD5) Charge separation in multipole, for pd1 (bohr)
+	- ddd2 (DD6) Charge separation in multipole, for dd2 (bohr)
+	- pss0 (PO1) Klopman-Ohno term for ss0 (bohr)
+	- psp1 (PO2) Klopman-Ohno term for sp1 (bohr)
+	- ppp2 (PO3) Klopman-Ohno term for pp2 (bohr)
+	- psd2 (PO4) Klopman-Ohno term for sd2 (bohr)
+	- ppd1 (PO5) Klopman-Ohno term for pd1 (bohr)
+	- pdd2 (PO6) Klopman-Ohno term for dd2 (bohr)
+	- ppp0 (PO7) Klopman-Ohno term for pp0 (bohr)
+	- pdd0 (PO8) Klopman-Ohno term for dd0 (bohr)
+
+ -->
+<cereal>
+	<value0 size="dynamic">
+		<value0>
+			<key>1</key>
+			<value>
+				<uss>-11.960677</uss>
+				<upp>0</upp>
+				<udd>0</udd>
+				<bs>-5.7654446999999998</bs>
+				<bp>0</bp>
+				<bd>0</bd>
+				<gss>13.983212999999999</gss>
+				<gpp>0</gpp>
+				<gsp>0</gsp>
+				<gp2>0</gp2>
+				<hsp>0</hsp>
+				<zs>1.0826737</zs>
+				<zp>0</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>0.97300182000000002</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>3.0683595000000001</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.1028888</grepa>
+						<grepb>5.9017226999999997</grepb>
+						<grepc>1.1750118000000001</grepc>
+					</value0>
+					<value1>
+						<grepa>0.064574500000000007</grepa>
+						<grepb>6.4178566999999997</grepb>
+						<grepc>1.9384448000000001</grepc>
+					</value1>
+					<value2>
+						<grepa>-0.035673900000000001</grepa>
+						<grepb>2.8047312999999998</grepb>
+						<grepc>1.6365524</grepc>
+					</value2>
+				</gaussianRepulsionParameters>
+			</value>
+		</value0>
+		<value1>
+			<key>15</key>
+			<value>
+				<uss>-41.815331800000003</uss>
+				<upp>-34.383425299999999</upp>
+				<udd>0</udd>
+				<bs>-6.1351497000000004</bs>
+				<bp>-5.9444213000000001</bp>
+				<bd>0</bd>
+				<gss>11.080592599999999</gss>
+				<gpp>7.6041755999999996</gpp>
+				<gsp>5.6833920000000004</gsp>
+				<gp2>7.4026518000000001</gp2>
+				<hsp>1.1618179</hsp>
+				<zs>2.1224012000000001</zs>
+				<zp>1.7432795000000001</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>1.22788484</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>1.9099329</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>-0.41063470000000002</grepa>
+						<grepb>6.0875282999999998</grepb>
+						<grepc>1.3165026</grepc>
+					</value0>
+					<value1>
+						<grepa>-0.1629929</grepa>
+						<grepb>7.0947259999999996</grepb>
+						<grepc>1.9072131999999999</grepc>
+					</value1>
+					<value2>
+						<grepa>-0.048871299999999999</grepa>
+						<grepb>8.9997930999999998</grepb>
+						<grepc>2.6585778000000002</grepc>
+					</value2>
+				</gaussianRepulsionParameters>
+			</value>
+		</value1>
+		<value2>
+			<key>16</key>
+			<value>
+				<uss>-55.167751199999998</uss>
+				<upp>-46.529304199999999</upp>
+				<udd>0</udd>
+				<bs>-1.9591072</bs>
+				<bp>-8.7743064999999998</bp>
+				<bd>0</bd>
+				<gss>12.4882841</gss>
+				<gpp>8.5230116999999996</gpp>
+				<gsp>8.5691056999999997</gsp>
+				<gp2>7.6686329999999998</gp2>
+				<hsp>3.8897892999999999</hsp>
+				<zs>2.1334431</zs>
+				<zp>1.8746065000000001</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>1.0894764699999999</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>2.4401563999999998</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>-0.74601059999999997</grepa>
+						<grepb>4.8103800000000003</grepb>
+						<grepc>0.59380129999999998</grepc>
+					</value0>
+					<value1>
+						<grepa>-0.065192899999999998</grepa>
+						<grepb>7.2076086000000004</grepb>
+						<grepc>1.2949200999999999</grepc>
+					</value1>
+					<value2>
+						<grepa>-0.0065598000000000002</grepa>
+						<grepb>9.0000017999999997</grepb>
+						<grepc>1.8006015</grepc>
+					</value2>
+				</gaussianRepulsionParameters>
+			</value>
+		</value2>
+		<value3>
+			<key>17</key>
+			<value>
+				<uss>-118.4730692</uss>
+				<upp>-76.353303400000001</upp>
+				<udd>0</udd>
+				<bs>-19.924304299999999</bs>
+				<bp>-11.529351999999999</bp>
+				<bd>0</bd>
+				<gss>15.360231000000001</gss>
+				<gpp>12.565026400000001</gpp>
+				<gsp>13.306711699999999</gsp>
+				<gp2>9.6639707999999995</gp2>
+				<hsp>1.764899</hsp>
+				<zs>3.8649106999999998</zs>
+				<zp>1.8959314</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>0.8857739</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>3.6935883</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.12947110000000001</grepa>
+						<grepb>2.9772441999999999</grepb>
+						<grepc>1.4674978000000001</grepc>
+					</value0>
+					<value1>
+						<grepa>0.0028890000000000001</grepa>
+						<grepb>7.0982759</grepb>
+						<grepc>2.5000271999999999</grepc>
+					</value1>
+				</gaussianRepulsionParameters>
+			</value>
+		</value3>
+		<value4>
+			<key>35</key>
+			<value>
+				<uss>-113.4839818</uss>
+				<upp>-76.187200200000007</upp>
+				<udd>0</udd>
+				<bs>-1.3413984000000001</bs>
+				<bp>-8.2022598999999996</bp>
+				<bd>0</bd>
+				<gss>17.115630700000001</gss>
+				<gpp>10.7354629</gpp>
+				<gsp>15.624192499999999</gsp>
+				<gp2>8.8605619999999998</gp2>
+				<hsp>2.2351276000000002</hsp>
+				<zs>5.7315721000000002</zs>
+				<zp>2.0314757999999999</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>0.79492786000000004</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>2.8671053</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.98689939999999998</grepa>
+						<grepb>4.2848419</grepb>
+						<grepc>2.000197</grepc>
+					</value0>
+					<value1>
+						<grepa>-0.92731249999999998</grepa>
+						<grepb>4.5400590999999997</grepb>
+						<grepc>2.0161769999999999</grepc>
+					</value1>
+				</gaussianRepulsionParameters>
+			</value>
+		</value4>
+		<value5>
+			<key>53</key>
+			<value>
+				<uss>-74.899978399999995</uss>
+				<upp>-51.410238</upp>
+				<udd>0</udd>
+				<bs>-4.1931615000000004</bs>
+				<bp>-4.4003841000000001</bp>
+				<bd>0</bd>
+				<gss>19.9997413</gss>
+				<gpp>7.3048833999999996</gpp>
+				<gsp>7.6895766999999999</gsp>
+				<gp2>6.8542461000000001</gp2>
+				<hsp>1.4160294</hsp>
+				<zs>2.5300375000000002</zs>
+				<zp>2.3173868</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>0.68029337999999995</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>2.1415709000000001</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>-0.0814772</grepa>
+						<grepb>1.5606507000000001</grepb>
+						<grepc>2.0000206</grepc>
+					</value0>
+					<value1>
+						<grepa>0.059149899999999998</grepa>
+						<grepb>5.7611127</grepb>
+						<grepc>2.204888</grepc>
+					</value1>
+				</gaussianRepulsionParameters>
+			</value>
+		</value5>
+		<value6>
+			<key>6</key>
+			<value>
+				<uss>-51.725560299999998</uss>
+				<upp>-39.407289400000003</upp>
+				<udd>0</udd>
+				<bs>-15.4593243</bs>
+				<bp>-8.2360863999999996</bp>
+				<bd>0</bd>
+				<gss>13.0531244</gss>
+				<gpp>10.9511374</gpp>
+				<gsp>11.334793899999999</gsp>
+				<gp2>9.7239509999999996</gp2>
+				<hsp>1.5521513</hsp>
+				<zs>1.8501879999999999</zs>
+				<zp>1.7683009000000001</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>1.04233219</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>2.7928207999999999</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.0746227</grepa>
+						<grepb>5.7392159999999999</grepb>
+						<grepc>1.0439697999999999</grepc>
+					</value0>
+					<value1>
+						<grepa>0.0117705</grepa>
+						<grepb>6.9240173</grepb>
+						<grepc>1.6615956999999999</grepc>
+					</value1>
+					<value2>
+						<grepa>0.037206599999999999</grepa>
+						<grepb>6.2615894000000001</grepb>
+						<grepc>1.6315872</grepc>
+					</value2>
+					<value3>
+						<grepa>-0.0027066</grepa>
+						<grepb>9.0000373000000007</grepb>
+						<grepc>2.795579</grepc>
+					</value3>
+				</gaussianRepulsionParameters>
+			</value>
+		</value6>
+		<value7>
+			<key>7</key>
+			<value>
+				<uss>-70.8512372</uss>
+				<upp>-57.977309200000001</upp>
+				<udd>0</udd>
+				<bs>-20.871245500000001</bs>
+				<bp>-16.671718500000001</bp>
+				<bd>0</bd>
+				<gss>13.087362300000001</gss>
+				<gpp>13.6992432</gpp>
+				<gsp>13.2122683</gsp>
+				<gp2>11.9410395</gp2>
+				<hsp>5.0000084999999999</hsp>
+				<zs>2.3744716000000001</zs>
+				<zp>1.9781257000000001</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>1.03960534</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>2.9642254000000001</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.060733799999999998</grepa>
+						<grepb>4.5889294999999999</grepb>
+						<grepc>1.3787388</grepc>
+					</value0>
+					<value1>
+						<grepa>0.0243856</grepa>
+						<grepb>4.6273052000000003</grepb>
+						<grepc>2.083707</grepc>
+					</value1>
+					<value2>
+						<grepa>-0.022834299999999998</grepa>
+						<grepb>2.0527465999999999</grepb>
+						<grepc>1.8676382</grepc>
+					</value2>
+				</gaussianRepulsionParameters>
+			</value>
+		</value7>
+		<value8>
+			<key>8</key>
+			<value>
+				<uss>-96.949480699999995</uss>
+				<upp>-77.890929799999995</upp>
+				<udd>0</udd>
+				<bs>-29.851012099999998</bs>
+				<bp>-29.1510131</bp>
+				<bd>0</bd>
+				<gss>14.002427900000001</gss>
+				<gpp>14.1451514</gpp>
+				<gsp>14.9562504</gsp>
+				<gp2>12.703255</gp2>
+				<hsp>3.9321716000000002</hsp>
+				<zs>3.1793691000000002</zs>
+				<zp>2.5536191000000001</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>0.97166660999999999</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>4.1719672000000001</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.23093549999999999</grepa>
+						<grepb>5.2182874000000004</grepb>
+						<grepc>0.90363559999999998</grepc>
+					</value0>
+					<value1>
+						<grepa>0.058598699999999997</grepa>
+						<grepb>7.4293293</grepb>
+						<grepc>1.5175460999999999</grepc>
+					</value1>
+				</gaussianRepulsionParameters>
+			</value>
+		</value8>
+		<value9>
+			<key>9</key>
+			<value>
+				<uss>-134.1836959</uss>
+				<upp>-107.8466092</upp>
+				<udd>0</udd>
+				<bs>-70.000005099999996</bs>
+				<bp>-32.679827099999997</bp>
+				<bd>0</bd>
+				<gss>16.720913199999998</gss>
+				<gpp>15.225810299999999</gpp>
+				<gsp>16.7614263</gsp>
+				<gp2>14.8657868</gp2>
+				<hsp>1.9976617000000001</hsp>
+				<zs>4.4033791000000004</zs>
+				<zp>2.6484155999999999</zp>
+				<zd>0</zd>
+				<zsn>0</zsn>
+				<zpn>0</zpn>
+				<zdn>0</zdn>
+				<pcore>0.81369309999999995</pcore>
+				<f0sd>0</f0sd>
+				<g2sd>0</g2sd>
+				<alpha>6.0000005999999999</alpha>
+				<gaussianRepulsionParameters size="dynamic">
+					<value0>
+						<grepa>0.4030203</grepa>
+						<grepb>7.2044195999999996</grepb>
+						<grepc>0.81653010000000004</grepc>
+					</value0>
+					<value1>
+						<grepa>0.070858299999999999</grepa>
+						<grepb>9.0000155999999993</grepb>
+						<grepc>1.4380238000000001</grepc>
+					</value1>
+				</gaussianRepulsionParameters>
+			</value>
+		</value9>
+	</value0>
+	<value1 size="dynamic"/>
+</cereal>
+
