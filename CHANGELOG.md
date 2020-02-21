@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 1.0.1
+
+Hotfix to allow compilation on OSX using Clang.
+
 ## Release 1.0.0
 
 Initial release with the following features:

@@ -608,12 +608,18 @@ TEST_F(AMNDOCalculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCor
   dynamicallyLoadedMethodWrapper->setRequiredProperties(Utils::Property::Gradients);
   cloned->setRequiredProperties(Utils::Property::Gradients);
 
+#ifdef _OPENMP
   auto numThreads = omp_get_num_threads();
   omp_set_num_threads(1);
+#endif
   auto resultCloned = cloned->calculate("");
+#ifdef _OPENMP
   omp_set_num_threads(4);
+#endif
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
+#ifdef _OPENMP
   omp_set_num_threads(numThreads);
+#endif
 
   for (int i = 0; i < resultCloned.getGradients().size(); ++i) {
     ASSERT_THAT(resultCloned.getGradients()(i), DoubleNear(result.getGradients()(i), 1e-7));

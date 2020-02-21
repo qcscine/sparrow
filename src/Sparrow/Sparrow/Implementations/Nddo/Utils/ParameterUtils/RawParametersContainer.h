@@ -12,6 +12,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <string>
 
 namespace Scine {
 namespace Sparrow {
