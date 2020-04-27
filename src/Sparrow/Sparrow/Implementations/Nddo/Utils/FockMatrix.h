@@ -12,7 +12,7 @@
 #include "TwoElectronMatrix.h"
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/TwoCenterIntegralContainer.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsTypesHelper.h>
-#include <Utils/MethodEssentials/Methods/ElectronicContributionCalculator.h>
+#include <Utils/Scf/MethodInterfaces/ElectronicContributionCalculator.h>
 #include <memory>
 
 namespace Scine {
@@ -47,6 +47,21 @@ class FockMatrix : public Utils::ElectronicContributionCalculator {
 
   const OneElectronMatrix& getOneElectronMatrix() const;
   const TwoElectronMatrix& getTwoElectronMatrix() const;
+  const std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>>& getDensityDependentContributions() const;
+  const std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>>& getDensityIndependentContributions() const;
+
+  /**
+   * This function adds an additive electronic contribution to the
+   * Hamiltonian that will be evaluated each SCF iteration.
+   */
+  void addDensityDependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
+  /**
+   * This function adds an additive electronic contribution to the Hamiltonian
+   * that will be evaluated once per single-point calculation.
+   */
+  void addDensityIndependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
+  void clearElectronicContributions();
+  void eraseElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution);
 
  private:
   template<Utils::derivativeType O>
@@ -58,6 +73,8 @@ class FockMatrix : public Utils::ElectronicContributionCalculator {
   const Utils::OverlapCalculator& overlapCalculator_;
   const bool& unrestrictedCalculationRunning_;
   std::unique_ptr<Utils::ElectronicEnergyCalculator> electronicEnergyCalculator_;
+  std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>> densityDependentContributions_,
+      densityIndependentContributions_;
 };
 
 } // namespace nddo

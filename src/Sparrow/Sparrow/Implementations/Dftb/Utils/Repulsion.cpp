@@ -7,6 +7,7 @@
 
 #include "Repulsion.h"
 #include "PairwiseRepulsion.h"
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
 #include <Utils/Typenames.h>
 
@@ -19,7 +20,7 @@ namespace dftb {
 
 Repulsion::Repulsion(const Utils::ElementTypeCollection& elements, const Utils::PositionCollection& positions,
                      const DFTBCommon::DiatomicParameterContainer& diatomicParameters)
-  : nAtoms_(0), elements_(elements), positions_(positions), diatomicParameters_(diatomicParameters) {
+  : RepulsionCalculator(elements, positions), nAtoms_(0), diatomicParameters_(diatomicParameters) {
 }
 
 Repulsion::~Repulsion() = default;
@@ -42,7 +43,7 @@ void Repulsion::initializePair(int i, int j) {
   Utils::ElementType e1 = elements_[i];
   Utils::ElementType e2 = elements_[j];
 
-  SKPair* parameters = diatomicParameters_[static_cast<int>(e1)][static_cast<int>(e2)].get();
+  SKPair* parameters = diatomicParameters_[Utils::ElementInfo::Z(e1)][Utils::ElementInfo::Z(e2)].get();
 
   pairRepulsions_[i][j] = std::make_unique<dftb::PairwiseRepulsion>(parameters->getRepulsionParameters());
 }
@@ -58,7 +59,7 @@ void Repulsion::calculateRepulsion(Utils::derivOrder order) {
 void Repulsion::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
   const auto& pA = positions_.row(i);
   const auto& pB = positions_.row(j);
-  auto Rab = pB - pA;
+  Eigen::Vector3d Rab = pB - pA;
 
   pairRepulsions_[i][j]->calculate(Rab, order);
 }

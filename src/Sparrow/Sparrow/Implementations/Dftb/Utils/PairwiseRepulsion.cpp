@@ -20,7 +20,7 @@ namespace dftb {
 PairwiseRepulsion::PairwiseRepulsion(const RepulsionParameters& repulsionPars) : repulsionPars_(repulsionPars) {
 }
 
-void PairwiseRepulsion::calculate(const Eigen::Vector3d& R, Utils::derivOrder order) {
+void PairwiseRepulsion::calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order) {
   double Rabs = R.norm();
   if (order == Utils::derivOrder::zero) {
     repulsionEnergy_ = calculateRepulsion<Utils::derivOrder::zero>(Rabs);

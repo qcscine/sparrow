@@ -19,13 +19,13 @@ namespace nddo {
 
 AM1RepulsionEnergy::AM1RepulsionEnergy(const Utils::ElementTypeCollection& elements,
                                        const Utils::PositionCollection& positions, const ElementParameters& elementParameters)
-  : elementParameters_(elementParameters), elementTypes_(elements), positions_(positions) {
+  : RepulsionCalculator(elements, positions), elementParameters_(elementParameters) {
 }
 
 AM1RepulsionEnergy::~AM1RepulsionEnergy() = default;
 
 void AM1RepulsionEnergy::initialize() {
-  nAtoms_ = elementTypes_.size();
+  nAtoms_ = elements_.size();
 
   // Create 2D-vector of empty uni
   rep_ = Container(nAtoms_);
@@ -40,8 +40,8 @@ void AM1RepulsionEnergy::initialize() {
 }
 
 void AM1RepulsionEnergy::initializePair(int i, int j) {
-  Utils::ElementType e1 = elementTypes_[i];
-  Utils::ElementType e2 = elementTypes_[j];
+  Utils::ElementType e1 = elements_[i];
+  Utils::ElementType e2 = elements_[j];
   const auto& p1 = elementParameters_.get(e1);
   const auto& p2 = elementParameters_.get(e2);
 
@@ -60,7 +60,7 @@ void AM1RepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
 void AM1RepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
   auto pA = positions_.row(i);
   auto pB = positions_.row(j);
-  auto Rab = pB - pA;
+  Eigen::Vector3d Rab = pB - pA;
 
   rep_[i][j]->calculate(Rab, order);
 }

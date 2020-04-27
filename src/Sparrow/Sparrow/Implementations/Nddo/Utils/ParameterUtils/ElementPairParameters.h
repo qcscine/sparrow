@@ -9,8 +9,10 @@
 #define SPARROW_ELEMENTPAIRPARAMETERS_H
 
 #include "PM6DiatomicParameters.h"
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Geometry/ElementTypes.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <memory>
@@ -36,20 +38,20 @@ class ElementPairParameters {
   }
 
   bool isSet(Utils::ElementType e1, Utils::ElementType e2) const {
-    if (e1 < e2)
-      std::swap(e1, e2);
-    return parameters_[static_cast<int>(e1)][static_cast<int>(e2)] != nullptr;
+    unsigned z1, z2;
+    std::tie(z1, z2) = std::minmax(Utils::ElementInfo::Z(e1), Utils::ElementInfo::Z(e2));
+    return parameters_[z2][z1] != nullptr;
   }
   void set(Utils::ElementType e1, Utils::ElementType e2, std::unique_ptr<PM6DiatomicParameters>&& parameters) {
-    if (e1 < e2)
-      std::swap(e1, e2);
-    parameters_[static_cast<int>(e1)][static_cast<int>(e2)] = std::move(parameters);
+    unsigned z1, z2;
+    std::tie(z1, z2) = std::minmax(Utils::ElementInfo::Z(e1), Utils::ElementInfo::Z(e2));
+    parameters_[z2][z1] = std::move(parameters);
   }
   const PM6DiatomicParameters& get(Utils::ElementType e1, Utils::ElementType e2) const {
     if (isSet(e1, e2)) {
-      if (e1 < e2)
-        std::swap(e1, e2);
-      return *parameters_[static_cast<int>(e1)][static_cast<int>(e2)];
+      unsigned z1, z2;
+      std::tie(z1, z2) = std::minmax(Utils::ElementInfo::Z(e1), Utils::ElementInfo::Z(e2));
+      return *parameters_[z2][z1];
     }
     throw Utils::Methods::ParametersDoNotExistForElementPairException(e1, e2);
   }

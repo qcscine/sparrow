@@ -9,7 +9,7 @@
 #include <Sparrow/Implementations/Nddo/Pm6/Wrapper/PM6MethodWrapper.h>
 #include <Utils/CalculatorBasics.h>
 #include <Utils/Geometry/AtomCollection.h>
-#include <Utils/IO/ChemicalFileFormats/XYZStreamHandler.h>
+#include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
 #include <Utils/Settings.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <gmock/gmock.h>
@@ -41,12 +41,12 @@ class CommonDipoleCalculation : public Test {
     std::stringstream HFss("2\n\n"
                            "H        0.000000000     0.000000000     0.000000000\n"
                            "F        0.965548748     0.000000000     0.000000000\n");
-    HF = Utils::XYZStreamHandler::read(HFss);
+    HF = Utils::XyzStreamHandler::read(HFss);
     std::stringstream CO2ss("3\n\n"
                             "C        0.013554240     0.017673604     0.000000000\n"
                             "O        1.183652472     0.017673604     0.000000000\n"
                             "O       -1.156896800     0.025294937     0.000000000\n");
-    CO2 = Utils::XYZStreamHandler::read(CO2ss);
+    CO2 = Utils::XyzStreamHandler::read(CO2ss);
 
     std::stringstream Ethanolss("9\n\n"
                                 "C       -0.025722743    -0.038148774     0.007736703\n"
@@ -58,7 +58,7 @@ class CommonDipoleCalculation : public Test {
                                 "H        1.909273199    -0.583326143    -0.859094289\n"
                                 "H        1.916182172    -0.455131719     0.942989512\n"
                                 "H        1.715886732     1.789449608    -0.779284087\n");
-    Et = Utils::XYZStreamHandler::read(Ethanolss);
+    Et = Utils::XyzStreamHandler::read(Ethanolss);
 
     // These charges have been obtained with MOPAC (using PM6)
     ChargesHF = {0.270573, -0.270573};
@@ -74,7 +74,7 @@ void CommonDipoleCalculation::assignStructure(const Utils::AtomCollection& struc
 TEST_F(CommonDipoleCalculation, CalculateDipoleCorrectlyHF) {
   CommonDipoleCalculation::assignStructure(HF);
   auto res = pm6->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
   // Reference value obtained with MOPAC (as implemented in ADF 2016.107)
   ASSERT_THAT(dipole.norm() * 2.541746, DoubleNear(1.436, 0.001));
 }
@@ -82,7 +82,7 @@ TEST_F(CommonDipoleCalculation, CalculateDipoleCorrectlyHF) {
 TEST_F(CommonDipoleCalculation, CalculateDipoleCorrectlyCO2) {
   CommonDipoleCalculation::assignStructure(CO2);
   auto res = pm6->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
 
   // Reference value obtained with MOPAC (as implemented in ADF 2016.107)
   // Note that the structure is not really an equilibrium structure - hence a nonzero dipole moment
@@ -92,7 +92,7 @@ TEST_F(CommonDipoleCalculation, CalculateDipoleCorrectlyCO2) {
 TEST_F(CommonDipoleCalculation, CalculateDipoleCorrectlyEthanol) {
   pm6->setStructure(Et);
   auto res = pm6->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
 
   // Reference value obtained with MOPAC (as implemented in ADF 2016.107)
   ASSERT_THAT(dipole.norm() * 2.541746, DoubleNear(2.133, 0.001));
@@ -101,7 +101,7 @@ TEST_F(CommonDipoleCalculation, CalculateDipoleCorrectlyEthanol) {
 TEST_F(CommonDipoleCalculation, NDDODipoleIsRotationallyInvariant) {
   pm6->setStructure(Et);
   auto res = pm6->calculate("");
-  auto dipole1 = res.getDipole().norm();
+  auto dipole1 = res.get<Utils::Property::Dipole>().norm();
 
   // 30° rotation on x axis
   std::stringstream EtRotated("9\n\n"
@@ -114,11 +114,11 @@ TEST_F(CommonDipoleCalculation, NDDODipoleIsRotationallyInvariant) {
                               "H 1.90927320 -0.07562811 -1.03566055\n"
                               "H 1.91618217 -0.86565039  0.58908701\n"
                               "H 1.71588673  1.93935086  0.21984499\n");
-  auto Et2 = Utils::XYZStreamHandler::read(EtRotated);
+  auto Et2 = Utils::XyzStreamHandler::read(EtRotated);
   pm6->setStructure(Et2);
 
   auto res2 = pm6->calculate("");
-  auto dipole2 = res2.getDipole().norm();
+  auto dipole2 = res2.get<Utils::Property::Dipole>().norm();
 
   ASSERT_THAT(dipole1, DoubleNear(dipole2, 1e-6));
 
@@ -133,11 +133,11 @@ TEST_F(CommonDipoleCalculation, NDDODipoleIsRotationallyInvariant) {
                                         "H 1.90927320 -0.07562811 3.96433945\n"
                                         "H 1.91618217 -0.86565039  5.58908701\n"
                                         "H 1.71588673  1.93935086  5.21984499\n");
-  auto Et3 = Utils::XYZStreamHandler::read(EtRotatedTranslated);
+  auto Et3 = Utils::XyzStreamHandler::read(EtRotatedTranslated);
   pm6->setStructure(Et3);
 
   auto res3 = pm6->calculate("");
-  auto dipole3 = res3.getDipole().norm();
+  auto dipole3 = res3.get<Utils::Property::Dipole>().norm();
 
   ASSERT_THAT(dipole1, DoubleNear(dipole3, 1e-6));
 }
@@ -259,11 +259,11 @@ TEST_F(CommonDipoleCalculation, NddoDipoleIsCorrectForBigOrganicMolecule) {
                                   " H         20.41636000     24.85112000      3.42576000\n"
                                   " H         13.77125000     31.61639000      7.98284000\n");
 
-  auto BigMolecule = Utils::XYZStreamHandler::read(BigMoleculeSS);
+  auto BigMolecule = Utils::XyzStreamHandler::read(BigMoleculeSS);
   pm6->setStructure(BigMolecule);
 
   auto res = pm6->calculate("");
-  auto dipole = res.getDipole().norm() * 2.541746;
+  auto dipole = res.get<Utils::Property::Dipole>().norm() * 2.541746;
 
   // Reference value obtained with MOPAC (as implemented in ADF 2016.107)
   ASSERT_THAT(dipole, DoubleNear(11.693, 0.005));
@@ -285,11 +285,11 @@ TEST_F(CommonDipoleCalculation, CysteineDipoleTest) {
                              "O     -1.1677279714    0.9357684341   -4.4147456623\n"
                              "O     -1.4295571152    3.1053969018   -4.7093924764\n"
                              "H     -1.2373572757    4.0001923525   -4.2901399260\n");
-  auto cysteineStructure = Utils::XYZStreamHandler::read(cysteine);
+  auto cysteineStructure = Utils::XyzStreamHandler::read(cysteine);
   pm6->setStructure(cysteineStructure);
 
   auto res = pm6->calculate("");
-  auto dipole = res.getDipole().norm() * 2.541746;
+  auto dipole = res.get<Utils::Property::Dipole>().norm() * 2.541746;
 
   // Reference value obtained with MOPAC (as implemented in mopac 2016)
   ASSERT_THAT(dipole, DoubleNear(4.199, 0.005));
@@ -305,11 +305,11 @@ TEST_F(CommonDipoleCalculation, DipoleOfOrganicMoleculesWithdOrbitalsCorrectlyCa
                              "P     -1.4256258173    1.2371974877    0.7404185869\n"
                              "P     -1.8678459689   -1.5686821956   -0.9176428609\n"
                              "P     -1.3194732153   -2.3026785840    1.5170325276\n");
-  auto PSCage = Utils::XYZStreamHandler::read(PSCagess);
+  auto PSCage = Utils::XyzStreamHandler::read(PSCagess);
   pm6->setStructure(PSCage);
 
   auto res = pm6->calculate("");
-  auto dipole = res.getDipole().norm() * 2.541746;
+  auto dipole = res.get<Utils::Property::Dipole>().norm() * 2.541746;
 
   // Reference value obtained with MOPAC (as implemented in mopac 2016)
   ASSERT_THAT(dipole, DoubleNear(0.961, 0.005));
@@ -326,11 +326,11 @@ TEST_F(CommonDipoleCalculation, DipoleOfTransitionMetalsCorrectlyCalculated) {
                                    "O          2.89890        4.03581        0.55706\n"
                                    "N          4.73037        1.37634       -1.29674\n"
                                    "O          5.65279        1.93052       -1.81095\n");
-  auto feComplex1 = Utils::XYZStreamHandler::read(ironComplex1ss);
+  auto feComplex1 = Utils::XyzStreamHandler::read(ironComplex1ss);
   pm6->setStructure(feComplex1);
 
   auto res = pm6->calculate("");
-  auto dipole = res.getDipole().norm() * 2.541746;
+  auto dipole = res.get<Utils::Property::Dipole>().norm() * 2.541746;
 
   // Reference value obtained with MOPAC (as implemented in mopac 2016)
   ASSERT_THAT(dipole, DoubleNear(2.455, 0.005));

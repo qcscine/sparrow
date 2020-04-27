@@ -11,7 +11,7 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/PM6DiatomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParameterProcessor.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParametersContainer.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <Utils/Typenames.h>
 #include <cmath>
 
@@ -43,8 +43,8 @@ void NDDOInitializer::applyRawParameters(const Utils::ElementTypeCollection& ele
   if (hasDiatomicParameters_) {
     for (int i = 0; i < 110; i++) {
       for (int j = 0; j <= i; j++) {
-        auto e1 = static_cast<Utils::ElementType>(i);
-        auto e2 = static_cast<Utils::ElementType>(j);
+        auto e1 = Utils::ElementInfo::element(i);
+        auto e2 = Utils::ElementInfo::element(j);
         if (elementParameters_.isSet(e1) && elementParameters_.isSet(e2)) {
           if (!rawParameters_.isAvailable(e1, e2))
             throw Utils::Methods::ParametersDoNotExistForElementPairException(e1, e2);

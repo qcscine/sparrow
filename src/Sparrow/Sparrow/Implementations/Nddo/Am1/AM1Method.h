@@ -8,7 +8,7 @@
 #ifndef SPARROW_AM1METHOD_H
 #define SPARROW_AM1METHOD_H
 
-#include <Utils/MethodEssentials/Methods/SCFMethod.h>
+#include <Utils/Scf/MethodInterfaces/ScfMethod.h>
 
 namespace Scine {
 namespace Utils {
@@ -23,7 +23,7 @@ class RawParametersContainer;
 class OneElectronMatrix;
 class TwoElectronMatrix;
 
-class AM1Method : public Utils::SCFMethod {
+class AM1Method : public Utils::ScfMethod {
  public:
   AM1Method();
   ~AM1Method() override;

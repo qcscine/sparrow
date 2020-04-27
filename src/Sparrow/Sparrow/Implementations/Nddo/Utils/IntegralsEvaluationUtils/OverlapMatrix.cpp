@@ -7,8 +7,8 @@
 
 #include "OverlapMatrix.h"
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
 #include <Utils/Math/AutomaticDifferentiation/AutomaticDifferentiationHelpers.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
 
 namespace Scine {
 namespace Sparrow {

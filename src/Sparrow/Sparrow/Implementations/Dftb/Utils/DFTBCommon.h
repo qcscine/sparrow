@@ -10,8 +10,8 @@
 
 #include "SKAtom.h"
 #include "SKPair.h"
-#include <Utils/MethodEssentials/Methods/StructureDependentInitializer.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/Scf/MethodInterfaces/StructureDependentInitializer.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 #include <array>

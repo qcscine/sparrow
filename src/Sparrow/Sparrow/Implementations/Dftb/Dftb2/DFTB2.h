@@ -10,8 +10,8 @@
 
 #include "Sparrow/Implementations/Dftb/Utils/DFTBCommon.h"
 #include "Sparrow/Implementations/Dftb/Utils/SDFTB.h"
-#include "Utils/MethodEssentials/util/MatrixWithDerivatives.h"
-#include <Utils/MethodEssentials/Methods/SCFMethod.h>
+#include "Utils/DataStructures/MatrixWithDerivatives.h"
+#include <Utils/Scf/MethodInterfaces/ScfMethod.h>
 #include <Eigen/Core>
 #include <string>
 #include <vector>
@@ -22,7 +22,7 @@ namespace Sparrow {
 namespace dftb {
 class ZeroOrderMatricesCalculator;
 
-class DFTB2 : public Utils::SCFMethod {
+class DFTB2 : public Utils::ScfMethod {
  public:
   DFTB2();
   ~DFTB2() override;

@@ -11,7 +11,7 @@
 #include <Core/ModuleManager.h>
 #include <Utils/CalculatorBasics.h>
 #include <Utils/Geometry/AtomCollection.h>
-#include <Utils/IO/ChemicalFileFormats/XYZStreamHandler.h>
+#include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
 #include <Utils/Settings.h>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <iostream>
@@ -122,14 +122,15 @@ int main(int argc, char* argv[]) {
                                     "H         11.53095        0.54614       -8.99214\n"
                                     "H         11.68478        2.22951       -9.51992\n"
                                     "H         12.00940        1.79465       -7.85873");*/
-  auto structure = Scine::Utils::XYZStreamHandler::read(stream);
+  auto structure = Scine::Utils::XyzStreamHandler::read(stream);
   // Load PM3Method and adapt settings
   auto pm6 = manager.get<Scine::Core::Calculator>("PM3");
   pm6->settings->modifyString("parameter_root", "");
   pm6->settings->modifyString("parameter_file", parameters_pm3);
   pm6->setStructure(structure);
   auto res1 = pm6->calculate("DFTB3 first");
-  std::cout << "Energy of calculation '" << res1.getDescription() << "' = " << res1.getEnergy() << std::endl;
+  std::cout << "Energy of calculation '" << res1.getDescription() << "' = " << res1.get<Utils::Property::Energy>()
+            << std::endl;
   std::cout << "Changing Settings ... \n";
   pm6->settings->modifyInt("molecular_charge", 0);
   pm6->settings->modifyBool("unrestricted_calculation", false);
@@ -141,10 +142,11 @@ int main(int argc, char* argv[]) {
                              Scine::Utils::Property::Hessian);
   if (pm6->settings->check()) {
     auto result = pm6->calculate("DFTB3 Second");
-    std::cout << "Energy of calculation '" << result.getDescription() << "' = " << result.getEnergy() << std::endl;
-    std::cout << "And gradients = " << result.getGradients() << std::endl;
+    std::cout << "Energy of calculation '" << result.getDescription() << "' = " << result.get<Utils::Property::Energy>()
+              << std::endl;
+    std::cout << "And gradients = " << result.get<Utils::Property::Gradients>() << std::endl;
     std::cout << "And Hessian:" << std::endl;
-    std::cout << result.getHessian() << std::endl;
+    std::cout << result.get<Utils::Property::Hessian>() << std::endl;
   }
   else {
     std::cout << "Invalid settings!" << std::endl;

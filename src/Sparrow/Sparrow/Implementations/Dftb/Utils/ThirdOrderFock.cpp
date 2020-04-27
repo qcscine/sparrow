@@ -6,9 +6,10 @@
  */
 
 #include "ThirdOrderFock.h"
-#include "Utils/MethodEssentials/util/DensityMatrix.h"
-#include "Utils/MethodEssentials/util/LcaoUtil/LcaoUtil.h"
+#include "Utils/DataStructures/DensityMatrix.h"
+#include "Utils/Scf/LcaoUtils/LcaoUtils.h"
 #include "ZeroOrderMatricesCalculator.h"
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
 
 namespace Scine {
@@ -59,7 +60,7 @@ void ThirdOrderFock::constructG() {
 #pragma omp parallel for private(gamma, Gab, Gba)
   for (int a = 0; a < getNumberAtoms(); ++a) {
     for (int b = a; b < getNumberAtoms(); b++) {
-      auto R = (positions_.row(b) - positions_.row(a));
+      Eigen::Vector3d R = (positions_.row(b) - positions_.row(a));
       gammah<O>(a, b, gamma, Gab, Gba);
       auto term = get3Dfrom1D<O>(gamma, R);
 #pragma omp critical(dg)
@@ -84,12 +85,12 @@ void ThirdOrderFock::gammah(int a, int b, Value1DType<O>& gamma, Value1DType<O>&
   // Notation is more or less the same as in its supplementary information
   auto R = variableWithUnitDerivative<O>((positions_.row(b) - positions_.row(a)).norm());
   auto R2 = R * R;
-  double Ua = atomicPar_[static_cast<int>(elements_[a])]->getHubbardParameter();
-  double Ub = atomicPar_[static_cast<int>(elements_[b])]->getHubbardParameter();
+  double Ua = atomicPar_[Utils::ElementInfo::Z(elements_[a])]->getHubbardParameter();
+  double Ub = atomicPar_[Utils::ElementInfo::Z(elements_[b])]->getHubbardParameter();
 
   if (aoIndexes_.getFirstOrbitalIndex(a) == aoIndexes_.getFirstOrbitalIndex(b)) {
     gamma = constant1D<O>(Ua);
-    double v = 0.5 * atomicPar_[static_cast<int>(elements_[a])]->getHubbardDerivative();
+    double v = 0.5 * atomicPar_[Utils::ElementInfo::Z(elements_[a])]->getHubbardDerivative();
     Gab = Gba = constant1D<O>(v);
     return;
   }
@@ -124,9 +125,10 @@ void ThirdOrderFock::gammah(int a, int b, Value1DType<O>& gamma, Value1DType<O>&
   else {
     // Get precomputed values
     double term1a, term1b, term2a, term2b;
-    diatomicPar_[static_cast<int>(elements_[a])][static_cast<int>(elements_[b])]->getGammaTerms(term1a, term1b, term2a, term2b);
+    diatomicPar_[Utils::ElementInfo::Z(elements_[a])][Utils::ElementInfo::Z(elements_[b])]->getGammaTerms(term1a, term1b,
+                                                                                                          term2a, term2b);
     double dtermab1a, dtermab1b, dtermab2a, dtermab2b, dtermba1a, dtermba1b, dtermba2a, dtermba2b, dtadr, dtbdr;
-    diatomicPar_[static_cast<int>(elements_[a])][static_cast<int>(elements_[b])]->getGammaDerTerms(
+    diatomicPar_[Utils::ElementInfo::Z(elements_[a])][Utils::ElementInfo::Z(elements_[b])]->getGammaDerTerms(
         dtermab1a, dtermab1b, dtermab2a, dtermab2b, dtermba1a, dtermba1b, dtermba2a, dtermba2b, dtadr, dtbdr);
 
     // Calculate derived values
@@ -148,8 +150,8 @@ void ThirdOrderFock::gammah(int a, int b, Value1DType<O>& gamma, Value1DType<O>&
 
   // Set values to return
   gamma = 1.0 / R - S * h;
-  Gab = dgdUa * atomicPar_[static_cast<int>(elements_[a])]->getHubbardDerivative();
-  Gba = dgdUb * atomicPar_[static_cast<int>(elements_[b])]->getHubbardDerivative();
+  Gab = dgdUa * atomicPar_[Utils::ElementInfo::Z(elements_[a])]->getHubbardDerivative();
+  Gba = dgdUb * atomicPar_[Utils::ElementInfo::Z(elements_[b])]->getHubbardDerivative();
 }
 
 template<Utils::derivOrder O>
@@ -202,6 +204,7 @@ void ThirdOrderFock::addDerivatives(
   zeroOrderMatricesCalculator_.addDerivatives(derivatives, energyWeightedDensityMatrix_ -
                                                                HXoverS_.cwiseProduct(densityMatrix_.restrictedMatrix()));
   addThirdOrderDerivatives<Utils::derivativeType::first>(derivatives);
+  ScfFock::addDerivatives(derivatives);
 }
 
 void ThirdOrderFock::addDerivatives(
@@ -209,6 +212,7 @@ void ThirdOrderFock::addDerivatives(
   zeroOrderMatricesCalculator_.addDerivatives(derivatives, energyWeightedDensityMatrix_ -
                                                                HXoverS_.cwiseProduct(densityMatrix_.restrictedMatrix()));
   addThirdOrderDerivatives<Utils::derivativeType::second_atomic>(derivatives);
+  ScfFock::addDerivatives(derivatives);
 }
 
 void ThirdOrderFock::addDerivatives(
@@ -216,6 +220,7 @@ void ThirdOrderFock::addDerivatives(
   zeroOrderMatricesCalculator_.addDerivatives(derivatives, energyWeightedDensityMatrix_ -
                                                                HXoverS_.cwiseProduct(densityMatrix_.restrictedMatrix()));
   addThirdOrderDerivatives<Utils::derivativeType::second_full>(derivatives);
+  ScfFock::addDerivatives(derivatives);
 }
 
 template<Utils::derivativeType O>

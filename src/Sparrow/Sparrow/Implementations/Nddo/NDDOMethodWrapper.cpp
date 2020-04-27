@@ -8,10 +8,10 @@
 #include <Core/Exceptions.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMomentCalculator.h>
-#include <Sparrow/StatesHandling/NDDOStatesHandler.h>
+#include <Utils/CalculatorBasics/PropertyList.h>
 #include <Utils/CalculatorBasics/Results.h>
-#include <Utils/MethodEssentials/Methods/SCFMethod.h>
-#include <Utils/MethodEssentials/util/SpinAdaptedMatrix.h>
+#include <Utils/DataStructures/SpinAdaptedMatrix.h>
+#include <Utils/Scf/MethodInterfaces/ScfMethod.h>
 #include <Utils/Settings.h>
 #include <Utils/UniversalSettings/SettingPopulator.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
@@ -19,49 +19,51 @@
 namespace Scine {
 namespace Sparrow {
 
-NDDOMethodWrapper::NDDOMethodWrapper() {
-  this->statesHandler_ = std::make_unique<NDDOStatesHandler>(*this);
-}
+NDDOMethodWrapper::NDDOMethodWrapper() = default;
 
 NDDOMethodWrapper::~NDDOMethodWrapper() = default;
 
 Utils::PropertyList NDDOMethodWrapper::possibleProperties() const {
-  return Utils::Property::Energy | Utils::Property::Gradients | Utils::Property::Dipole |
-         Utils::Property::DipoleGradient | Utils::Property::DipoleMatrixAO | Utils::Property::DipoleMatrixMO |
-         Utils::Property::OneElectronMatrix | Utils::Property::TwoElectronMatrix;
+  auto possibleProperties = GenericMethodWrapper::possibleProperties();
+  possibleProperties.addProperty(Utils::Property::DipoleGradient);
+  possibleProperties.addProperty(Utils::Property::DipoleMatrixAO);
+  possibleProperties.addProperty(Utils::Property::DipoleMatrixMO);
+  possibleProperties.addProperty(Utils::Property::OneElectronMatrix);
+  possibleProperties.addProperty(Utils::Property::TwoElectronMatrix);
+  return possibleProperties;
 }
 
-Utils::Results NDDOMethodWrapper::assembleResults(const std::string& description) const {
+void NDDOMethodWrapper::assembleResults(const std::string& description) {
   bool oneElectronMatrixRequired = requiredProperties_.containsSubSet(Utils::Property::OneElectronMatrix);
   bool twoElectronMatrixRequired = requiredProperties_.containsSubSet(Utils::Property::TwoElectronMatrix);
   bool AODipoleMatrixRequired = requiredProperties_.containsSubSet(Utils::Property::DipoleMatrixAO);
   bool MODipoleMatrixRequired = requiredProperties_.containsSubSet(Utils::Property::DipoleMatrixMO);
-  auto results = GenericMethodWrapper::assembleResults(description);
+  GenericMethodWrapper::assembleResults(description);
 
   auto dipoleEvaluationCoordinate = Utils::Position::Zero();
 
   if (oneElectronMatrixRequired) {
-    results.setOneElectronMatrix(getOneElectronMatrix());
+    results_.set<Utils::Property::OneElectronMatrix>(getOneElectronMatrix());
   }
   if (twoElectronMatrixRequired) {
-    results.setTwoElectronMatrix(getTwoElectronMatrix());
+    results_.set<Utils::Property::TwoElectronMatrix>(getTwoElectronMatrix());
   }
   if (AODipoleMatrixRequired) {
     if (!dipoleMatrixCalculator_->isValid()) {
       dipoleMatrixCalculator_->fillDipoleMatrix(dipoleEvaluationCoordinate);
     }
-    results.setAODipoleMatrix(dipoleMatrixCalculator_->getAODipoleMatrix());
+    results_.set<Utils::Property::DipoleMatrixAO>(dipoleMatrixCalculator_->getAODipoleMatrix());
   }
   if (MODipoleMatrixRequired) {
     if (!dipoleMatrixCalculator_->isValid()) {
       dipoleMatrixCalculator_->fillDipoleMatrix(dipoleEvaluationCoordinate);
     }
-    results.setMODipoleMatrix(dipoleMatrixCalculator_->getMODipoleMatrix());
+    results_.set<Utils::Property::DipoleMatrixMO>(dipoleMatrixCalculator_->getMODipoleMatrix());
   }
-  return results;
 }
 
-void NDDOMethodWrapper::applySettings(std::unique_ptr<Utils::Settings>& settings, Utils::SCFMethod& method) {
+void NDDOMethodWrapper::applySettings(std::unique_ptr<Utils::Settings>& settings, Utils::ScfMethod& method) {
+  GenericMethodWrapper::applySettings();
   if (settings->check()) {
     bool isUnrestricted = settings->getBool(Utils::SettingsNames::unrestrictedCalculation);
     int molecularCharge = settings->getInt(Utils::SettingsNames::molecularCharge);
@@ -69,8 +71,7 @@ void NDDOMethodWrapper::applySettings(std::unique_ptr<Utils::Settings>& settings
     double selfConsistenceCriterion = settings->getDouble(Utils::SettingsNames::selfConsistanceCriterion);
     int maxIterations = settings->getInt(Utils::SettingsNames::maxIterations);
     auto scfMixerName = settings->getString(Utils::SettingsNames::mixer);
-    auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToSCFMixer(scfMixerName);
-    auto logVerbosity = settings->getString(Utils::SettingsNames::loggerVerbosity);
+    auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToScfMixer(scfMixerName);
 
     method.setUnrestrictedCalculation(isUnrestricted);
     method.setMolecularCharge(molecularCharge);
@@ -78,11 +79,23 @@ void NDDOMethodWrapper::applySettings(std::unique_ptr<Utils::Settings>& settings
     method.setConvergenceCriteria(selfConsistenceCriterion);
     method.setMaxIterations(maxIterations);
     method.setScfMixer(scfMixerType);
-    method.startLogger(logVerbosity);
+
+    // After call to verifyPesValidity, update settings if they were internally changed due to
+    // charge/spin multiplicity mismatch if not empty
+    if (getLcaoMethod().getNumberAtomicOrbitals() != 0) {
+      method.verifyPesValidity();
+      settings->modifyBool(Utils::SettingsNames::unrestrictedCalculation, method.unrestrictedCalculationRunning());
+      settings->modifyInt(Utils::SettingsNames::molecularCharge, method.getMolecularCharge());
+      settings->modifyInt(Utils::SettingsNames::spinMultiplicity, method.spinMultiplicity());
+    }
   }
   else {
     throw Core::InitializationException("settings invalid!");
   }
+}
+
+bool NDDOMethodWrapper::getZPVEInclusion() const {
+  return true;
 }
 
 } // namespace Sparrow

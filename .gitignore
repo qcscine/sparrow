@@ -21,3 +21,13 @@ ParametersHeader.h
 compile_commands.json
 .lvimrc
 *.vim
+
+# manual output
+manual/sparrow_manual.aux
+manual/sparrow_manual.idx
+manual/sparrow_manual.ilg
+manual/sparrow_manual.ind
+manual/sparrow_manual.log
+manual/sparrow_manual.out
+manual/sparrow_manual.pdf
+manual/sparrow_manual.toc

@@ -8,7 +8,7 @@
 #ifndef SPARROW_DFTB_DENSITYGUESS_H
 #define SPARROW_DFTB_DENSITYGUESS_H
 
-#include <Utils/MethodEssentials/Methods/DensityMatrixGuessCalculator.h>
+#include <Utils/Scf/MethodInterfaces/DensityMatrixGuessCalculator.h>
 #include <vector>
 
 namespace Scine {

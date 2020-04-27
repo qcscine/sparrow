@@ -10,7 +10,7 @@
 #include "AnalyticalDipoleIntegralOverGTOsCalculator.h"
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/AnalyticalDipoleIntegralOverGTOsCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/GeneralTypes.h>
-#include <Utils/MethodEssentials/util/GTOExpansion.h>
+#include <Utils/DataStructures/GtoExpansion.h>
 #include <chrono>
 #include <cmath>
 
@@ -52,7 +52,7 @@ GTODipoleMatrixBlock::GTODipoleMatrixBlock() {
 }
 
 void GTODipoleMatrixBlock::calculateSingleGTFPair(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB,
-                                                  const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+                                                  const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                                   const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                                   const Eigen::Vector3d& Rab,
                                                   const Eigen::Vector3d& dipoleEvaluationCoordinate) {
@@ -74,8 +74,8 @@ void GTODipoleMatrixBlock::calculateSingleGTFPair(int GaussTypeFunctionIndexA, i
   createBlockForOneGTFOverShell(normalizedCoefficientPrefactor);
 }
 
-void GTODipoleMatrixBlock::calculateSingleGTFPairIntegralOverShell(const Utils::GTOExpansion& gtoA,
-                                                                   const Utils::GTOExpansion& gtoB, double exponentSum) {
+void GTODipoleMatrixBlock::calculateSingleGTFPairIntegralOverShell(const Utils::GtoExpansion& gtoA,
+                                                                   const Utils::GtoExpansion& gtoB, double exponentSum) {
   // There are two relations for the Obara-Saika construction of S values:
   // read in T. Helgaker, P. Jorgensen, J. Olsen, Molecular electronic-structure theory, 2012
   // S_i,j = X_PA * S_i-1,j + 1/(2expSum) * ((i-1)*S_i-2,j + j*S_i-1,j-1)
@@ -118,8 +118,8 @@ void GTODipoleMatrixBlock::calculateSingleGTFPairIntegralOverShell(const Utils::
 }
 
 double GTODipoleMatrixBlock::getNormalizationFactorAndCoefficient(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB,
-                                                                  const Utils::GTOExpansion& gtoA,
-                                                                  const Utils::GTOExpansion& gtoB,
+                                                                  const Utils::GtoExpansion& gtoA,
+                                                                  const Utils::GtoExpansion& gtoB,
                                                                   double expCoefficientS_00, const Eigen::Vector3d& Rab) {
   double x_ab = Rab(0);
   double y_ab = Rab(1);
@@ -177,7 +177,7 @@ void GTODipoleMatrixBlock::dOrbitalsFromSixCartesianToFiveRealSolidHarmonics() {
 }
 
 std::array<Eigen::MatrixXd, 3>
-GTODipoleMatrixBlock::createSTOBlock(const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+GTODipoleMatrixBlock::createSTOBlock(const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                      const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                      const Eigen::Vector3d& Rab, const Eigen::Vector3d& dipoleEvaluationCoordinate) {
   auto const numberGTFsOnA = gtoA.size();
@@ -207,7 +207,7 @@ GTODipoleMatrixBlock::createSTOBlock(const Utils::GTOExpansion& gtoA, const Util
 }
 
 void GTODipoleMatrixBlock::calculateAnalyticalDipoleIntegrals(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB,
-                                                              const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+                                                              const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                                               const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                                               const Eigen::Vector3d& evaluationCoordinates) {
   const double expA = gtoA.getExponent(GaussTypeFunctionIndexA);
@@ -232,7 +232,7 @@ void GTODipoleMatrixBlock::setIntegralMethod(IntegralMethod method) {
 
 void GTODipoleMatrixBlock::initialize(const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                       const Eigen::RowVector3d& dipoleEvaluationCoordinate, double expA, double expB,
-                                      const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB) {
+                                      const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB) {
   auto const exponentSum = expA + expB;
   auto const recursionInitialOverlap = std::sqrt(M_PI / exponentSum);
   for (int dimension = 0; dimension < 3; ++dimension) {

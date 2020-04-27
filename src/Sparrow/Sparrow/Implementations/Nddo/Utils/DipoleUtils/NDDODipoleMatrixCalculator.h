@@ -10,7 +10,7 @@
 
 #include "Sparrow/Implementations/Nddo/Utils/DipoleUtils/GTODipoleMatrixBlock.h"
 #include <Sparrow/Implementations/DipoleMatrixCalculator.h>
-#include <Utils/MethodEssentials/util/DipoleMatrix.h>
+#include <Utils/DataStructures/DipoleMatrix.h>
 #include <Eigen/Core>
 #include <memory>
 #include <vector>
@@ -28,7 +28,7 @@ class ElementParameters;
 
 /**
  * @brief Class responsible for the calculation of the dipole matrix.
- * @tparam NDDOMethod An NDDO method, must derive from Utils::SCFMethod
+ * @tparam NDDOMethod An NDDO method, must derive from Utils::ScfMethod
  *         and must have the method getInitializer().
  * getInitializer must return a valid NDDOInitializer instance.
  * This class is responsible for the calculation of the dipole matrix in both

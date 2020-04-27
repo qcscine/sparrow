@@ -24,7 +24,7 @@ void OneCenterIntegralContainer::clear() {
 }
 
 void OneCenterIntegralContainer::set(Utils::ElementType e, integralMatrix_t mat) {
-  matrices_[static_cast<int>(e)] = std::move(mat);
+  matrices_[Utils::ElementInfo::Z(e)] = std::move(mat);
 }
 
 } // namespace nddo

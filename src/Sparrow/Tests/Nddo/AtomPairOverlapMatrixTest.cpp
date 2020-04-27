@@ -6,9 +6,9 @@
  */
 
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/AtomPairOverlap.h>
-#include <Utils/MethodEssentials/util/GTOExpansion.h>
-#include <Utils/MethodEssentials/util/STO_nG.h>
-#include <Utils/MethodEssentials/util/atomicGTOs.h>
+#include <Utils/DataStructures/AtomicGtos.h>
+#include <Utils/DataStructures/GtoExpansion.h>
+#include <Utils/DataStructures/SlaterToGaussian.h>
 #include <gmock/gmock.h>
 #include <Eigen/Core>
 #include <memory>
@@ -22,18 +22,18 @@ using namespace nddo;
 class AAtomPairOverlapMatrix : public Test {
  public:
   AtomPairOverlap<Utils::derivOrder::zero> pairOverlap;
-  Utils::GTOExpansion gs1, gs2, gp1, gp2, gd1, gd2;
-  Utils::AtomicGTOs aS1, aS2, aP1, aP2, aD1, aD2;
+  Utils::GtoExpansion gs1, gs2, gp1, gp2, gd1, gd2;
+  Utils::AtomicGtos aS1, aS2, aP1, aP2, aD1, aD2;
   Eigen::Vector3d arbitraryVector;
 
   void SetUp() override {
     arbitraryVector = Eigen::Vector3d(1.1, 2.0, 0.23);
-    gs1 = Utils::STO_nG::getGTOExpansion(6, 1, 0);
-    gs2 = Utils::STO_nG::getGTOExpansion(6, 4, 0, 1.42);
-    gp1 = Utils::STO_nG::getGTOExpansion(6, 2, 1, 2.2);
-    gp2 = Utils::STO_nG::getGTOExpansion(6, 3, 1);
-    gd1 = Utils::STO_nG::getGTOExpansion(6, 5, 2, 0.92);
-    gd2 = Utils::STO_nG::getGTOExpansion(6, 4, 2);
+    gs1 = Utils::SlaterToGaussian::getGTOExpansion(6, 1, 0);
+    gs2 = Utils::SlaterToGaussian::getGTOExpansion(6, 4, 0, 1.42);
+    gp1 = Utils::SlaterToGaussian::getGTOExpansion(6, 2, 1, 2.2);
+    gp2 = Utils::SlaterToGaussian::getGTOExpansion(6, 3, 1);
+    gd1 = Utils::SlaterToGaussian::getGTOExpansion(6, 5, 2, 0.92);
+    gd2 = Utils::SlaterToGaussian::getGTOExpansion(6, 4, 2);
 
     aS1.setS(gs1);
     aS2.setS(gs2);

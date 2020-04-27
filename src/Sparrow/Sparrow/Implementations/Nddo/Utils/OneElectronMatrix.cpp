@@ -10,8 +10,8 @@
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/VuvB.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/AtomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
 #include <algorithm>
 
 namespace Scine {

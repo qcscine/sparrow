@@ -10,14 +10,16 @@
 /* External Includes */
 
 #include <Core/Interfaces/Calculator.h>
+#include <Core/Interfaces/WavefunctionOutputGenerator.h>
 #include <Utils/CalculatorBasics.h>
+#include <Utils/DataStructures/AtomicGtos.h>
 #include <Utils/Settings.h>
 #include <Utils/Technical/CloneInterface.h>
 #include <string>
 
 namespace Scine {
 namespace Utils {
-class LCAOMethod;
+class LcaoMethod;
 class DensityMatrix;
 class DipoleMatrix;
 enum class derivativeType;
@@ -31,7 +33,8 @@ class DipoleMomentCalculator;
  * @class GenericMethodWrapper GenericMethodWrapper.h
  * @brief A MethodWrapper running Generic calculations.
  */
-class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<GenericMethodWrapper>, Core::Calculator> {
+class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<GenericMethodWrapper>, Core::Calculator>,
+                             public Core::WavefunctionOutputGenerator {
  public:
   /// @brief Default Constructor
   GenericMethodWrapper();
@@ -61,6 +64,12 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
    *        a bitset, switching on and off the bits representing a property.
    */
   void setRequiredProperties(const Utils::PropertyList& requiredProperties) final;
+  /**
+   * @brief Gets the properties to calculate.
+   * @return requiredProperties a Utils::PropertyList object, contains an enum class that work as
+   *        a bitset, switching on and off the bits representing a property.
+   */
+  Utils::PropertyList getRequiredProperties() const final;
   Utils::PropertyList possibleProperties() const override;
   /**
    * @brief The main function running calculations (dummy).
@@ -85,16 +94,6 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
    */
   const Utils::Settings& settings() const final;
   /**
-   * @brief Accessor for the StatesHandler used in this method wrapper.
-   * @returns Utils::StatesHandler& The StatesHandler.
-   */
-  Utils::StatesHandler& statesHandler() final;
-  /**
-   * @brief Const accessor for the StatesHandler used in this method wrapper.
-   * @returns const Utils::StatesHandler& The StatesHandler.
-   */
-  const Utils::StatesHandler& statesHandler() const final;
-  /**
    * @brief Accessor for the Results stored in this method wrapper.
    * @returns Utils::Results& The results of the previous calculation.
    */
@@ -105,18 +104,37 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
    */
   const Utils::Results& results() const final;
 
+  /**
+   * @brief Whether the calculator supports a method family
+   * In this library, every calculator supports just one "method family": itself.
+   * @param methodFamily identifier for the method family
+   * @return whether the calculator supports a method family
+   */
+  bool supportsMethodFamily(const std::string& methodFamily) const final;
+
+  //! Get the underlying LcaoMethod
+  virtual Utils::LcaoMethod& getLcaoMethod() = 0;
+  virtual const Utils::LcaoMethod& getLcaoMethod() const = 0;
+  /// @brief Returns a Sto-6G expansion
+  std::string getStoNGExpansionPath() const;
+  void generateWavefunctionInformation(const std::string& filename) final;
+  void generateWavefunctionInformation(std::ostream& out) final;
+
+  void loadState(std::shared_ptr<Core::State> state) override;
+  std::shared_ptr<Core::State> getState() const final;
+
  protected:
   std::unique_ptr<Utils::Settings> settings_;
-  std::unique_ptr<Utils::StatesHandler> statesHandler_;
   Utils::Results results_;
   //! Initializes a method with the parameter file present in the settings.
   virtual void initialize() = 0;
-  //! Get the underlying LCAOMethod
-  virtual Utils::LCAOMethod& getLCAOMethod() = 0;
-  virtual const Utils::LCAOMethod& getLCAOMethod() const = 0;
   //! Determines the highest derivative type needed based on the property needed for calculation.
   Utils::derivativeType highestDerivativeRequired() const;
-  virtual Utils::Results assembleResults(const std::string& description) const;
+  virtual void assembleResults(const std::string& description);
+
+  virtual bool successfulCalculation() const = 0;
+  virtual bool canCalculateAnalyticalHessian() const;
+
   /**
    * @brief Function to apply the settings to the actual calculation method.
    * This method is needed in every calculator as the modification of the
@@ -124,9 +142,10 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
    * calculation method. It is not part of the public interface as an external
    * user should not have to decide when/where to use this. In the implementation
    * of a calculator care must be taken that at calculation time the settings
-   * have correcly been propagated to the underlying calculator method.
+   * have correctly been propagated to the underlying calculator method.
    */
-  virtual void applySettings() = 0;
+  virtual void applySettings();
+  virtual bool getZPVEInclusion() const = 0;
 
   //! Method-dependent implementation of the calculate member function
   virtual void calculateImpl(Utils::derivativeType requiredDerivative) = 0;

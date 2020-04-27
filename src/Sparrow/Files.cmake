@@ -12,36 +12,22 @@ set(SPARROW_MODULE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/DFTBMethodWrapper.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/DFTB0.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/DFTB0.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/DFTB0Initializer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/DFTB0Initializer.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/Dftb0Specifier.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/Dftb0Specifier.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/Wrapper/DFTB0MethodWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/Wrapper/DFTB0MethodWrapper.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/Wrapper/DFTB0MethodWrapper.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb0/Wrapper/DFTB0Settings.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/DFTB2.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/DFTB2.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/DFTB2Initializer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/DFTB2Initializer.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/Dftb2Specifier.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/Dftb2Specifier.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/Wrapper/DFTB2MethodWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/Wrapper/DFTB2MethodWrapper.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/Wrapper/DFTB2MethodWrapper.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb2/Wrapper/DFTB2Settings.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/DFTB3.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/DFTB3.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/DFTB3Initializer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/DFTB3Initializer.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/Dftb3Specifier.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/Dftb3Specifier.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/Wrapper/DFTB3MethodWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/Wrapper/DFTB3MethodWrapper.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/Wrapper/DFTB3MethodWrapper.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Dftb3/Wrapper/DFTB3Settings.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DFTBCommon.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DFTBCommon.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DFTBTypeInitializer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DFTBTypeInitializer.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DensityGuess.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DensityGuess.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DensityGuess.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.h
@@ -193,14 +179,10 @@ set(SPARROW_MODULE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/DipoleMomentCalculator.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/SparrowModule.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/SparrowModule.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/DFTBStatesHandler.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/DFTBStatesHandler.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/NDDOStatesHandler.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/NDDOStatesHandler.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/SparrowState.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/MoldenFileGenerator.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Implementations/MoldenFileGenerator.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/SparrowState.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/SparrowStatesHandlerUtils.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/StatesHandling/SparrowStatesHandlerUtils.h
+
 )
 set(SPARROW_TEST_FILES  
   ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Dipole/MopacDipoleTest.cpp
@@ -232,4 +214,9 @@ set(SPARROW_TEST_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Nddo/oneCenterSlaterIntegralTest.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Nddo/oneCenterTwoElectronIntegralsTest.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Nddo/OverlapMatrixTest.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tests/MethodsTests/MoldenFileGeneratorTest.cpp
+)
+set(SPARROW_PYTHON_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/Python/Calculation.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Python/Calculation.cpp
 )

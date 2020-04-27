@@ -12,7 +12,6 @@
 #include <array>
 #include <map>
 #include <memory>
-#include <string>
 
 namespace Scine {
 namespace Sparrow {
@@ -29,7 +28,7 @@ class RawParametersContainer {
   RawParametersContainer(std::string path = {});
   ~RawParametersContainer();
   RawParametersContainer(RawParametersContainer&& rhs) noexcept;
-  RawParametersContainer& operator=(RawParametersContainer&& rhs) noexcept;
+  RawParametersContainer& operator=(RawParametersContainer&& rhs);
 
   /*! Verify whether atomic parameters for e are available. */
   bool isAvailable(Utils::ElementType e) const;

@@ -12,8 +12,8 @@
 #include <Sparrow/Implementations/Nddo/Utils/NDDODensityGuess.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDOElectronicEnergyCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
-#include <Utils/MethodEssentials/util/LcaoUtil/LcaoUtil.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/LcaoUtils/LcaoUtils.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <utility>
 
 namespace Scine {
@@ -23,7 +23,7 @@ using namespace Utils::AutomaticDifferentiation;
 
 namespace nddo {
 
-AM1Method::AM1Method() : SCFMethod(true, Utils::derivOrder::two, true) {
+AM1Method::AM1Method() : ScfMethod(true, Utils::derivOrder::two, true) {
   am1Settings_ = std::make_unique<NDDOInitializer>(BasisFunctions::sp, false);
   overlapCalculator_ =
       std::make_unique<OverlapMatrix>(elementTypes_, positions_, aoIndexes_, am1Settings_->getElementParameters());

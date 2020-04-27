@@ -17,7 +17,7 @@
 #include <Utils/CalculatorBasics.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/NativeFilenames.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <memory>
 
@@ -62,12 +62,12 @@ void AM1TypeMethodWrapper<AM1Type>::initialize() {
 }
 
 template<class AM1Type>
-Utils::LCAOMethod& AM1TypeMethodWrapper<AM1Type>::getLCAOMethod() {
+Utils::LcaoMethod& AM1TypeMethodWrapper<AM1Type>::getLcaoMethod() {
   return method_;
 }
 
 template<class AM1Type>
-const Utils::LCAOMethod& AM1TypeMethodWrapper<AM1Type>::getLCAOMethod() const {
+const Utils::LcaoMethod& AM1TypeMethodWrapper<AM1Type>::getLcaoMethod() const {
   return method_;
 }
 
@@ -97,6 +97,11 @@ Utils::SpinAdaptedMatrix AM1TypeMethodWrapper<AM1Type>::getTwoElectronMatrix() c
 template<class AM1Type>
 Utils::DensityMatrix AM1TypeMethodWrapper<AM1Type>::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+template<class AM1Type>
+bool AM1TypeMethodWrapper<AM1Type>::successfulCalculation() const {
+  return method_.hasConverged();
 }
 
 AM1MethodWrapper::AM1MethodWrapper() {

@@ -8,7 +8,7 @@
 #ifndef SPARROW_NDDODENSITYGUESS_H
 #define SPARROW_NDDODENSITYGUESS_H
 
-#include <Utils/MethodEssentials/Methods/DensityMatrixGuessCalculator.h>
+#include <Utils/Scf/MethodInterfaces/DensityMatrixGuessCalculator.h>
 #include <Utils/Typenames.h>
 
 namespace Scine {

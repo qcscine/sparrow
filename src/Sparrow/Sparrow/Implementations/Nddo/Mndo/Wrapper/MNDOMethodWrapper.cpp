@@ -17,7 +17,7 @@
 #include <Utils/CalculatorBasics.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/NativeFilenames.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <memory>
 
@@ -69,11 +69,11 @@ void MNDOMethodWrapper::initialize() {
   }
 }
 
-Utils::LCAOMethod& MNDOMethodWrapper::getLCAOMethod() {
+Utils::LcaoMethod& MNDOMethodWrapper::getLcaoMethod() {
   return method_;
 }
 
-const Utils::LCAOMethod& MNDOMethodWrapper::getLCAOMethod() const {
+const Utils::LcaoMethod& MNDOMethodWrapper::getLcaoMethod() const {
   return method_;
 }
 
@@ -99,6 +99,10 @@ Utils::SpinAdaptedMatrix MNDOMethodWrapper::getTwoElectronMatrix() const {
 
 Utils::DensityMatrix MNDOMethodWrapper::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+bool MNDOMethodWrapper::successfulCalculation() const {
+  return method_.hasConverged();
 }
 } /* namespace Sparrow */
 } /* namespace Scine */

@@ -36,8 +36,8 @@ SCINE website and in the hosted documentation.
 ## How to Cite
 
 When publishing results obtained with Sparrow, please cite the corresponding
-release as archived on Zenodo. The specific Zenodo reference is given separately
-with each release.
+release as archived on [Zenodo](https://zenodo.org/record/3244105) (DOI
+10.5281/zenodo.3244105; please use the DOI of the respective release).
 
 In addition, we kindly request you to cite the following article when using Sparrow:
 

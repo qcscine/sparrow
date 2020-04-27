@@ -12,8 +12,8 @@
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/multipoleTypes.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/PrincipalQuantumNumbers.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
 #include <Utils/Geometry.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
 #include <Eigen/Eigenvalues>
 
 namespace Scine {
@@ -154,7 +154,7 @@ Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculateWithDipoleMa
 
   positions.rowwise() -= dipoleEvaluationCoordinate;
 
-  const auto atomicOrbitalsNumber = dipoleMatrix.x().cols();
+  const auto atomicOrbitalsNumber = dipoleMatrix.x().get<Utils::derivOrder::zero>().cols();
   // Classical Core charge component
   for (int atom = 0; atom < nAtoms; ++atom) {
     dipole += coreCharges[atom] * positions.row(atom);
@@ -162,16 +162,16 @@ Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculateWithDipoleMa
 
   // electronic component (diagonal)
   for (int AO = 0; AO < atomicOrbitalsNumber; ++AO) {
-    dipole.x() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.x()(AO, AO);
-    dipole.y() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.y()(AO, AO);
-    dipole.z() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.z()(AO, AO);
+    dipole.x() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.x().get<Utils::derivOrder::zero>()(AO, AO);
+    dipole.y() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.y().get<Utils::derivOrder::zero>()(AO, AO);
+    dipole.z() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.z().get<Utils::derivOrder::zero>()(AO, AO);
   }
   // electronic component(off-diagonal)
   for (int nu = 0; nu < atomicOrbitalsNumber; ++nu) {
     for (int mu = nu + 1; mu < atomicOrbitalsNumber; ++mu) {
-      dipole.x() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.x()(nu, mu);
-      dipole.y() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.y()(nu, mu);
-      dipole.z() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.z()(nu, mu);
+      dipole.x() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.x().get<Utils::derivOrder::zero>()(nu, mu);
+      dipole.y() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.y().get<Utils::derivOrder::zero>()(nu, mu);
+      dipole.z() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.z().get<Utils::derivOrder::zero>()(nu, mu);
     }
   }
   return dipole;

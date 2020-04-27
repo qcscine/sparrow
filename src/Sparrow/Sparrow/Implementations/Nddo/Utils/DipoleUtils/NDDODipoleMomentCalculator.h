@@ -8,7 +8,7 @@
 #define SPARROW_NDDODIPOLEMOMENTCALCULATOR_H
 
 #include <Sparrow/Implementations/DipoleMomentCalculator.h>
-#include <Utils/MethodEssentials/util/DipoleMatrix.h>
+#include <Utils/DataStructures/DipoleMatrix.h>
 #include <Utils/Typenames.h>
 #include <memory>
 #include <vector>
@@ -19,7 +19,7 @@ class DipoleMatrixCalculator;
 /**
  * @brief Class resposible for the calculation of the dipole in the NDDO methods.
  * It must be able to calculate the dipole both with the NDDO approximation and with the use of the dipole matrix.
- * @tparam NDDOMethod An NDDO method, must derive from Utils::SCFMethod and must have the method getInitializer.
+ * @tparam NDDOMethod An NDDO method, must derive from Utils::ScfMethod and must have the method getInitializer.
  *         getInitializer must return a valid NDDOInitializer instance.
  */
 template<class NDDOMethod>

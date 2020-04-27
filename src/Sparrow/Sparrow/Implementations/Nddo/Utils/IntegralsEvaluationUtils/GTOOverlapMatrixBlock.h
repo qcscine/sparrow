@@ -15,7 +15,7 @@ namespace Scine {
 
 namespace Utils {
 class MatrixWithDerivatives;
-class GTOExpansion;
+class GtoExpansion;
 } // namespace Utils
 
 namespace Sparrow {
@@ -45,13 +45,13 @@ class GTOOverlapMatrixBlock {
   GTOOverlapMatrixBlock();
   //! @brief Getter for the matrix block calculated.
   Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic>
-  getMatrixBlock(const Utils::GTOExpansion& gA, const Utils::GTOExpansion& gB, const Eigen::Vector3d& Rab);
+  getMatrixBlock(const Utils::GtoExpansion& gA, const Utils::GtoExpansion& gB, const Eigen::Vector3d& Rab);
 
  private:
-  void addGTFContribution(int GTFA, int GTFB, const Utils::GTOExpansion& gA, const Utils::GTOExpansion& gB,
+  void addGTFContribution(int GTFA, int GTFB, const Utils::GtoExpansion& gA, const Utils::GtoExpansion& gB,
                           const Eigen::Vector3d& Rab);
-  Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic> computeBlock(const Utils::GTOExpansion& gA,
-                                                                      const Utils::GTOExpansion& gB);
+  Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic> computeBlock(const Utils::GtoExpansion& gA,
+                                                                      const Utils::GtoExpansion& gB);
   Value3D directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z);
   Value3D getKBase(double x, double y, double z, double fac);
   void setRArray(double x, double y, double z, double expSum);

@@ -9,7 +9,7 @@
 #define SPARROW_DFTBDIPOLEMATRIXCALCULATOR_H
 
 #include <Sparrow/Implementations/DipoleMatrixCalculator.h>
-#include <Utils/MethodEssentials/util/DipoleMatrix.h>
+#include <Utils/DataStructures/DipoleMatrix.h>
 #include <Utils/Typenames.h>
 #include <memory>
 

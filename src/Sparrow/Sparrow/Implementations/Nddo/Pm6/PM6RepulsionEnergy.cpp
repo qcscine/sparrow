@@ -19,13 +19,13 @@ namespace nddo {
 
 PM6RepulsionEnergy::PM6RepulsionEnergy(const Utils::ElementTypeCollection& elements, const Utils::PositionCollection& positions,
                                        const ElementParameters& elementParameters, const ElementPairParameters& pairParameters)
-  : elementParameters_(elementParameters), pairParameters_(pairParameters), elementTypes_(elements), positions_(positions) {
+  : RepulsionCalculator(elements, positions), elementParameters_(elementParameters), pairParameters_(pairParameters) {
 }
 
 PM6RepulsionEnergy::~PM6RepulsionEnergy() = default;
 
 void PM6RepulsionEnergy::initialize() {
-  nAtoms_ = elementTypes_.size();
+  nAtoms_ = elements_.size();
 
   // Create 2D-vector of empty uni
   rep_ = Container(nAtoms_);
@@ -40,8 +40,8 @@ void PM6RepulsionEnergy::initialize() {
 }
 
 void PM6RepulsionEnergy::initializePair(int i, int j) {
-  Utils::ElementType e1 = elementTypes_[i];
-  Utils::ElementType e2 = elementTypes_[j];
+  Utils::ElementType e1 = elements_[i];
+  Utils::ElementType e2 = elements_[j];
   const auto& p1 = elementParameters_.get(e1);
   const auto& p2 = elementParameters_.get(e2);
   const auto& p12 = pairParameters_.get(e1, e2);
@@ -61,7 +61,7 @@ void PM6RepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
 void PM6RepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
   auto pA = positions_.row(i);
   auto pB = positions_.row(j);
-  auto Rab = pB - pA;
+  Eigen::Vector3d Rab = pB - pA;
 
   rep_[i][j]->calculate(Rab, order);
 }

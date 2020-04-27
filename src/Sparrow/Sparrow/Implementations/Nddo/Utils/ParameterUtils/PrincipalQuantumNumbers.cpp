@@ -6,7 +6,14 @@
  */
 
 #include "PrincipalQuantumNumbers.h"
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Geometry/ElementTypes.h>
+#include <cassert>
+
+/* NOTE
+ * - All of the calls to ElementInfo::Z in the right hand of comparisons are
+ *   optimized away (the function is constexpr-evaluable), no runtime cost.
+ */
 
 namespace Scine {
 namespace Sparrow {
@@ -16,43 +23,49 @@ namespace nddo {
 namespace PM6Elements {
 
 unsigned int getQuantumNumberForSOrbital(Utils::ElementType e) {
-  if (e <= Utils::ElementType::He)
+  const unsigned Z = Utils::ElementInfo::Z(e);
+
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::He))
     return 1;
-  if (e <= Utils::ElementType::F)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::F))
     return 2;
-  if (e <= Utils::ElementType::Cl)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Cl))
     return 3;
-  if (e <= Utils::ElementType::Br)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Br))
     return 4;
-  if (e <= Utils::ElementType::I)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::I))
     return 5;
-  if (e <= Utils::ElementType::Bi)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Bi))
     return 6;
 
   return 7;
 }
 
 unsigned int getQuantumNumberForPOrbital(Utils::ElementType e) {
-  if (e <= Utils::ElementType::Ne)
+  const unsigned Z = Utils::ElementInfo::Z(e);
+
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ne))
     return 2;
-  if (e <= Utils::ElementType::Ar)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ar))
     return 3;
-  if (e <= Utils::ElementType::Kr)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Kr))
     return 4;
-  if (e <= Utils::ElementType::Xe)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Xe))
     return 5;
-  if (e <= Utils::ElementType::Bi)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Bi))
     return 6;
 
   return 7;
 }
 
 unsigned int getQuantumNumberForDOrbital(Utils::ElementType e) {
-  if (e <= Utils::ElementType::Ge)
+  const unsigned Z = Utils::ElementInfo::Z(e);
+
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ge))
     return 3;
-  if (e <= Utils::ElementType::Sn)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Sn))
     return 4;
-  if (e <= Utils::ElementType::Bi)
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Bi))
     return 5;
 
   return 6;
@@ -60,46 +73,47 @@ unsigned int getQuantumNumberForDOrbital(Utils::ElementType e) {
 
 unsigned int getNumberOfAOs(Utils::ElementType e, BasisFunctions basisFunctions) {
   unsigned int n = 0;
+  const unsigned Z = Utils::ElementInfo::Z(e);
 
   if (e == Utils::ElementType::none)
     n = 0;
-  else if (e == Utils::ElementType::H)
+  else if (Z == Utils::ElementInfo::Z(Utils::ElementType::H))
     n = 1;
   else if (basisFunctions == BasisFunctions::sp)
     n = 4;
-  else if (e <= Utils::ElementType::Mg)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Mg))
     n = 4;
-  else if (e <= Utils::ElementType::Cl)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Cl))
     n = 9;
-  else if (e <= Utils::ElementType::Ca)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ca))
     n = 4;
-  else if (e <= Utils::ElementType::Cu)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Cu))
     n = 9;
-  else if (e <= Utils::ElementType::Ge)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ge))
     n = 4;
-  else if (e <= Utils::ElementType::As) // CHANGED LATER
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::As)) // CHANGED LATER
     n = 9;
-  else if (e <= Utils::ElementType::Se) // CHANGED LATER
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Se)) // CHANGED LATER
     n = 4;
-  else if (e <= Utils::ElementType::Br)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Br))
     n = 9;
-  else if (e <= Utils::ElementType::Sr)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Sr))
     n = 4;
-  else if (e <= Utils::ElementType::Ag)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ag))
     n = 9;
-  else if (e <= Utils::ElementType::Sn)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Sn))
     n = 4;
-  else if (e <= Utils::ElementType::Sb) // CHANGED LATER
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Sb)) // CHANGED LATER
     n = 9;
-  else if (e <= Utils::ElementType::Te) // CHANGED LATER
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Te)) // CHANGED LATER
     n = 4;
-  else if (e <= Utils::ElementType::I)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::I))
     n = 9;
-  else if (e <= Utils::ElementType::Ba)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ba))
     n = 4;
-  else if (e <= Utils::ElementType::Au)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Au))
     n = 9;
-  else if (e <= Utils::ElementType::Bi)
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Bi))
     n = 4;
 
   return n;
@@ -119,7 +133,7 @@ unsigned int getNumberOneCenterTwoElectronIntegrals(Utils::ElementType e, BasisF
 }
 
 double getCoreCharge(Utils::ElementType elementType) {
-  auto Z = static_cast<unsigned>(elementType);
+  const unsigned Z = Utils::ElementInfo::Z(elementType);
   unsigned coreElectrons = 0;
 
   // Rare gases
@@ -148,6 +162,7 @@ double getCoreCharge(Utils::ElementType elementType) {
   else if (Z > 2)
     coreElectrons = 2;
 
+  assert(Z >= coreElectrons && "Unsigned underflow!");
   return Z - coreElectrons;
 }
 

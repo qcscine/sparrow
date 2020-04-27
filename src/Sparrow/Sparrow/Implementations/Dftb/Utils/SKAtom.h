@@ -28,13 +28,13 @@ class SKAtom {
     return allowsSpin;
   }
   void setHubbardDerivative(double hubbard) {
-    HubbardDerivative = hubbard;
+    hubbardDerivative = hubbard;
     allowsDFTB3 = true;
   }
-  double getHubbardDerivative() {
-    return HubbardDerivative;
+  double getHubbardDerivative() const {
+    return hubbardDerivative;
   }
-  bool hasHubbardDerivative() {
+  bool hasHubbardDerivative() const {
     return allowsDFTB3;
   }
   int getnAOs() const {
@@ -43,17 +43,22 @@ class SKAtom {
   int getOccupation() const {
     return totalOccupation;
   }
-  double getHubbardParameter();
-  double getOrbitalEnergy(int orbital);
-  double getEnergy();
+  double getHubbardParameter() const;
+  double getOrbitalEnergy(int orbital) const;
+  double getEnergy() const;
   double getSpinConstant(int i, int j) {
     return sc[i][j];
   }
-  orbital getHighestOrbital() {
+  orbital getHighestOrbital() const {
     return highestOrbital;
   }
 
+  bool operator==(const SKAtom& rhs) const {
+    return element_ == rhs.element_;
+  }
+
  private:
+  Utils::ElementType element_;
   int nAOs;
   orbital highestOrbital;
   double Es, Ep, Ed;               // Energies of orbitals
@@ -66,7 +71,7 @@ class SKAtom {
   bool allowsSpin;
 
   // For DFTB3
-  double HubbardDerivative;
+  double hubbardDerivative;
   bool allowsDFTB3;
 };
 

@@ -15,4 +15,5 @@ const char* const parameters_pm6 = "@parameter_dir@Pm6/parameters.xml";
 const char* const parameters_am1 = "@parameter_dir@Am1/parameters.xml";
 const char* const parameters_mndo = "@parameter_dir@Mndo/parameters.xml";
 const char* const parameters_3ob_2_1 = "@parameter_dir@Dftb/3ob-2-1/";
+const char* const parameters_3ob_3_1 = "@parameter_dir@Dftb/3ob-3-1/";
 const char* const parameters_mio_1_1 = "@parameter_dir@Dftb/mio-1-1/";

@@ -8,7 +8,7 @@
 #ifndef SPARROW_DFTB_OVERLAP_H
 #define SPARROW_DFTB_OVERLAP_H
 
-#include <Utils/MethodEssentials/Methods/OverlapCalculator.h>
+#include <Utils/Scf/MethodInterfaces/OverlapCalculator.h>
 
 namespace Scine {
 

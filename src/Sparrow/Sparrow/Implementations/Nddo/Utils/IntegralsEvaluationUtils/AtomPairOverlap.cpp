@@ -6,8 +6,8 @@
  */
 
 #include "AtomPairOverlap.h"
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
-#include <Utils/MethodEssentials/util/atomicGTOs.h>
+#include <Utils/DataStructures/AtomicGtos.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -16,7 +16,7 @@ namespace nddo {
 
 template<Utils::derivOrder O>
 Eigen::Matrix<typename AtomPairOverlap<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
-AtomPairOverlap<O>::getMatrixBlock(const Utils::AtomicGTOs& pA, const Utils::AtomicGTOs& pB, Eigen::Vector3d Rab) const {
+AtomPairOverlap<O>::getMatrixBlock(const Utils::AtomicGtos& pA, const Utils::AtomicGtos& pB, Eigen::Vector3d Rab) const {
   auto localBlock = getInitialBlock(pA, pB);
   GTOOverlapMatrixBlock<O> block;
 
@@ -59,7 +59,7 @@ AtomPairOverlap<O>::getMatrixBlock(const Utils::AtomicGTOs& pA, const Utils::Ato
 
 template<Utils::derivOrder O>
 Eigen::Matrix<typename AtomPairOverlap<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
-AtomPairOverlap<O>::getInitialBlock(const Utils::AtomicGTOs& pA, const Utils::AtomicGTOs& pB) const {
+AtomPairOverlap<O>::getInitialBlock(const Utils::AtomicGtos& pA, const Utils::AtomicGtos& pB) const {
   int dimA = (pA.hasS() ? 1 : 0) + (pA.hasP() ? 3 : 0) + (pA.hasD() ? 5 : 0);
   int dimB = (pB.hasS() ? 1 : 0) + (pB.hasP() ? 3 : 0) + (pB.hasD() ? 5 : 0);
   Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic> initialBlock(dimA, dimB);

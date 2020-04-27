@@ -17,7 +17,7 @@
 namespace Scine {
 
 namespace Utils {
-class GTOExpansion;
+class GtoExpansion;
 } // namespace Utils
 
 namespace Sparrow {
@@ -46,28 +46,28 @@ class GTODipoleMatrixBlock {
    */
   void initialize(const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                   const Eigen::RowVector3d& dipoleEvaluationCoordinate, double expA, double expB,
-                  const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB);
+                  const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB);
 
   /**
    * @brief Calculates a block of the dipole matrix.
    */
-  std::array<Eigen::MatrixXd, 3> createSTOBlock(const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+  std::array<Eigen::MatrixXd, 3> createSTOBlock(const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                                 const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                                 const Eigen::Vector3d& Rab, const Eigen::Vector3d& dipoleEvaluationCoordinate);
 
  private:
   void dOrbitalsFromSixCartesianToFiveRealSolidHarmonics();
   static double getNormalizationFactorAndCoefficient(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB,
-                                                     const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+                                                     const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                                      double expCoefficientS_00, const Eigen::Vector3d& Rab);
   void calculateAnalyticalDipoleIntegrals(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB,
-                                          const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+                                          const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                           const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                           const Eigen::Vector3d& dipoleEvaluationCoordinate);
-  void calculateSingleGTFPair(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB, const Utils::GTOExpansion& gtoA,
-                              const Utils::GTOExpansion& gtoB, const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
+  void calculateSingleGTFPair(int GaussTypeFunctionIndexA, int GaussTypeFunctionIndexB, const Utils::GtoExpansion& gtoA,
+                              const Utils::GtoExpansion& gtoB, const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                               const Eigen::Vector3d& Rab, const Eigen::Vector3d& dipoleEvaluationCoordinate);
-  void calculateSingleGTFPairIntegralOverShell(const Utils::GTOExpansion& gtoA, const Utils::GTOExpansion& gtoB,
+  void calculateSingleGTFPairIntegralOverShell(const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                                double exponentSum);
   void createBlockForOneGTFOverShell(double normalizedCoefficientPrefactor);
 

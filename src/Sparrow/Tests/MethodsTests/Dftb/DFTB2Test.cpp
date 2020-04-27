@@ -13,8 +13,8 @@
 #include <Utils/Constants.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/Geometry/ElementTypes.h>
-#include <Utils/IO/ChemicalFileFormats/XYZStreamHandler.h>
-#include <Utils/MethodEssentials/MethodFactories/MixerFactory.h>
+#include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
+#include <Utils/Scf/ConvergenceAccelerators/ConvergenceAcceleratorFactory.h>
 #include <gmock/gmock.h>
 #include <boost/dll/runtime_symbol_info.hpp>
 
@@ -47,6 +47,7 @@ class ADFTB2Calculation : public Test {
     dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mio_1_1);
     calculator->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
     calculator->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mio_1_1);
+    Utils::Log::startConsoleLogging(Utils::SettingsNames::LogLevels::none);
   }
 };
 
@@ -54,7 +55,7 @@ TEST_F(ADFTB2Calculation, HasTheCorrectNumberOfAtomsAfterInitialization) {
   std::stringstream ss("2\n\n"
                        "C     0.0000000000    0.0000000000   -0.0000000000\n"
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setAtomCollection(as);
   method.initializeFromParameterPath(parameters_mio_1_1);
   ASSERT_THAT(method.getNumberAtoms(), Eq(2));
@@ -64,7 +65,7 @@ TEST_F(ADFTB2Calculation, HasTheCorrectNumberOfOrbitalsAfterInitialization) {
   std::stringstream ss("2\n\n"
                        "C     0.0000000000    0.0000000000   -0.0000000000\n"
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setAtomCollection(as);
   method.initializeFromParameterPath(parameters_mio_1_1);
   ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(5));
@@ -73,7 +74,7 @@ TEST_F(ADFTB2Calculation, HasTheCorrectNumberOfOrbitalsAfterInitialization) {
 TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForC) {
   std::stringstream ss("1\n\n"
                        "C     2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setAtomCollection(as);
   method.initializeFromParameterPath(parameters_mio_1_1);
   method.calculate(derivativeType::first);
@@ -104,7 +105,7 @@ TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForCH4) {
                        "H     -0.6287000000   -0.6287000000    0.6287000000\n"
                        "H     -0.6287000000    0.6287000000   -0.6287000000\n"
                        "H      0.6287000000   -0.6287000000   -0.6287000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
 
   method.setScfMixer(scf_mixer_t::fock_diis);
   method.setMaxIterations(10000);
@@ -158,7 +159,7 @@ TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForUnrestrictedCH3) {
                        "H      0.6287000000    0.6287000000    0.6287000000\n"
                        "H     -0.6287000000   -0.6287000000    0.6287000000\n"
                        "H     -0.6287000000    0.6287000000   -0.6287000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
 
   method.setScfMixer(scf_mixer_t::fock_diis);
   method.setMaxIterations(10000);
@@ -223,7 +224,7 @@ TEST_F(ADFTB2Calculation, MethodWrapperCanBeCloned) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -243,7 +244,7 @@ TEST_F(ADFTB2Calculation, StructureIsCorrectlyCloned) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -262,14 +263,14 @@ TEST_F(ADFTB2Calculation, ClonedMethodCanCalculate) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
 
   auto resultCloned = cloned->calculate("");
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
-  ASSERT_THAT(resultCloned.getEnergy(), DoubleNear(result.getEnergy(), 1e-9));
+  ASSERT_THAT(resultCloned.get<Utils::Property::Energy>(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-9));
 }
 
 TEST_F(ADFTB2Calculation, ClonedMethodCanCalculateGradients) {
@@ -283,7 +284,7 @@ TEST_F(ADFTB2Calculation, ClonedMethodCanCalculateGradients) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -296,10 +297,11 @@ TEST_F(ADFTB2Calculation, ClonedMethodCanCalculateGradients) {
 
   for (int atom = 0; atom < cloned->getPositions().rows(); ++atom) {
     for (int dimension = 0; dimension < 3; ++dimension) {
-      ASSERT_THAT(resultCloned.getGradients().row(atom)(dimension),
-                  DoubleNear(result.getGradients().row(atom)(dimension), 3e-7));
+      ASSERT_THAT(resultCloned.get<Utils::Property::Gradients>().row(atom)(dimension),
+                  DoubleNear(result.get<Utils::Property::Gradients>().row(atom)(dimension), 3e-7));
     }
   }
+  ASSERT_EQ(resultCloned.get<Utils::Property::SuccessfulCalculation>(), true);
 }
 
 TEST_F(ADFTB2Calculation, ClonedMethodCopiesResultsCorrectly) {
@@ -313,13 +315,13 @@ TEST_F(ADFTB2Calculation, ClonedMethodCopiesResultsCorrectly) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto result = dynamicallyLoadedMethodWrapper->calculate();
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
 
-  ASSERT_THAT(cloned->results().getEnergy(), DoubleNear(result.getEnergy(), 1e-9));
+  ASSERT_THAT(cloned->results().get<Utils::Property::Energy>(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-9));
 }
 
 /*
@@ -327,7 +329,7 @@ TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForCO) {
   std::stringstream ss("2\n\n"
                          "C      0.0000000000    0.0000000000    0.0000000000\n"
                          "O      0.6287000000    0.6287000000    0.6287000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setAtomCollection(as);
   method.initialize(parameters_mio_1_1);
   method.calculate(1);
@@ -362,7 +364,7 @@ TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForH2) {
   std::stringstream ss("2\n\n"
                          "H      0.0000000000    0.0000000000    0.0000000000\n"
                          "H      0.6287000000    0.6287000000    0.6287000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setAtomCollection(as);
   method.initialize(parameters_mio_1_1);
   method.calculate(1);
@@ -399,7 +401,7 @@ TEST_F(ADFTB2Calculation, AtomCollectionCanBeReturned) {
                         "C      0.0529177211   -0.3175063264    0.2645886053\n"
                         "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                         "H     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto structure = Utils::XYZStreamHandler::read(ssH);
+  auto structure = Utils::XyzStreamHandler::read(ssH);
   calculator->setStructure(structure);
   ASSERT_EQ(structure.getPositions(), calculator->getStructure()->getPositions());
   for (int i = 0; i < structure.getElements().size(); ++i)

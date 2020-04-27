@@ -8,14 +8,15 @@
 #ifndef SPARROW_DFTB_ZEROORDERFOCK_H
 #define SPARROW_DFTB_ZEROORDERFOCK_H
 
-#include <Utils/MethodEssentials/Methods/ElectronicContributionCalculator.h>
+#include <Utils/Scf/MethodInterfaces/ElectronicContributionCalculator.h>
 #include <Eigen/Core>
 
 namespace Scine {
 
 namespace Utils {
 class SingleParticleEnergies;
-}
+class AdditiveElectronicContribution;
+} // namespace Utils
 
 namespace Sparrow {
 
@@ -41,12 +42,24 @@ class ZeroOrderFock : public Utils::ElectronicContributionCalculator {
   void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
   void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
   void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+  /**
+   * This function adds an additive electronic contribution to the
+   * Hamiltonian that will be evaluated each SCF iteration.
+   * At zero order no SCF is done. This just calls the density independent version
+   */
+  void addDensityDependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
+  /**
+   * This function adds an additive electronic contribution to the Hamiltonian
+   * that will be evaluated once per single-point calculation.
+   */
+  void addDensityIndependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
 
  private:
   ZeroOrderMatricesCalculator& matricesCalculator_;
   const Utils::SingleParticleEnergies& singleParticleEnergies_;
   const Eigen::MatrixXd& energyWeightedDensityMatrix_;
   const int& nElectrons_;
+  std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>> densityIndependentContributions_;
 };
 
 } // namespace dftb

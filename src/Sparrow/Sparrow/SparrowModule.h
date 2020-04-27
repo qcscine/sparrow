@@ -11,7 +11,6 @@
 
 #include <Core/Module.h>
 #include <boost/dll/alias.hpp>
-#include <boost/hana/define_struct.hpp>
 #include <memory>
 
 namespace Scine {
@@ -23,10 +22,6 @@ namespace Sparrow {
  */
 class SparrowModule : public Scine::Core::Module {
  public:
-  BOOST_HANA_DEFINE_STRUCT(SparrowModule, (std::vector<std::string>, calculator));
-
-  SparrowModule() noexcept;
-
   std::string name() const noexcept final;
 
   boost::any get(const std::string& interface, const std::string& model) const final;
@@ -35,10 +30,12 @@ class SparrowModule : public Scine::Core::Module {
 
   std::vector<std::string> announceInterfaces() const noexcept final;
 
-  std::vector<std::string> announceModels(const std::string& concept) const noexcept final;
+  std::vector<std::string> announceModels(const std::string& interface) const noexcept final;
 
   static std::shared_ptr<Module> make();
 };
+
+std::vector<std::shared_ptr<Core::Module>> moduleFactory();
 
 } /* namespace Sparrow */
 } /* namespace Scine */
@@ -60,10 +57,10 @@ class SparrowModule : public Scine::Core::Module {
  * example files.
  */
 extern "C" {
-const void* moduleFactory = reinterpret_cast<const void*>(reinterpret_cast<intptr_t>(&Scine::Sparrow::SparrowModule::make));
+const void* moduleFactory = reinterpret_cast<const void*>(reinterpret_cast<intptr_t>(&Scine::Sparrow::moduleFactory));
 }
 #else
-BOOST_DLL_ALIAS(Scine::Sparrow::SparrowModule::make, moduleFactory);
+BOOST_DLL_ALIAS(Scine::Sparrow::moduleFactory, moduleFactory)
 #endif
 
 #endif /* SPARROW_SPARROWMODULE_H_ */

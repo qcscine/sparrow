@@ -9,6 +9,7 @@
 #define SPARROW_ELEMENTPARAMETERS_H
 
 #include "AtomicParameters.h"
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Geometry/ElementTypes.h>
 #include <memory>
 
@@ -33,13 +34,13 @@ class ElementParameters {
     std::fill(parameters_.begin(), parameters_.end(), nullptr);
   }
   bool isSet(Utils::ElementType e) const {
-    return parameters_[static_cast<int>(e)] != nullptr;
+    return parameters_[Utils::ElementInfo::Z(e)] != nullptr;
   }
   void set(Utils::ElementType e, par_t parameters) {
-    parameters_[static_cast<int>(e)] = std::move(parameters);
+    parameters_[Utils::ElementInfo::Z(e)] = std::move(parameters);
   } // TODO: elementtype not needed, included in parameters
   const AtomicParameters& get(Utils::ElementType e) const {
-    return *parameters_[static_cast<int>(e)];
+    return *parameters_[Utils::ElementInfo::Z(e)];
   }
 
  private:

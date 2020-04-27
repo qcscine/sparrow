@@ -20,7 +20,7 @@
 %\savebox{\scineimage}{\includegraphics[height=5\baselineskip]{scine_darkblue.png}}
 
 
-\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 1.0.0}}
+\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 2.0.0}}
 \author[The SCINE Sparrow Developers]{The SCINE Sparrow Developers: \newline \noindent Francesco Bosia, Tamara Husch, Alain Vaucher, and Markus Reiher}
 \publisher{ETH Z\"urich}
 
@@ -234,8 +234,9 @@ respect to the nuclear coordinates, and Hessians rapidly. The SCINE \textsc{Spar
 \textsc{Interactive}, SCINE \textsc{ReaDuct}, and SCINE \textsc{Chemoton}. However, as with all SCINE modules it is also 
 a stand-alone program which can be applied on its own or easily interfaced to other programs.
 
-SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 1.0.0 
-provides the PM6, MNDO, AM1, PM3, RM1, non-SCC DFTB (DFTB0), DFTB2, amd DFTB3 methods (open- and closed-shell formalisms are implemented). 
+SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 2.0.0 
+provides the \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, non-SCC DFTB (\texttt{DFTB0}), \texttt{DFTB2}, and \texttt{DFTB3} methods 
+(open- and closed-shell formalisms are implemented). 
 The application of semiempirical models usually allows for rapid calculation of electronic energies and energy gradients 
 for a small molecular structure with a given charge and spin state.
 
@@ -254,9 +255,8 @@ Visit our website (\href{https://scine.ethz.ch/download/sparrow}{www.scine.ethz.
 
 \section{System Requirements}
 
-\textsc{Sparrow} can be used on any computer with a 64-bit x86 architecture. The software itself has only modest requirements
-regarding the hardware performance. However, the underlying quantum-chemical calculations might become resource intensive 
-if extremely large systems are studied.
+\textsc{Sparrow} itself has only modest requirements regarding the hardware performance. However, the underlying quantum-chemical 
+calculations might become resource intensive if extremely large systems are studied.
 
 
 
@@ -337,15 +337,22 @@ are listed and explained.
 as a path to an XYZ file.
 \item \texttt{-{}-molecular\_charge}, \texttt{-c}: This is used to specify the overall charge of the system to be calculated, 
 \texttt{e.g.}, \texttt{-{}-molecular\_charge 0} or \texttt{-c -1}. The default charge is zero.
+Only charges between -20 and + 20 are supported.
 \item \texttt{-{}-spin\_multiplicity}, \texttt{-s}: This is used to specify the spin multiplicity of the system to be
-calculated, \texttt{e.g.}, \texttt{-s 1}. The default multiplicity is one.
+calculated, \texttt{e.g.}, \texttt{-s 1} for a singlet state. The default multiplicity is one. The maximal spin multiplicity is 10.
 \item \texttt{-{}-gradients}, \texttt{-G}: If given, the nuclear gradients will be calculated.
 \item \texttt{-{}-hessian}, \texttt{-H}: If given, the Hessian and the nuclear gradients will be calculated.
+\item \texttt{-{}-thermochemistry}, \texttt{-C}: If given, the heat capacities at constant volume or pressure, 
+the enthalpy, the entropy, the Gibbs free enthalpy as well as the zero point vibrational energy (ZPVE) are calculated
+from the total molecular partition function.
+The calculation of the thermochemical properties requires the Hessian matrix: its calculation is therefore implied by setting this option.
+\item \texttt{-{}-temperature}, \texttt{-T}: This is used to specify the temperature in Kelvin at which the thermochemical properties are calculated.
+The default temperature is 298.15\,K. The maximum allowed temperature is 10'000\,K.
 \item \texttt{-{}-suppress\_normal\_modes}, \texttt{-N}: If given, the full Hessian will be printed instead of the normal 
 modes and the vibrational frequencies. This option has no effect if the Hessian is not calculated (see above).
 \item \texttt{-{}-bond\_orders}, \texttt{-B}: If given, the bond order matrix will be calculated.
 \item \texttt{-{}-method}, \texttt{-M}: With this option, the desired calculation method can be set. Options in
-\textsc{Sparrow} 1.0.0 are \texttt{MNDO}, \texttt{AM1}, \texttt{PM6}, \texttt{PM3}, \texttt{RM1}, \texttt{DFTB0}, \texttt{DFTB2}, and
+\textsc{Sparrow} 2.0.0 are \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, \texttt{DFTB0}, \texttt{DFTB2}, and
 \texttt{DFTB3}. By default, \texttt{PM6} is selected.
 \item \texttt{-{}-output\_to\_file}, \texttt{-o}: If this option is given, the output will not only be printed to the screen, 
 but also to files. By default, the energy is stored in a file named ``energy.dat'', the nuclear gradients in a file named
@@ -353,9 +360,16 @@ but also to files. By default, the energy is stored in a file named ``energy.dat
 If a description is given with the option \texttt{-d} (see below), this description will also be used in the file name.
 \item \texttt{-{}-description}, \texttt{-d}: This can be used to add a (short) description of the calculation. This
 description will appear in the output. This allows to quickly find a certain calculation output at a later point. The
-description should be enclosed by quotation marks, \textit{e.g.}, \texttt{-d "This is an example"}.
+description should be enclosed by quotation marks if it is composed by more than one word, \textit{e.g.},
+\texttt{-d "This is an example"}.
 \item \texttt{-{}-unrestricted\_calculation}, \texttt{-u}: If this option is given, an unrestricted (UHF) calculation
 will be performed. By default, a restricted calculation will be done.
+\item \texttt{-{}-wavefunction}, \texttt{-W}: If this option is given, a Molden input file is generated after the
+calculation to allow for the visualization of the molecular orbitals.The basis functions used for the generation of the
+Molden input are defined in the files \texttt{<source code directory>/Sparrow/Sparrow/Resources/<method>/STO-6G.basis}.
+All \texttt{NDDO} methods have their own STO-6G expansion which are fine tuned based on the method's parameters.
+For the \texttt{DFTB} methods, the same basis set as \texttt{PM6} is used.
+
 \end{itemize}
 
 The following options are usually not needed:
@@ -365,7 +379,7 @@ The following options are usually not needed:
 arguments
 \item \texttt{-{}-scf\_mixer}, \texttt{-m}: With this option, the method used to accelerate the convergence of the self-
 consistent-field (SCF) calculations can be set. Possible options are `no\_mixer` (no convergence acceleration), `diis`
-(direct inversion of the iterative subspace, DIIS), `ediis` (extended DIIS), and `ediis\_diis`. The
+(direct inversion of the iterative subspace, DIIS), `ediis` (energy DIIS), and `ediis\_diis`. The
 default is `diis`.
 \item \texttt{-{}-max\_scf\_iterations}, \texttt{-i}: This is used to specify the maximum number of SCF iterations. Default is 100.
 \item \texttt{-{}-self\_consistence\_criterion}, \texttt{-t}: This specifies the convergence threshold for the electronic energy.
@@ -374,7 +388,8 @@ This value is given in hartree. By default, it is `1e-5`.
 used. This option is usually not needed, since \textsc{Sparrow} provides default parameter files for all its methods.
 \item \texttt{-{}-parameter\_root}, \texttt{-P}: This option can be used to specify a directory in which \textsc{Sparrow}
 should search for its parameter files. This option is usually not needed, since \textsc{Sparrow} provides default parameter 
-files for all its methods.
+files for all its methods. The path to the parameter file (or directory for the DFTB methods) is the concatenation of
+the \texttt{parameter\_root} and \texttt{parameter\_file} options.
 \item \texttt{-{}-log}, \texttt{-l}: This sets the log level for warning messages and errors. Supported levels are 
 \texttt{trace}, \texttt{info}, \texttt{warning}, \texttt{error}, and \texttt{fatal}. By default, the level is set to
 \texttt{info}, \textit{i.e.}, all warnings and errors are printed to STDERR. If you set this option to \texttt{error}, 
@@ -394,12 +409,47 @@ where \texttt{n} is the number of CPUs you want to use. Note that by default, \t
 
 
 
+\chapter{Using the Python Bindings}
+
+\textsc{Sparrow} provides Python bindings such that all functionality of \textsc{Sparrow} can be accessed also via the
+Python programming language. In order to build the Python bindings, you need to specify \texttt{-DSCINE\_BUILD\_PYTHON\_BINDINGS=ON}
+when running cmake (see also chapter~\nameref{ch:installation}).
+
+In order to use the Python bindings, you need to specify the path to the Python library in the environment variable
+\texttt{PYTHONPATH}. Additionally, the path to the Sparrow module needs to be added to the environment variables
+\texttt{SCINE\_MODULE\_PATH}, \textit{e.g.}, you have to run the command
+\begin{verbatim}
+export PYTHONPATH=$PYTHONPATH:<source code directory>/install/lib/python<version>/site-packages
+export SCINE_MODULE_PATH=<source code directory>/install/lib
+\end{verbatim}
+where \texttt{<version>} is the Python version you are using (\textit{e.g.}, 3.6). Now, you can simply import the library 
+and use it as any other Python library. For example, in order to calculate the total electronic energy of H$_2$ with the 
+\texttt{AM1} method, use the following Python statements:
+\begin{verbatim}
+import scine_sparrow
+
+calculation = scine_sparrow.Calculation('AM1')
+calculation.set_elements(['H', 'H'])
+calculation.set_positions([[0, 0, 0], [1, 0, 0]])
+calculation.calculate_energy()
+\end{verbatim}
+Note that the atomic coordinates are specified in \AA{} (\textit{i.e.}, basically, the XYZ format is used). The output
+of \textsc{Sparrow} is always in Hartree atomic units.
+
+A detailed list of all the functions provided by the \textsc{Sparrow} Python library can be found by running
+\begin{verbatim}
+import scine_sparrow
+
+help(scine_sparrow)
+\end{verbatim}
+
+
+
+
 \chapter{Extensions Planned in Future Releases}
 \begin{itemize}
 \item Availability of OMx models
-\item Availability of the GFN-xTB method
 \item Availability of the CISE approach
-\item Calculation of thermodynamic properties
 \item Calculation of excited states
 \item Implementation of periodic boundary conditions
 \end{itemize}
@@ -413,7 +463,9 @@ We kindly ask you to cite the appropriate references in any publication of resul
 \vspace{1.0cm}
 
 \begin{itemize}
- \item Presentation of the formalism of MNDO-type and OMx models: \newline
+\item Primary reference for Sparrow 2.0.0:
+F.~Bosia, T.~Husch, A.~C.~Vaucher, M.~Reiher, \href{https://zenodo.org/record/3244106}{"qcscine/sparrow: Release 2.0.0 (Version 2.0.0)"}, Zenodo, 2020.
+\item Presentation of the formalism of MNDO-type and OMx models: \newline
 T.~Husch, A.~C.~Vaucher, M.~Reiher \href{https://doi.org/10.1002/qua.25799}{"Semiempirical Molecular Orbital Models Based on the Neglect of Diatomic Differential Overlap Approximation"}, \textit{Int.~J.~Quantum Chem.}, \textbf{2018}, \textit{118}, e25799.
 \item Presentation of DFTB approaches: \newline
 M.~Elstner, G.~Seifert, \href{https://doi.org/10.1098/rsta.2012.0483}{"Density functional tight binding"}, \textit{Phil. Trans.~R.~Soc.~A}, \textbf{2014}, \textit{371}, 20120483.

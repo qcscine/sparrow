@@ -22,8 +22,8 @@ namespace Sparrow {
 class MNDOSettings : public Scine::Utils::Settings {
  public:
   MNDOSettings() : Settings("MNDOSettings") {
-    Utils::UniversalSettings::SettingPopulator::populateLCAOSettings(_fields);
-    Utils::UniversalSettings::SettingPopulator::populateSCFSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateLcaoSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "Mndo/parameters.xml");
 
     Utils::UniversalSettings::BoolDescriptor useNDDODipoleApprox("Sets use of NDDO dipole approximation.");

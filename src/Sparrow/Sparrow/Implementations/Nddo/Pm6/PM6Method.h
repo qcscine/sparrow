@@ -8,7 +8,7 @@
 #ifndef SPARROW_PM6METHOD_H
 #define SPARROW_PM6METHOD_H
 
-#include <Utils/MethodEssentials/Methods/SCFMethod.h>
+#include <Utils/Scf/MethodInterfaces/ScfMethod.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -20,7 +20,7 @@ class RawParametersContainer;
 class OneElectronMatrix;
 class TwoElectronMatrix;
 
-class PM6Method : public Utils::SCFMethod {
+class PM6Method : public Utils::ScfMethod {
  public:
   PM6Method();
   ~PM6Method() override;

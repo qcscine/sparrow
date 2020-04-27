@@ -28,10 +28,8 @@ class DFTBMethodWrapper : public Utils::CloneInterface<Utils::Abstract<DFTBMetho
    */
   Utils::PropertyList possibleProperties() const final;
 
-  friend class DFTBStatesHandler;
-
  private:
-  Utils::Results assembleResults(const std::string& description) const final;
+  void assembleResults(const std::string& description) final;
 
  protected:
   // Extracted method from all copy constructors and copy assignment operators.
@@ -41,10 +39,10 @@ class DFTBMethodWrapper : public Utils::CloneInterface<Utils::Abstract<DFTBMetho
     instance.settings() = classToCopy.settings();
     // Concurrent calling of the logger introduces race conditions
     // that eventually trigger a segfault
-    instance.settings().modifyString(Utils::SettingsNames::loggerVerbosity, Utils::SettingsNames::LogLevels::none);
     instance.setStructure(*classToCopy.getStructure());
-    instance.statesHandler().load(classToCopy.statesHandler().getCurrentState(Utils::StateSize::minimal));
+    instance.loadState(classToCopy.getState());
   }
+  bool getZPVEInclusion() const final;
 };
 
 } // namespace Sparrow

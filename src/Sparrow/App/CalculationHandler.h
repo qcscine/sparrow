@@ -83,6 +83,7 @@ class CalculationHandler {
   void printResultsToFile() const;
   void printPrettyResults(std::ostream& out) const;
   void printFrequencyAnalysis(std::ostream& out, const Utils::HessianMatrix& matrix) const;
+  void printWavefunction() const;
   CommandLineOptions& commandLineOptions_;
   std::shared_ptr<Core::Calculator> methodWrapper_;
   Utils::Results results_;

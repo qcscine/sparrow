@@ -8,10 +8,11 @@
 #include "SDFTB.h"
 #include "DFTBCommon.h"
 #include "SKAtom.h"
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
+#include <Utils/DataStructures/SpinAdaptedMatrix.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
 #include <Utils/Math/AutomaticDifferentiation/TypeDefinitions.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
-#include <Utils/MethodEssentials/util/SpinAdaptedMatrix.h>
 #include <utility>
 
 namespace Scine {
@@ -43,7 +44,7 @@ double SDFTB::spinEnergyContribution() const {
     Utils::ElementType el = elementTypes_[a];
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
-        spinEnergy += pdif[3 * a + i] * pdif[3 * a + j] * atomParameters[static_cast<int>(el)]->getSpinConstant(i, j);
+        spinEnergy += pdif[3 * a + i] * pdif[3 * a + j] * atomParameters[Utils::ElementInfo::Z(el)]->getSpinConstant(i, j);
   }
   spinEnergy *= 0.5;
   return spinEnergy;
@@ -123,7 +124,7 @@ void SDFTB::calculateSpinContribution() {
 #pragma omp for nowait
     for (int a = 0; a < nAtoms_; a++) {
       Utils::ElementType el = elementTypes_[a];
-      SKAtom* par = atomParameters[static_cast<int>(el)].get();
+      SKAtom* par = atomParameters[Utils::ElementInfo::Z(el)].get();
       int nAOsA = aoIndexes_.getNOrbitals(a);
       int indexA = aoIndexes_.getFirstOrbitalIndex(a);
 
@@ -167,13 +168,13 @@ void SDFTB::calculateSpinContribution() {
 #pragma omp for
     for (int a = 1; a < nAtoms_; ++a) {
       Utils::ElementType elA = elementTypes_[a];
-      SKAtom* parA = atomParameters[static_cast<int>(elA)].get();
+      SKAtom* parA = atomParameters[Utils::ElementInfo::Z(elA)].get();
       int nAOsA = aoIndexes_.getNOrbitals(a);
       int indexA = aoIndexes_.getFirstOrbitalIndex(a);
 
       for (int b = 0; b < a; ++b) {
         Utils::ElementType elB = elementTypes_[b];
-        SKAtom* parB = atomParameters[static_cast<int>(elB)].get();
+        SKAtom* parB = atomParameters[Utils::ElementInfo::Z(elB)].get();
         int nAOsB = aoIndexes_.getNOrbitals(b);
         int indexB = aoIndexes_.getFirstOrbitalIndex(b);
 

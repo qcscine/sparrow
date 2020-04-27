@@ -46,6 +46,7 @@ class MNDOMethodWrapper : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMe
   void applySettings() final;
 
  private:
+  bool successfulCalculation() const final;
   Eigen::MatrixXd getOneElectronMatrix() const final;
   Utils::SpinAdaptedMatrix getTwoElectronMatrix() const final;
 
@@ -54,8 +55,8 @@ class MNDOMethodWrapper : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMe
   //! Initializes a method with the parameter file present in the settings.
   void initialize() final;
 
-  Utils::LCAOMethod& getLCAOMethod() final;
-  const Utils::LCAOMethod& getLCAOMethod() const final;
+  Utils::LcaoMethod& getLcaoMethod() final;
+  const Utils::LcaoMethod& getLcaoMethod() const final;
 
   void calculateImpl(Utils::derivativeType requiredDerivative) final;
 

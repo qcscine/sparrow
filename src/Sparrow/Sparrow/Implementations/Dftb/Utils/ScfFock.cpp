@@ -7,8 +7,9 @@
 
 #include "ScfFock.h"
 #include "ZeroOrderMatricesCalculator.h"
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
-#include <Utils/MethodEssentials/util/LcaoUtil/LcaoUtil.h>
+#include <Utils/DataStructures/DensityMatrix.h>
+#include <Utils/Scf/LcaoUtils/LcaoUtils.h>
+#include <Utils/Scf/MethodInterfaces/AdditiveElectronicContribution.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -46,23 +47,42 @@ void ScfFock::initialize() {
   spinDFTB.initialize(getNumberAtoms(), numberOrbitals, aoIndexes_);
 }
 
-void ScfFock::calculateDensityDependentPart(Utils::derivOrder /*order*/) {
+void ScfFock::calculateDensityDependentPart(Utils::derivOrder order) {
   populationAnalysis();
   if (unrestrictedCalculationRunning_) {
     spinDFTB.spinPopulationAnalysis(densityMatrix_.alphaMatrix(), densityMatrix_.betaMatrix(), overlapMatrix_);
     spinDFTB.calculateSpinContribution();
   }
   completeH();
+  for (auto& contribution : densityDependentContributions_) {
+    contribution->calculate(densityMatrix_, order);
+  }
+  for (auto& contribution : densityIndependentContributions_) {
+    contribution->calculate(densityMatrix_, order);
+  }
 }
 
 void ScfFock::calculateDensityIndependentPart(Utils::derivOrder order) {
   zeroOrderMatricesCalculator_.calculateFockMatrix(order);
   H0_ = zeroOrderMatricesCalculator_.getZeroOrderHamiltonian().getMatrixXd();
   constructG(order);
+  for (auto& contribution : densityDependentContributions_) {
+    contribution->calculate(densityMatrix_, order);
+  }
+  for (auto& contribution : densityIndependentContributions_) {
+    contribution->calculate(densityMatrix_, order);
+  }
 }
 
 Utils::SpinAdaptedMatrix ScfFock::getMatrix() const {
   Eigen::MatrixXd sum = zeroOrderMatricesCalculator_.getZeroOrderHamiltonian().getMatrixXd() + correctionToFock;
+  for (auto& contribution : densityDependentContributions_) {
+    sum += contribution->getElectronicContribution().restrictedMatrix();
+  }
+  for (auto& contribution : densityIndependentContributions_) {
+    contribution->getElectronicContribution().restrictedMatrix();
+  }
+
   Utils::SpinAdaptedMatrix fock;
   fock.setRestrictedMatrix(std::move(sum));
   if (unrestrictedCalculationRunning_)
@@ -79,9 +99,50 @@ void ScfFock::finalize(Utils::derivOrder /*order*/) {
 }
 
 void ScfFock::populationAnalysis() {
-  Utils::LcaoUtil::calculateMullikenAtomicCharges(atomicCharges_, coreCharges_, densityMatrix_, overlapMatrix_, aoIndexes_);
+  Utils::LcaoUtils::calculateMullikenAtomicCharges(atomicCharges_, coreCharges_, densityMatrix_, overlapMatrix_, aoIndexes_);
 }
 
+void ScfFock::addDensityDependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) {
+  densityDependentContributions_.emplace_back(std::move(contribution));
+}
+
+void ScfFock::addDensityIndependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) {
+  densityIndependentContributions_.emplace_back(std::move(contribution));
+}
+
+void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const {
+  for (auto& contribution : densityIndependentContributions_) {
+    if (contribution->isValid())
+      contribution->addDerivatives(derivatives);
+  }
+  for (auto& contribution : densityDependentContributions_) {
+    if (contribution->isValid())
+      contribution->addDerivatives(derivatives);
+  }
+}
+
+void ScfFock::addDerivatives(
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
+  for (auto& contribution : densityIndependentContributions_) {
+    if (contribution->isValid())
+      contribution->addDerivatives(derivatives);
+  }
+  for (auto& contribution : densityDependentContributions_) {
+    if (contribution->isValid())
+      contribution->addDerivatives(derivatives);
+  }
+}
+
+void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
+  for (auto& contribution : densityIndependentContributions_) {
+    if (contribution->isValid())
+      contribution->addDerivatives(derivatives);
+  }
+  for (auto& contribution : densityDependentContributions_) {
+    if (contribution->isValid())
+      contribution->addDerivatives(derivatives);
+  }
+}
 } // namespace dftb
 } // namespace Sparrow
 } // namespace Scine

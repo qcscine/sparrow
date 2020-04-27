@@ -15,7 +15,7 @@
 namespace Scine {
 
 namespace Utils {
-class AtomicGTOs;
+class AtomicGtos;
 class DipoleMatrix;
 } // namespace Utils
 
@@ -41,8 +41,8 @@ class AtomPairDipole {
    * @param dipoleEvaluationCoordinate Decides where the dipole has to be calculated from.
    */
   static void fillAtomPairDipoleBlock(Utils::DipoleMatrix& dipoleMatrix, int startOfAtomA, int startOfAtomB,
-                                      const IntegralMethod& method, const Utils::AtomicGTOs& gtosA,
-                                      const Utils::AtomicGTOs& gtosB, const Eigen::RowVector3d& Ra,
+                                      const IntegralMethod& method, const Utils::AtomicGtos& gtosA,
+                                      const Utils::AtomicGtos& gtosB, const Eigen::RowVector3d& Ra,
                                       const Eigen::RowVector3d& Rb, const Eigen::RowVector3d& Rab,
                                       const Eigen::RowVector3d& dipoleEvaluationCoordinate);
 };

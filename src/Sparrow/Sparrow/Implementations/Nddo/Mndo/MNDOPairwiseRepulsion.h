@@ -32,7 +32,7 @@ class MNDOPairwiseRepulsion{
  public:
   MNDOPairwiseRepulsion(const AtomicParameters& A, const AtomicParameters&B);
 
-  void calculate(const Eigen::Vector3d &R, Utils::derivOrder order);
+  void calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order);
 
   double getRepulsionEnergy() const { return repulsionEnergy_; }
 
@@ -77,9 +77,21 @@ Utils::AutomaticDifferentiation::Value1DType<O> MNDOPairwiseRepulsion::parenthes
 
 template<Utils::derivOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> MNDOPairwiseRepulsion::standardParenthesis(double R) const {
-  auto RD = radius<O>(R);
+  auto radiusDeriv = radius<O>(R);
   auto res = 1.0;
-  return res + exp(-pA_.alpha() * RD) + exp(-pB_.alpha() * RD); // TODO Change to respective alpha
+  if (pA_.element() == Utils::ElementType::H &&
+      (pB_.element() == Utils::ElementType::N || pB_.element() == Utils::ElementType::O)) {
+    return res + exp(-pA_.alpha() * radiusDeriv) +
+           radiusDeriv * Utils::Constants::angstrom_per_bohr * exp(-pB_.alpha() * radiusDeriv);
+  }
+  else if (pB_.element() == Utils::ElementType::H &&
+           (pA_.element() == Utils::ElementType::N || pA_.element() == Utils::ElementType::O)) {
+    return res + radiusDeriv * Utils::Constants::angstrom_per_bohr * exp(-pA_.alpha() * radiusDeriv) +
+           exp(-pB_.alpha() * radiusDeriv);
+  }
+  else {
+    return res + exp(-pA_.alpha() * radiusDeriv) + exp(-pB_.alpha() * radiusDeriv);
+  }
 }
 
 template<Utils::derivOrder O>

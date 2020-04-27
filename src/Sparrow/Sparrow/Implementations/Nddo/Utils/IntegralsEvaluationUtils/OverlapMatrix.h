@@ -9,8 +9,8 @@
 #define SPARROW_OVERLAPMATRIX_H
 
 #include "AtomPairOverlap.h"
-#include <Utils/MethodEssentials/Methods/OverlapCalculator.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
+#include <Utils/Scf/MethodInterfaces/OverlapCalculator.h>
 #include <Utils/Typenames.h>
 
 namespace Scine {

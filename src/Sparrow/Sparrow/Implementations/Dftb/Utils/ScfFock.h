@@ -10,7 +10,7 @@
 
 #include "DFTBCommon.h"
 #include "SDFTB.h"
-#include <Utils/MethodEssentials/Methods/ElectronicContributionCalculator.h>
+#include <Utils/Scf/MethodInterfaces/ElectronicContributionCalculator.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 #include <vector>
@@ -44,10 +44,24 @@ class ScfFock : public Utils::ElectronicContributionCalculator {
   Utils::SpinAdaptedMatrix getMatrix() const override;
   void finalize(Utils::derivOrder order) override;
 
+  /**
+   * This function adds an additive electronic contribution to the
+   * Hamiltonian that will be evaluated each SCF iteration.
+   */
+  void addDensityDependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
+  /**
+   * This function adds an additive electronic contribution to the Hamiltonian
+   * that will be evaluated once per single-point calculation.
+   */
+  void addDensityIndependentElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
+
  protected:
   int getNumberAtoms() const;
   void populationAnalysis();
-
+  //! @brief adds the derivatives for the first, second atomic and second full types.
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
   ZeroOrderMatricesCalculator& zeroOrderMatricesCalculator_;
   const Utils::ElementTypeCollection& elements_;
   const Utils::PositionCollection& positions_;
@@ -65,6 +79,8 @@ class ScfFock : public Utils::ElectronicContributionCalculator {
   Eigen::MatrixXd HXoverS_;
   Eigen::MatrixXd H0_;
   Eigen::MatrixXd correctionToFock;
+  std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>> densityDependentContributions_,
+      densityIndependentContributions_;
 
  private:
   virtual void completeH() = 0;

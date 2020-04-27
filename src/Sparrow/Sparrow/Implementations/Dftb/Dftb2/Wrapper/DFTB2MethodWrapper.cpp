@@ -14,7 +14,7 @@
 #include <Core/Exceptions.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/NativeFilenames.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <memory>
 
@@ -27,7 +27,7 @@ DFTB2MethodWrapper::DFTB2MethodWrapper() {
   dipoleCalculator_ = std::make_unique<DFTBDipoleMomentCalculator<dftb::DFTB2>>(method_);
   dipoleMatrixCalculator_ = DFTBDipoleMatrixCalculator<dftb::DFTB2>::create(method_);
   applySettings();
-};
+}
 
 DFTB2MethodWrapper::DFTB2MethodWrapper(const DFTB2MethodWrapper& rhs) : DFTB2MethodWrapper() {
   copyInto(*this, rhs);
@@ -41,6 +41,7 @@ DFTB2MethodWrapper& DFTB2MethodWrapper::operator=(const DFTB2MethodWrapper& rhs)
 DFTB2MethodWrapper::~DFTB2MethodWrapper() = default;
 
 void DFTB2MethodWrapper::applySettings() {
+  GenericMethodWrapper::applySettings();
   if (settings_->check()) {
     bool isUnrestricted = settings_->getBool(Utils::SettingsNames::unrestrictedCalculation);
     int molecularCharge = settings_->getInt(Utils::SettingsNames::molecularCharge);
@@ -48,8 +49,7 @@ void DFTB2MethodWrapper::applySettings() {
     double selfConsistenceCriterion = settings_->getDouble(Utils::SettingsNames::selfConsistanceCriterion);
     int maxIterations = settings_->getInt(Utils::SettingsNames::maxIterations);
     auto scfMixerName = settings_->getString(Utils::SettingsNames::mixer);
-    auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToSCFMixer(std::move(scfMixerName));
-    auto logVerbosity = settings_->getString(Utils::SettingsNames::loggerVerbosity);
+    auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToScfMixer(std::move(scfMixerName));
 
     method_.setUnrestrictedCalculation(isUnrestricted);
     method_.setMolecularCharge(molecularCharge);
@@ -57,12 +57,20 @@ void DFTB2MethodWrapper::applySettings() {
     method_.setConvergenceCriteria(selfConsistenceCriterion);
     method_.setMaxIterations(maxIterations);
     method_.setScfMixer(scfMixerType);
-    method_.startLogger(logVerbosity);
+
+    // After call to verifyPesValidity, update settings if they were internally changed due to
+    // charge/spin multiplicity mismatch if not empty
+    if (getLcaoMethod().getNumberAtomicOrbitals() != 0) {
+      method_.verifyPesValidity();
+      settings_->modifyBool(Utils::SettingsNames::unrestrictedCalculation, method_.unrestrictedCalculationRunning());
+      settings_->modifyInt(Utils::SettingsNames::molecularCharge, method_.getMolecularCharge());
+      settings_->modifyInt(Utils::SettingsNames::spinMultiplicity, method_.spinMultiplicity());
+    }
   }
   else {
     throw Core::InitializationException("settings invalid!");
   }
-};
+}
 
 std::string DFTB2MethodWrapper::name() const {
   return "DFTB2";
@@ -80,11 +88,11 @@ void DFTB2MethodWrapper::initialize() {
   }
 }
 
-const Utils::LCAOMethod& DFTB2MethodWrapper::getLCAOMethod() const {
+const Utils::LcaoMethod& DFTB2MethodWrapper::getLcaoMethod() const {
   return method_;
 }
 
-Utils::LCAOMethod& DFTB2MethodWrapper::getLCAOMethod() {
+Utils::LcaoMethod& DFTB2MethodWrapper::getLcaoMethod() {
   return method_;
 }
 
@@ -94,6 +102,10 @@ void DFTB2MethodWrapper::calculateImpl(Utils::derivativeType requiredDerivative)
 
 Utils::DensityMatrix DFTB2MethodWrapper::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+bool DFTB2MethodWrapper::successfulCalculation() const {
+  return method_.hasConverged();
 }
 
 } /* namespace Sparrow */

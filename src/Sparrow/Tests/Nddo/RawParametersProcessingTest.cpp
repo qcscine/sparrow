@@ -96,7 +96,7 @@ TEST_F(ARawParameterProcessing, SetsChargeSeparationsCorrectly) {
   ASSERT_THAT(d.get(multipole::dd2), DoubleNear(1.63749938 / SQRT2, 1e-5));
 }
 
-TEST_F(ARawParameterProcessing, GTOExpansionHasBeenPerformed) {
+TEST_F(ARawParameterProcessing, GtoExpansionHasBeenPerformed) {
   ASSERT_TRUE(atomicPar->GTOs().hasS());
   ASSERT_TRUE(atomicPar->GTOs().hasP());
   ASSERT_TRUE(atomicPar->GTOs().hasD());

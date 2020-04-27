@@ -25,6 +25,8 @@ constexpr const char* calculateHessian = "hessian";
 constexpr const char* calculateBondOrders = "bond_orders";
 constexpr const char* calculationDescription = "description";
 constexpr const char* suppressNormalModesOutput = "suppress_normal_modes";
+constexpr const char* wavefunctionOutput = "wavefunction";
+constexpr const char* thermochemistry = "thermochemistry";
 } // namespace
 
 using namespace boost::program_options;
@@ -52,8 +54,11 @@ CommandLineOptions::CommandLineOptions(int argc, char* argv[]) : pImpl_(std::mak
   auto structureOption = combineNamesForOptions(structureKey, ",x");
   auto gradientOption = combineNamesForOptions(calculateGradients, ",G");
   auto hessianOption = combineNamesForOptions(calculateHessian, ",H");
+  auto thermochemistryOption = combineNamesForOptions(thermochemistry, ",C");
+  auto temperatureOption = combineNamesForOptions(Utils::SettingsNames::temperature, ",T");
   auto suppressNormalModesOption = combineNamesForOptions(suppressNormalModesOutput, ",N");
   auto bondOrdersOption = combineNamesForOptions(calculateBondOrders, ",B");
+  auto wavefunctionOption = combineNamesForOptions(wavefunctionOutput, ",W");
   auto descriptionOption = combineNamesForOptions(calculationDescription, ",d");
   auto logOption = combineNamesForOptions(Utils::SettingsNames::loggerVerbosity, ",l");
 
@@ -73,10 +78,13 @@ CommandLineOptions::CommandLineOptions(int argc, char* argv[]) : pImpl_(std::mak
     (structureOption.c_str(), value<std::string>()->value_name("structure"), "sets the path to the coordinates file")
     (gradientOption.c_str(), "activates the calculation of the atomic gradients")
     (hessianOption.c_str(), "activates the calculation of the molecular Hessian matrix")
+    (thermochemistryOption.c_str(), "activates the calculation of thermochemical properties.")
+    (temperatureOption.c_str(), value<double>(), "defines the temperature for the thermochemical calculation in Kelvin.")
     (suppressNormalModesOption.c_str(), "suppresses the results of the hessian calculation as normal modes analysis")
     (bondOrdersOption.c_str(), "activates the calculation of the bond order matrix")
+    (wavefunctionOption.c_str(), "outputs a molden file for the visualization of orbitals")
     (descriptionOption.c_str(), value<std::string>(), "sets a calculation description which will appear in the output")
-    (logOption.c_str(), value<std::string>(), "sets whether warnings and errors are printed");
+    (logOption.c_str(), value<std::string>()->default_value("warning"), "sets whether warnings and errors are printed");
 
   // clang-format on
 
@@ -119,6 +127,10 @@ std::string CommandLineOptions::getCalculationDescription() const {
   return "";
 }
 
+std::string CommandLineOptions::getLoggerVerbosity() const {
+  return pImpl_->vm_[Utils::SettingsNames::loggerVerbosity].as<std::string>();
+}
+
 bool CommandLineOptions::gradientRequired() const {
   return pImpl_->vm_.count(calculateGradients) > 0;
 }
@@ -133,6 +145,14 @@ bool CommandLineOptions::bondOrdersRequired() const {
 
 bool CommandLineOptions::suppressNormalModes() const {
   return pImpl_->vm_.count(suppressNormalModesOutput) > 0;
+}
+
+bool CommandLineOptions::wavefunctionRequired() const {
+  return pImpl_->vm_.count(wavefunctionOutput) > 0;
+}
+
+bool CommandLineOptions::thermochemistryRequired() const {
+  return pImpl_->vm_.count(thermochemistry) > 0;
 }
 
 template<class CharPtrType, class StringType>
@@ -167,8 +187,8 @@ void CommandLineOptions::updateSettings(Utils::Settings& settingsToUpdate) const
   if (validOptionToSet(parameterRootDirectory, settingsToUpdate)) {
     settingsToUpdate.modifyString(parameterRootDirectory, pImpl_->vm_[parameterRootDirectory].as<std::string>());
   }
-  if (validOptionToSet(loggerVerbosity, settingsToUpdate)) {
-    settingsToUpdate.modifyString(loggerVerbosity, pImpl_->vm_[loggerVerbosity].as<std::string>());
+  if (validOptionToSet(temperature, settingsToUpdate)) {
+    settingsToUpdate.modifyDouble(temperature, pImpl_->vm_[temperature].as<double>());
   }
 }
 

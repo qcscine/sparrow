@@ -8,13 +8,14 @@
 #ifndef SPARROW_ONECENTERINTEGRALCONTAINER_H
 #define SPARROW_ONECENTERINTEGRALCONTAINER_H
 
+#include <Utils/Geometry/ElementInfo.h>
 #include <memory>
 #include <vector>
 
 namespace Scine {
 
 namespace Utils {
-enum class ElementType;
+enum class ElementType : unsigned;
 }
 
 namespace Sparrow {
@@ -47,7 +48,7 @@ class OneCenterIntegralContainer {
 };
 
 inline const OneCenterTwoElectronIntegrals& OneCenterIntegralContainer::get(Utils::ElementType e) const {
-  return *matrices_[static_cast<int>(e)];
+  return *matrices_[Utils::ElementInfo::Z(e)];
 }
 
 } // namespace nddo

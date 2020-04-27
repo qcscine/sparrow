@@ -15,7 +15,7 @@
 namespace Scine {
 
 namespace Utils {
-enum class ElementType;
+enum class ElementType : unsigned;
 class DensityMatrix;
 class AtomsOrbitalsIndexes;
 enum class derivativeType;

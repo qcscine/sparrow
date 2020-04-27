@@ -7,8 +7,8 @@
 
 #include "GTOOverlapMatrixBlock.h"
 #include "GeneralTypes.h"
-#include <Utils/MethodEssentials/util/GTOExpansion.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
+#include <Utils/DataStructures/GtoExpansion.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -48,7 +48,7 @@ GTOOverlapMatrixBlock<O>::GTOOverlapMatrixBlock() : sqrt3(sqrt(3)), pi(4.0 * ata
 
 template<Utils::derivOrder O>
 Eigen::Matrix<typename GTOOverlapMatrixBlock<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
-GTOOverlapMatrixBlock<O>::getMatrixBlock(const Utils::GTOExpansion& gA, const Utils::GTOExpansion& gB,
+GTOOverlapMatrixBlock<O>::getMatrixBlock(const Utils::GtoExpansion& gA, const Utils::GtoExpansion& gB,
                                          const Eigen::Vector3d& Rab) {
   startGTFA_ = (gA.nAOs() == 1) ? 0 : (gA.nAOs() == 3) ? 1 : 4;
   startGTFB_ = (gB.nAOs() == 1) ? 0 : (gB.nAOs() == 3) ? 1 : 4;
@@ -67,8 +67,8 @@ GTOOverlapMatrixBlock<O>::getMatrixBlock(const Utils::GTOExpansion& gA, const Ut
   return computeBlock(gA, gB);
 }
 template<Utils::derivOrder O>
-void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Utils::GTOExpansion& gA,
-                                                  const Utils::GTOExpansion& gB, const Eigen::Vector3d& Rab) {
+void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Utils::GtoExpansion& gA,
+                                                  const Utils::GtoExpansion& gB, const Eigen::Vector3d& Rab) {
   // Get GTO exponents and compute their sum
   double expA = gA.getExponent(GTFA);
   double expB = gB.getExponent(GTFB);
@@ -135,7 +135,7 @@ void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Util
 
 template<Utils::derivOrder O>
 Eigen::Matrix<typename GTOOverlapMatrixBlock<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
-GTOOverlapMatrixBlock<O>::computeBlock(const Utils::GTOExpansion& gA, const Utils::GTOExpansion& gB) {
+GTOOverlapMatrixBlock<O>::computeBlock(const Utils::GtoExpansion& gA, const Utils::GtoExpansion& gB) {
   // go from 6 d-type GTFs back to 5 d-type atomic orbitals:
   // dz2 = 1/2*(gzz-gxx-gyy)
   // dx2y2 = sqrt(3/4)*(gxx-gyy)

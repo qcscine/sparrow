@@ -5,12 +5,11 @@
  *            See LICENSE.txt for details.
  */
 
-#ifndef SPARROW_NDDOSTATE_H
-#define SPARROW_NDDOSTATE_H
+#ifndef SPARROW_SPARROWSTATE_H
+#define SPARROW_SPARROWSTATE_H
 
-#include <Utils/CalculatorBasics/State.h>
+#include <Core/BaseClasses/StateHandableObject.h>
 #include <exception>
-#include <utility>
 
 namespace Scine {
 
@@ -21,79 +20,29 @@ class SpinAdaptedMatrix;
 
 namespace Sparrow {
 class GenericMethodWrapper;
-/**
- * @brief Exception for the case that a state is requested which is not available.
- */
-class StateNotAvailableException : public std::exception {
- public:
-  explicit StateNotAvailableException(std::string stateName)
-    : stateName_("State " + std::move(stateName) + " is not available.") {
-  }
-  const char* what() const noexcept final {
-    return stateName_.c_str();
-  }
 
- private:
-  std::string stateName_;
-};
-class EmptyStateException : public std::exception {
+class IncompatibleStateException : public std::exception {
  public:
   const char* what() const noexcept final {
-    return "Sparrow state is empty and cannot be loaded.";
+    return "Sparrow state is not compatible with calculation (wrong number of electrons!).";
   }
 };
 
 /**
- * @brief Definition of a calculation state for NDDO methods.
- * The calculation state is defined as being a collection of the density matrix, optionally the Fock matrix and
- * the one and two electron matrices. Only matrix states are saved here.
+ * @brief Definition of a calculation state for methods implemented in Sparrow.
+ * The calculation state is defined as the density matrix and the coefficient matrix at some point.
+ * If the density matrix is empty, an exception is thrown at loading time.
  */
-struct SparrowState : public Utils::State {
-  /**
-   * @brief Constructor, calls the base class constructor to initialize the size of the state.
-   */
-  SparrowState(Utils::StateSize size, GenericMethodWrapper& methodWrapper);
+struct SparrowState : public Core::State {
+  explicit SparrowState(Utils::DensityMatrix densityMatrix) : densityMatrix_(std::move(densityMatrix)){};
+  ~SparrowState() final = default;
 
-  /**
-   * @brief Getter for a Eigen::MatrixXd state identified with a std::string.
-   * @param matrixState The key for the state's key-value pair.
-   * @return The value of the key-value pair, an Eigen::MatrixXd.
-   */
-  const Eigen::MatrixXd& getMatrixState(const std::string& matrixState) const final;
-  /**
-   * @brief Getter for a std::string state identified with a std::string.
-   * @param stringState The key for the state's key-value pair.
-   * @return The value of the key-value pair, a std::string.
-   */
-  const std::string& getStringState(const std::string& stringState) const final;
-  /**
-   * @brief Getter for a integer state identified with a std::string.
-   * @param intState The key for the state's key-value pair.
-   * @return The value of the key-value pair, an integer.
-   */
-  int getIntState(const std::string& intState) const final;
-  /**
-   * @brief Getter for a double state identified with a std::string.
-   * @param doubleState The key for the state's key-value pair.
-   * @return The value of the key-value pair, a double.
-   */
-  double getDoubleState(const std::string& doubleState) const final;
-
-  /**
-   * @brief Initializer for the state, resets it to the initial state.
-   * In this case the initial state is just the initial density matrix guess.
-   */
-  void initialize() final;
-
-  bool hasState(const std::string& matrixState) const;
-
-  void generateDensityMatrixState(const Utils::DensityMatrix& densityMatrix, bool isUnrestricted);
-  void generateFockMatrixState(const Utils::SpinAdaptedMatrix& fockMatrix, bool isUnrestricted);
+  const Utils::DensityMatrix& getDensityMatrix() const {
+    return densityMatrix_;
+  }
 
  private:
-  /// @brief A std::map of std::string keys with Eigen::MatrixXd values.
-  MatrixState matrixStates_;
-  GenericMethodWrapper& methodWrapper_;
+  Utils::DensityMatrix densityMatrix_;
 };
 
 } // namespace Sparrow

@@ -17,8 +17,8 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ChargeSeparationParameter.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/KlopmanParameter.h>
 #include <Utils/Constants.h>
-#include <Utils/MethodEssentials/util/STO_nG.h>
-#include <Utils/MethodEssentials/util/atomicGTOs.h>
+#include <Utils/DataStructures/AtomicGtos.h>
+#include <Utils/DataStructures/SlaterToGaussian.h>
 #include <algorithm>
 
 namespace Scine {
@@ -83,7 +83,7 @@ RawParameterProcessor::processAtomicParameters(Utils::ElementType e) {
   runtimeAtomicPar->setAlpha(p.alpha * Utils::Constants::angstrom_per_bohr);
   setChargeSeparations(e, *runtimeAtomicPar, p);
   setKlopman(*runtimeAtomicPar, p);
-  setGTOExpansion(e, *runtimeAtomicPar, p);
+  setGtoExpansion(e, *runtimeAtomicPar, p);
 
   if (p.gaussianRepulsionParameters.size() > 0) {
     for (int i = 0; i < p.gaussianRepulsionParameters.size(); i += 1) {
@@ -171,20 +171,20 @@ void RawParameterProcessor::setChargeSeparations(Utils::ElementType e, AtomicPar
   par.setChargeSeparations(d);
 }
 
-void RawParameterProcessor::setGTOExpansion(Utils::ElementType e, AtomicParameters& par, const RawAtomicParameters& p) const {
-  Utils::AtomicGTOs gto;
+void RawParameterProcessor::setGtoExpansion(Utils::ElementType e, AtomicParameters& par, const RawAtomicParameters& p) const {
+  Utils::AtomicGtos gto;
   unsigned int N = 6; // STO-6G
   unsigned int ns = PM6Elements::getQuantumNumberForSOrbital(e);
   unsigned int np = PM6Elements::getQuantumNumberForPOrbital(e);
   unsigned int nd = PM6Elements::getQuantumNumberForDOrbital(e);
-  auto gtoS = Utils::STO_nG::getGTOExpansion(N, ns, 0, p.zs);
+  auto gtoS = Utils::SlaterToGaussian::getGTOExpansion(N, ns, 0, p.zs);
   gto.setS(gtoS);
   if (PM6Elements::getNumberOfAOs(e, basisFunctions_) >= 4) {
-    auto gtoP = Utils::STO_nG::getGTOExpansion(N, np, 1, p.zp);
+    auto gtoP = Utils::SlaterToGaussian::getGTOExpansion(N, np, 1, p.zp);
     gto.setP(gtoP);
   }
   if (PM6Elements::getNumberOfAOs(e, basisFunctions_) == 9) {
-    auto gtoD = Utils::STO_nG::getGTOExpansion(N, nd, 2, p.zd);
+    auto gtoD = Utils::SlaterToGaussian::getGTOExpansion(N, nd, 2, p.zd);
     gto.setD(gtoD);
   }
   par.setGTOs(gto);

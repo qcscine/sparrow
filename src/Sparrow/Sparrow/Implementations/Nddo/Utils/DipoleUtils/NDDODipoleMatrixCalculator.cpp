@@ -13,8 +13,8 @@
 #include <Sparrow/Implementations/Nddo/Pm6/PM6Method.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
 #include <Utils/Geometry.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 

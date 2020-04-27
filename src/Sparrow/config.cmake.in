@@ -8,6 +8,14 @@ get_filename_component(SPARROW_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 # Generate Target
 include("${CMAKE_CURRENT_LIST_DIR}/SparrowTargets.cmake")
 
+# Check if the whole project shares the same SCINE_MARCH option.
+if(DEFINED SCINE_MARCH AND NOT "${SCINE_MARCH}" STREQUAL "@SCINE_MARCH@")
+  message(FATAL_ERROR "You are trying to use an installed version of Sparrow that was compiled with different -march flag values! Current march flags: ${SCINE_MARCH}, installed flags: @SCINE_MARCH@")
+endif()
+if (NOT DEFINED SCINE_MARCH)
+  set(SCINE_MARCH "@SCINE_MARCH@")
+endif()
+
 @PACKAGE_INIT@
 
 check_required_components(Sparrow)

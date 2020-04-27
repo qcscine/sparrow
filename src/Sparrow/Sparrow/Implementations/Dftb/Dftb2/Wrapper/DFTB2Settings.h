@@ -22,8 +22,8 @@ namespace Sparrow {
 class DFTB2Settings : public Scine::Utils::Settings {
  public:
   DFTB2Settings() : Settings("DFTB2Settings") {
-    Utils::UniversalSettings::SettingPopulator::populateLCAOSettings(_fields);
-    Utils::UniversalSettings::SettingPopulator::populateSCFSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateLcaoSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "Dftb/mio-1-1/");
 
     resetToDefaults();

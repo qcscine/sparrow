@@ -22,8 +22,8 @@ namespace Sparrow {
 class PM6Settings : public Scine::Utils::Settings {
  public:
   PM6Settings() : Settings("PM6MethodWrapper") {
-    Utils::UniversalSettings::SettingPopulator::populateLCAOSettings(_fields);
-    Utils::UniversalSettings::SettingPopulator::populateSCFSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateLcaoSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "Pm6/parameters.xml");
 
     Utils::UniversalSettings::BoolDescriptor useNDDODipoleApprox("Sets use of NDDO dipole approximation.");

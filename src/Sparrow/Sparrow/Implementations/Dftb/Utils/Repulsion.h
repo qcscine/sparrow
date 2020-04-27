@@ -9,7 +9,7 @@
 #define SPARROW_DFTB_REPULSION_H
 
 #include "DFTBCommon.h"
-#include <Utils/MethodEssentials/Methods/RepulsionCalculator.h>
+#include <Utils/Scf/MethodInterfaces/RepulsionCalculator.h>
 #include <memory>
 #include <vector>
 
@@ -46,8 +46,6 @@ class Repulsion : public Utils::RepulsionCalculator {
 
   int nAtoms_;
   Container pairRepulsions_;
-  const Utils::ElementTypeCollection& elements_;
-  const Utils::PositionCollection& positions_;
   const DFTBCommon::DiatomicParameterContainer& diatomicParameters_;
 };
 

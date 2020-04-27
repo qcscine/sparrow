@@ -8,7 +8,7 @@
 #ifndef SSPARROW_DFTB_H
 #define SSPARROW_DFTB_H
 
-#include "Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h"
+#include "Utils/DataStructures/AtomsOrbitalsIndexes.h"
 #include <Utils/Math/AutomaticDifferentiation/MethodsTypesHelper.h>
 #include <Utils/Math/DerivOrderEnum.h>
 #include <Eigen/Core>

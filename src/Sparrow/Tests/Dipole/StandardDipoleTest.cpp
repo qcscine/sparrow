@@ -13,11 +13,11 @@
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMomentCalculator.h>
 #include <Utils/CalculatorBasics.h>
+#include <Utils/DataStructures/AtomicGtos.h>
+#include <Utils/DataStructures/DipoleMatrix.h>
+#include <Utils/DataStructures/SlaterToGaussian.h>
 #include <Utils/Geometry/AtomCollection.h>
-#include <Utils/IO/ChemicalFileFormats/XYZStreamHandler.h>
-#include <Utils/MethodEssentials/util/DipoleMatrix.h>
-#include <Utils/MethodEssentials/util/STO_nG.h>
-#include <Utils/MethodEssentials/util/atomicGTOs.h>
+#include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
 #include <Utils/Settings.h>
 #include <Utils/Typenames.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
@@ -31,7 +31,7 @@ using namespace testing;
 namespace Scine {
 namespace Sparrow {
 
-class STO_nGDipoleTest : public Test {
+class SlaterToGaussianDipoleTest : public Test {
  public:
   std::shared_ptr<Core::Calculator> method;
 
@@ -41,8 +41,8 @@ class STO_nGDipoleTest : public Test {
 
   double const arbitraryExponentA_{1.93834};
   double const arbitraryExponentB_{1.34521};
-  Utils::GTOExpansion gtoHs, gtoFs, gtoFp;
-  Utils::AtomicGTOs atomicGTOsH, atomicGTOsF;
+  Utils::GtoExpansion gtoHs, gtoFs, gtoFp;
+  Utils::AtomicGtos AtomicGtosH, AtomicGtosF;
 
   Eigen::RowVector3d Ri, Rj, Ri2, Rj2;
   Eigen::Vector3d Rij;
@@ -70,7 +70,7 @@ class STO_nGDipoleTest : public Test {
     std::stringstream HFss("2\n\n"
                            "H        0.000000000     0.000000000     0.000000000\n"
                            "F        0.965548748     0.000000000     0.000000000\n");
-    HF = Utils::XYZStreamHandler::read(HFss);
+    HF = Utils::XyzStreamHandler::read(HFss);
     std::stringstream Ethanolss("9\n\n"
                                 "C       -0.025722743    -0.038148774     0.007736703\n"
                                 "C        1.494872990    -0.038148774     0.007736703\n"
@@ -81,17 +81,17 @@ class STO_nGDipoleTest : public Test {
                                 "H        1.909273199    -0.583326143    -0.859094289\n"
                                 "H        1.916182172    -0.455131719     0.942989512\n"
                                 "H        1.715886732     1.789449608    -0.779284087\n");
-    Ethanol = Utils::XYZStreamHandler::read(Ethanolss);
+    Ethanol = Utils::XyzStreamHandler::read(Ethanolss);
 
     dipoleMatrix_.reset(5);
     dipoleMatrix2_.reset(5);
-    gtoHs = Utils::STO_nG::getGTOExpansion(1, 1, 0, arbitraryExponentA_);
-    gtoFs = Utils::STO_nG::getGTOExpansion(1, 2, 0, arbitraryExponentB_);
-    gtoFp = Utils::STO_nG::getGTOExpansion(1, 2, 1, arbitraryExponentB_);
+    gtoHs = Utils::SlaterToGaussian::getGTOExpansion(1, 1, 0, arbitraryExponentA_);
+    gtoFs = Utils::SlaterToGaussian::getGTOExpansion(1, 2, 0, arbitraryExponentB_);
+    gtoFp = Utils::SlaterToGaussian::getGTOExpansion(1, 2, 1, arbitraryExponentB_);
 
-    atomicGTOsH.setS(gtoHs);
-    atomicGTOsF.setS(gtoFs);
-    atomicGTOsF.setP(gtoFp);
+    AtomicGtosH.setS(gtoHs);
+    AtomicGtosF.setS(gtoFs);
+    AtomicGtosF.setP(gtoFp);
 
     Ri << 0.0, 0.0, 0.0;
     Rj << 1.0, 0.0, 0.0;
@@ -102,147 +102,147 @@ class STO_nGDipoleTest : public Test {
   }
 };
 
-TEST_F(STO_nGDipoleTest, TestwithH2) {
+TEST_F(SlaterToGaussianDipoleTest, TestwithH2) {
   std::stringstream H2ss("2\n\n"
                          "H        0.000000000     0.000000000     0.000000000\n"
                          "H        1.000000000     0.000000000     0.000000000\n");
-  auto structure = Utils::XYZStreamHandler::read(H2ss);
+  auto structure = Utils::XyzStreamHandler::read(H2ss);
   method->setRequiredProperties(Utils::Property::Energy | Utils::Property::Dipole);
   method->setStructure(structure);
 
   auto res = method->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
 
   ASSERT_THAT(dipole.norm(), DoubleNear(0.0, 0.001));
 }
 
-TEST_F(STO_nGDipoleTest, TestxDipoleMatrixBlock1s2sSTO_1G) {
-  Utils::AtomicGTOs atomicGTOsH, atomicGTOsF;
-  atomicGTOsH.setS(gtoHs);
-  atomicGTOsF.setS(gtoFs);
-  atomicGTOsF.setP(gtoFp);
+TEST_F(SlaterToGaussianDipoleTest, TestxDipoleMatrixBlock1s2sSTO_1G) {
+  Utils::AtomicGtos AtomicGtosH, AtomicGtosF;
+  AtomicGtosH.setS(gtoHs);
+  AtomicGtosF.setS(gtoFs);
+  AtomicGtosF.setP(gtoFp);
 
   auto const firstAOIndexOnH = 0;
   auto const firstAOIndexOnF = 1;
 
   AtomPairDipole::fillAtomPairDipoleBlock(dipoleMatrix_, firstAOIndexOnH, firstAOIndexOnF, IntegralMethod::ObaraSaika,
-                                          atomicGTOsH, atomicGTOsF, Ri, Rj, Rij, evaluationCoordinate);
+                                          AtomicGtosH, AtomicGtosF, Ri, Rj, Rij, evaluationCoordinate);
   // The analytical value was computed with the Mathematica software
   // multiplying the GTO in each spatial coordinate obtained with the function Integrate[...]
   // (See Molecular Electronic Structure Theory, Trygve Helgaker, Chapter 9)
-  ASSERT_THAT(dipoleMatrix_.x()(0, 1), DoubleNear(0.079595, 1e-6));
+  ASSERT_THAT(dipoleMatrix_.x().get<Utils::derivOrder::zero>()(0, 1), DoubleNear(0.079595, 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestxDipoleMatrixBlock1s2pSTO_1G) {
+TEST_F(SlaterToGaussianDipoleTest, TestxDipoleMatrixBlock1s2pSTO_1G) {
   auto const firstAOIndexOnH = 0;
   auto const firstAOIndexOnF = 1;
 
   AtomPairDipole::fillAtomPairDipoleBlock(dipoleMatrix_, firstAOIndexOnH, firstAOIndexOnF, IntegralMethod::ObaraSaika,
-                                          atomicGTOsH, atomicGTOsF, Ri, Rj, Rij, evaluationCoordinate);
+                                          AtomicGtosH, AtomicGtosF, Ri, Rj, Rij, evaluationCoordinate);
   // The analytical value was computed with the Mathematica software
   // multiplying the GTO in each spatial coordinate obtained with the function Integrate[...]
   // (See Molecular Electronic Structure Theory, Trygve Helgaker, Chapter 9)
-  ASSERT_THAT(dipoleMatrix_.x()(0, 2), DoubleNear(0.1341609, 1e-6));
+  ASSERT_THAT(dipoleMatrix_.x().get<Utils::derivOrder::zero>()(0, 2), DoubleNear(0.1341609, 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestxDipoleMatrixBlock1s2sSTO_2G) {
-  gtoHs = Utils::STO_nG::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
-  gtoFs = Utils::STO_nG::getGTOExpansion(2, 2, 0, arbitraryExponentB_);
-  gtoFp = Utils::STO_nG::getGTOExpansion(2, 2, 1, arbitraryExponentB_);
+TEST_F(SlaterToGaussianDipoleTest, TestxDipoleMatrixBlock1s2sSTO_2G) {
+  gtoHs = Utils::SlaterToGaussian::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
+  gtoFs = Utils::SlaterToGaussian::getGTOExpansion(2, 2, 0, arbitraryExponentB_);
+  gtoFp = Utils::SlaterToGaussian::getGTOExpansion(2, 2, 1, arbitraryExponentB_);
 
-  atomicGTOsH.setS(gtoHs);
-  atomicGTOsF.setS(gtoFs);
-  atomicGTOsF.setP(gtoFp);
+  AtomicGtosH.setS(gtoHs);
+  AtomicGtosF.setS(gtoFs);
+  AtomicGtosF.setP(gtoFp);
 
   auto const firstAOIndexOnH = 0;
   auto const firstAOIndexOnF = 1;
 
   AtomPairDipole::fillAtomPairDipoleBlock(dipoleMatrix_, firstAOIndexOnH, firstAOIndexOnF, IntegralMethod::ObaraSaika,
-                                          atomicGTOsH, atomicGTOsF, Ri, Rj, Rij, evaluationCoordinate);
+                                          AtomicGtosH, AtomicGtosF, Ri, Rj, Rij, evaluationCoordinate);
   // The analytical value was computed with the Mathematica software.
   // The integral between GTO pairs were calculated by summing the multiplying the integrals in the three
   // spatial coordinates. The normalized contributions are then summed together
   // (See Molecular Electronic Structure Theory, Trygve Helgaker, Chapter 9)
-  ASSERT_THAT(dipoleMatrix_.x()(0, 1), DoubleNear(0.1288227, 1e-6));
+  ASSERT_THAT(dipoleMatrix_.x().get<Utils::derivOrder::zero>()(0, 1), DoubleNear(0.1288227, 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestxDipoleMatrixBlock1s2pSTO_2G) {
-  gtoHs = Utils::STO_nG::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
-  gtoFs = Utils::STO_nG::getGTOExpansion(2, 2, 0, arbitraryExponentB_);
-  gtoFp = Utils::STO_nG::getGTOExpansion(2, 2, 1, arbitraryExponentB_);
+TEST_F(SlaterToGaussianDipoleTest, TestxDipoleMatrixBlock1s2pSTO_2G) {
+  gtoHs = Utils::SlaterToGaussian::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
+  gtoFs = Utils::SlaterToGaussian::getGTOExpansion(2, 2, 0, arbitraryExponentB_);
+  gtoFp = Utils::SlaterToGaussian::getGTOExpansion(2, 2, 1, arbitraryExponentB_);
 
-  atomicGTOsH.setS(gtoHs);
-  atomicGTOsF.setS(gtoFs);
-  atomicGTOsF.setP(gtoFp);
+  AtomicGtosH.setS(gtoHs);
+  AtomicGtosF.setS(gtoFs);
+  AtomicGtosF.setP(gtoFp);
 
   auto const firstAOIndexOnH = 0;
   auto const firstAOIndexOnF = 1;
 
   AtomPairDipole::fillAtomPairDipoleBlock(dipoleMatrix_, firstAOIndexOnH, firstAOIndexOnF, IntegralMethod::ObaraSaika,
-                                          atomicGTOsH, atomicGTOsF, Ri, Rj, Rij, evaluationCoordinate);
+                                          AtomicGtosH, AtomicGtosF, Ri, Rj, Rij, evaluationCoordinate);
   // The analytical value was computed with the Mathematica software.
   // The integral between GTO pairs were calculated by summing the multiplying the integrals in the three
   // spatial coordinates. The normalized contributions are then summed together
   // (See Molecular Electronic Structure Theory, Trygve Helgaker, Chapter 9)
-  ASSERT_THAT(dipoleMatrix_.x()(0, 2), DoubleNear(0.1815766, 1e-6));
+  ASSERT_THAT(dipoleMatrix_.x().get<Utils::derivOrder::zero>()(0, 2), DoubleNear(0.1815766, 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestyDipoleMatrixBlock1s2pSTO_2G) {
-  gtoHs = Utils::STO_nG::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
-  gtoFs = Utils::STO_nG::getGTOExpansion(2, 2, 0, arbitraryExponentB_);
-  gtoFp = Utils::STO_nG::getGTOExpansion(2, 2, 1, arbitraryExponentB_);
+TEST_F(SlaterToGaussianDipoleTest, TestyDipoleMatrixBlock1s2pSTO_2G) {
+  gtoHs = Utils::SlaterToGaussian::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
+  gtoFs = Utils::SlaterToGaussian::getGTOExpansion(2, 2, 0, arbitraryExponentB_);
+  gtoFp = Utils::SlaterToGaussian::getGTOExpansion(2, 2, 1, arbitraryExponentB_);
 
-  atomicGTOsH.setS(gtoHs);
-  atomicGTOsF.setS(gtoFs);
-  atomicGTOsF.setP(gtoFp);
+  AtomicGtosH.setS(gtoHs);
+  AtomicGtosF.setS(gtoFs);
+  AtomicGtosF.setP(gtoFp);
 
   auto const firstAOIndexOnH = 0;
   auto const firstAOIndexOnF = 1;
 
   AtomPairDipole::fillAtomPairDipoleBlock(dipoleMatrix_, firstAOIndexOnH, firstAOIndexOnF, IntegralMethod::ObaraSaika,
-                                          atomicGTOsH, atomicGTOsF, Ri, Rj, Rij, evaluationCoordinate);
+                                          AtomicGtosH, AtomicGtosF, Ri, Rj, Rij, evaluationCoordinate);
   // The analytical value was computed with the Mathematica software.
   // The integral between GTO pairs were calculated by summing the multiplying the integrals in the three
   // spatial coordinates. The normalized contributions are then summed together
   // (See Molecular Electronic Structure Theory, Trygve Helgaker, Chapter 9)
-  ASSERT_THAT(dipoleMatrix_.y()(0, 3), DoubleNear(0.3524788, 1e-6));
+  ASSERT_THAT(dipoleMatrix_.y().get<Utils::derivOrder::zero>()(0, 3), DoubleNear(0.3524788, 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestxDipoleMatrixBlock1s1sSTO_2G) {
-  gtoHs = Utils::STO_nG::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
+TEST_F(SlaterToGaussianDipoleTest, TestxDipoleMatrixBlock1s1sSTO_2G) {
+  gtoHs = Utils::SlaterToGaussian::getGTOExpansion(2, 1, 0, arbitraryExponentA_);
 
-  atomicGTOsH.setS(gtoHs);
+  AtomicGtosH.setS(gtoHs);
 
   Rj.x() = 0.5;
   Rij = Eigen::Vector3d::Zero(3);
   auto const firstAOIndexOnH = 0;
 
   AtomPairDipole::fillAtomPairDipoleBlock(dipoleMatrix_, firstAOIndexOnH, firstAOIndexOnH, IntegralMethod::ObaraSaika,
-                                          atomicGTOsH, atomicGTOsH, Rj, Rj, Rij, evaluationCoordinate);
+                                          AtomicGtosH, AtomicGtosH, Rj, Rj, Rij, evaluationCoordinate);
   // Diagonal elements of the dipole matrix should be equal to the distance from the evaluation point
-  ASSERT_THAT(dipoleMatrix_.x()(0, 0), DoubleNear(Rj.x(), 1e-6));
+  ASSERT_THAT(dipoleMatrix_.x().get<Utils::derivOrder::zero>()(0, 0), DoubleNear(Rj.x(), 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestxDipoleMatrixHH) {
+TEST_F(SlaterToGaussianDipoleTest, TestxDipoleMatrixHH) {
   std::stringstream HH("2\n\n"
                        "H 0.0 0.0 0.0\n"
                        "H 1.0 0.0 0.0\n");
 
-  auto HHst = Utils::XYZStreamHandler::read(HH);
+  auto HHst = Utils::XyzStreamHandler::read(HH);
   method->setRequiredProperties(Utils::Property::Energy | Utils::Property::DipoleMatrixAO);
   method->setStructure(HHst);
   auto result = method->calculate("");
-  const auto dipoleMatrix = result.takeAODipoleMatrix();
+  const auto dipoleMatrix = result.take<Utils::Property::DipoleMatrixAO>();
   // The analytical values were computed with the Mathematica software.
   // The integral between GTO pairs were calculated by summing the multiplying the integrals in the three
   // spatial coordinates. The normalized contributions are then summed together
   // (See Molecular Electronic Structure Theory, Trygve Helgaker, Chapter 9)
-  ASSERT_THAT(dipoleMatrix.x()(0, 0), DoubleNear(0, 1e-6));
-  ASSERT_THAT(dipoleMatrix.x()(0, 1), DoubleNear(0.45662245, 1e-5));
-  ASSERT_THAT(dipoleMatrix.x()(1, 1), DoubleNear(1.8897346, 1e-5));
+  ASSERT_THAT(dipoleMatrix.x().get<Utils::derivOrder::zero>()(0, 0), DoubleNear(0, 1e-6));
+  ASSERT_THAT(dipoleMatrix.x().get<Utils::derivOrder::zero>()(0, 1), DoubleNear(0.45662245, 1e-5));
+  ASSERT_THAT(dipoleMatrix.x().get<Utils::derivOrder::zero>()(1, 1), DoubleNear(1.8897346, 1e-5));
 }
 
-TEST_F(STO_nGDipoleTest, ObaraSaikaAndAnalyticalAreEqual) {
+TEST_F(SlaterToGaussianDipoleTest, ObaraSaikaAndAnalyticalAreEqual) {
   method->setStructure(Ethanol);
   method->calculate("");
 
@@ -261,15 +261,15 @@ TEST_F(STO_nGDipoleTest, ObaraSaikaAndAnalyticalAreEqual) {
   const auto closedFormDM = matrixCalculator->getAODipoleMatrix();
 
   for (int dimension = 0; dimension < 3; ++dimension) {
-    for (int i = 0; i < obaraSaikaDM.x().cols(); ++i) {
-      for (int j = 0; j < obaraSaikaDM.x().cols(); ++j) {
+    for (int i = 0; i < obaraSaikaDM.x().get<Utils::derivOrder::zero>().cols(); ++i) {
+      for (int j = 0; j < obaraSaikaDM.x().get<Utils::derivOrder::zero>().cols(); ++j) {
         ASSERT_NEAR(obaraSaikaDM[dimension](i, j), closedFormDM[dimension](i, j), 5e-6);
       }
     }
   }
 }
 
-TEST_F(STO_nGDipoleTest, NuclearDipoleContribution) {
+TEST_F(SlaterToGaussianDipoleTest, NuclearDipoleContribution) {
   // pyscf nuclear dipole = [42.0259269  15.37531606 -1.03465377]
   /*
    * Core charges in pySCF were assigned to the PM6 core charges (C: 4, O: 6, H: 1).
@@ -299,7 +299,7 @@ TEST_F(STO_nGDipoleTest, NuclearDipoleContribution) {
   ASSERT_THAT(nuclearDipole.z(), DoubleNear(-1.03465377, 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, DipoleMatrixEthanolEqualsLibCInt) {
+TEST_F(SlaterToGaussianDipoleTest, DipoleMatrixEthanolEqualsLibCInt) {
   /*
    * Dipole calculated with LibCInt through pySCF, using the basis of scine, and omitting 1s core orbitals.
    */
@@ -310,7 +310,7 @@ TEST_F(STO_nGDipoleTest, DipoleMatrixEthanolEqualsLibCInt) {
 
   auto results = method->calculate("");
 
-  auto dipoleMatrix = results.takeAODipoleMatrix();
+  auto dipoleMatrix = results.take<Utils::Property::DipoleMatrixAO>();
 
   std::array<std::array<double, 21>, 21> pySCFAOInt = {
       {{{-4.86089394e-02, 7.53562584e-01, -1.26305817e-19, 4.36248881e-20, 2.76487387e-01, -2.58404714e-01,
@@ -370,19 +370,19 @@ TEST_F(STO_nGDipoleTest, DipoleMatrixEthanolEqualsLibCInt) {
 
   for (int mu = 0; mu < 18; ++mu) {
     for (int nu = mu; nu < 18; ++nu) {
-      ASSERT_THAT(dipoleMatrix.x()(mu, nu), DoubleNear(pySCFAOInt[mu][nu], 5e-6));
+      ASSERT_THAT(dipoleMatrix.x().get<Utils::derivOrder::zero>()(mu, nu), DoubleNear(pySCFAOInt[mu][nu], 5e-6));
     }
   }
 }
 
-TEST_F(STO_nGDipoleTest, DiHydrogenDipoleTestStretching) {
+TEST_F(SlaterToGaussianDipoleTest, DiHydrogenDipoleTestStretching) {
   std::stringstream H21ss("2\n\n"
                           "H        0.000000000     0.000000000     0.000000000\n"
                           "H        1.000000000     0.000000000     0.000000000\n");
 
   method->settings().modifyBool(Utils::SettingsNames::unrestrictedCalculation, true);
   method->settings().modifyInt(Utils::SettingsNames::spinMultiplicity, 3);
-  Utils::AtomCollection H21A = Utils::XYZStreamHandler::read(H21ss);
+  Utils::AtomCollection H21A = Utils::XyzStreamHandler::read(H21ss);
   Utils::DisplacementCollection Disp(2, 3);
   auto positions = H21A.getPositions();
 
@@ -393,37 +393,37 @@ TEST_F(STO_nGDipoleTest, DiHydrogenDipoleTestStretching) {
 
   method->setStructure(H21A);
   auto res = method->calculate("");
-  auto dipole1 = res.getDipole();
+  auto dipole1 = res.get<Utils::Property::Dipole>();
 
   method->modifyPositions(positions + Disp);
   auto res2 = method->calculate("");
-  auto dipole2 = res2.getDipole();
+  auto dipole2 = res2.get<Utils::Property::Dipole>();
 
   Disp.row(1) *= 2;
 
   method->modifyPositions(positions + Disp);
   res = method->calculate("");
-  auto dipole3 = res.getDipole();
+  auto dipole3 = res.get<Utils::Property::Dipole>();
 
   Disp.row(1) *= 3;
   method->modifyPositions(positions + Disp);
   res = method->calculate("");
-  auto dipole4 = res.getDipole();
+  auto dipole4 = res.get<Utils::Property::Dipole>();
 
   Disp.row(1) *= 5;
   method->modifyPositions(positions + Disp);
   res = method->calculate("");
-  auto dipole6 = res.getDipole();
+  auto dipole6 = res.get<Utils::Property::Dipole>();
 
   Disp.row(1) *= 9;
   method->modifyPositions(positions + Disp);
   res = method->calculate("");
-  auto dipole10 = res.getDipole();
+  auto dipole10 = res.get<Utils::Property::Dipole>();
 
   Disp.row(1) *= 99;
   method->modifyPositions(positions + Disp);
   res = method->calculate("");
-  auto dipole100 = res.getDipole();
+  auto dipole100 = res.get<Utils::Property::Dipole>();
 
   ASSERT_NEAR(dipole1.norm(), 0., 1e-5);
   ASSERT_NEAR(dipole2.norm(), 0., 1e-5);
@@ -434,59 +434,59 @@ TEST_F(STO_nGDipoleTest, DiHydrogenDipoleTestStretching) {
   ASSERT_NEAR(dipole100.norm(), 0., 1e-5);
 }
 
-TEST_F(STO_nGDipoleTest, EthanolDipoleTest) {
+TEST_F(SlaterToGaussianDipoleTest, EthanolDipoleTest) {
   method->setStructure(Ethanol);
   method->setRequiredProperties(Utils::Property::Dipole | Utils::Property::Energy);
   auto res = method->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
   // Value computed with pySCF for the same structure, with the Hartree-Fock Method and the STO-6G basis.
   ASSERT_NEAR(dipole.norm() * 2.541765, 1.54, 6e-2);
 }
 
-TEST_F(STO_nGDipoleTest, HFDipoleTest) {
+TEST_F(SlaterToGaussianDipoleTest, HFDipoleTest) {
   method->setStructure(HF);
   method->setRequiredProperties(Utils::Property::Dipole | Utils::Property::Energy);
   auto res = method->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
 
   std::stringstream HFRotatedss("2\n\n"
                                 "H        0.000000000     0.000000000     0.000000000\n"
                                 "F        0.000000000     0.965548748     0.000000000\n");
-  Utils::AtomCollection HF2 = Utils::XYZStreamHandler::read(HFRotatedss);
+  Utils::AtomCollection HF2 = Utils::XyzStreamHandler::read(HFRotatedss);
   method->setStructure(HF2);
   auto res2 = method->calculate("");
-  auto const& dipole2 = res2.getDipole();
+  auto const& dipole2 = res2.get<Utils::Property::Dipole>();
 
   ASSERT_THAT(dipole2.norm(), DoubleNear(dipole.norm(), 1e-6));
 
   std::stringstream HFRotatedTranslatedss("2\n\n"
                                           "H        0.000000000     0.000000000     5.000000000\n"
                                           "F        0.000000000     0.965548748     5.000000000\n");
-  Utils::AtomCollection HF3 = Utils::XYZStreamHandler::read(HFRotatedTranslatedss);
+  Utils::AtomCollection HF3 = Utils::XyzStreamHandler::read(HFRotatedTranslatedss);
   method->setStructure(HF3);
   auto res3 = method->calculate("");
-  auto const& dipole3 = res3.getDipole();
+  auto const& dipole3 = res3.get<Utils::Property::Dipole>();
 
   ASSERT_THAT(dipole3.norm(), DoubleNear(dipole.norm(), 1e-6));
 }
 
-TEST_F(STO_nGDipoleTest, TestCO2Dipole) {
+TEST_F(SlaterToGaussianDipoleTest, TestCO2Dipole) {
   std::stringstream CO2("3\n\n"
                         "C 0.0 0.0 0.0\n"
                         "O 0.529177210 0.0 0.0\n"
                         "O -0.529177210 0.0 0.0\n");
 
-  auto CO2st = Utils::XYZStreamHandler::read(CO2);
+  auto CO2st = Utils::XyzStreamHandler::read(CO2);
   method->setStructure(CO2st);
   method->setRequiredProperties(Utils::Property::Dipole | Utils::Property::Energy);
   auto res = method->calculate("");
-  auto const& dipole = res.getDipole();
+  auto const& dipole = res.get<Utils::Property::Dipole>();
 
   // dipole should be 0 due to symmetry.
   ASSERT_NEAR(dipole.norm(), 0.0, 1e-6);
 }
 
-TEST_F(STO_nGDipoleTest, DipoleIsCorrectForBigOrganicMolecule) {
+TEST_F(SlaterToGaussianDipoleTest, DipoleIsCorrectForBigOrganicMolecule) {
   method->setRequiredProperties(Utils::Property::Energy | Utils::Property::Dipole);
   method->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-5);
   std::stringstream BigMoleculeSS("113\n\n"
@@ -604,11 +604,11 @@ TEST_F(STO_nGDipoleTest, DipoleIsCorrectForBigOrganicMolecule) {
                                   "H    20.252000    26.520000     3.533000\n"
                                   "H    20.371000    24.964000     3.381000\n");
 
-  auto BigMolecule = Utils::XYZStreamHandler::read(BigMoleculeSS);
+  auto BigMolecule = Utils::XyzStreamHandler::read(BigMoleculeSS);
   method->setStructure(BigMolecule);
 
   auto res = method->calculate("");
-  const auto dipole = res.getDipole();
+  const auto dipole = res.get<Utils::Property::Dipole>();
   auto dipoleFromPreciseCalculation = 12.8503; // Debye
   // Dipole must be similar to true one (in Debye-> *2.541746 D/a.u), allow for 10% error.
   // Result of precise calculation in TestScripts

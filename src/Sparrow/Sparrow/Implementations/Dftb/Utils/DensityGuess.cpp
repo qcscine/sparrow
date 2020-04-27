@@ -6,8 +6,8 @@
  */
 
 #include "DensityGuess.h"
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/DataStructures/DensityMatrix.h>
 
 namespace Scine {
 namespace Sparrow {

@@ -6,18 +6,20 @@
  */
 
 #include "SKAtom.h"
+#include "Utils/Geometry/ElementInfo.h"
 
 namespace Scine {
 namespace Sparrow {
 
 namespace dftb {
 
-SKAtom::SKAtom(Utils::ElementType el) : allowsSpin(false), allowsDFTB3(false) {
-  if (el <= Utils::ElementType::He) {
+SKAtom::SKAtom(Utils::ElementType el) : element_(el), allowsSpin(false), allowsDFTB3(false) {
+  const unsigned Z = Utils::ElementInfo::Z(el);
+  if (Z <= Utils::ElementInfo::Z(Utils::ElementType::He)) {
     highestOrbital = s;
     nAOs = 1;
   }
-  else if (el <= Utils::ElementType::Ne) {
+  else if (Z <= Utils::ElementInfo::Z(Utils::ElementType::Ne)) {
     highestOrbital = p;
     nAOs = 4;
   }
@@ -46,7 +48,7 @@ void SKAtom::setHubbardParameter(double us, double up, double ud) {
   Ud = ud;
 }
 
-double SKAtom::getOrbitalEnergy(int orbital) {
+double SKAtom::getOrbitalEnergy(int orbital) const {
   if (orbital == 0)
     return Es;
   if (orbital < 4)
@@ -54,11 +56,11 @@ double SKAtom::getOrbitalEnergy(int orbital) {
   return Ed;
 }
 
-double SKAtom::getEnergy() {
+double SKAtom::getEnergy() const {
   return Es * Fs + Ep * Fp + Ed * Fd;
 }
 
-double SKAtom::getHubbardParameter() {
+double SKAtom::getHubbardParameter() const {
   return Us;
   // Remark: all three Us, Up and Ud are given in the Slater-Koster files, but they are identical.
 }

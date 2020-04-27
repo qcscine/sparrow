@@ -15,7 +15,7 @@
 #include <Sparrow/StatesHandling/SparrowState.h>
 #include <Utils/CalculatorBasics/PropertyList.h>
 #include <Utils/Geometry/AtomCollection.h>
-#include <Utils/IO/ChemicalFileFormats/XYZStreamHandler.h>
+#include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <gmock/gmock.h>
 #include <boost/dll/runtime_symbol_info.hpp>
@@ -31,6 +31,7 @@ class ANDDOStatesHandlerTest : public Test {
   nddo::PM6Method underlyingMethod_;
 
   Utils::AtomCollection ethanol_;
+  Utils::StatesHandler statesHandler_;
 
  public:
   void SetUp() override {
@@ -60,71 +61,27 @@ class ANDDOStatesHandlerTest : public Test {
                          "H     -0.4063173598    0.9562730342    1.1264955766\n"
                          "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                          "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-    ethanol_ = Utils::XYZStreamHandler::read(ss);
+    ethanol_ = Utils::XyzStreamHandler::read(ss);
     underlyingMethod_.setStructure(ethanol_, parameters_pm6);
     interfaceMethod_->setStructure(ethanol_);
+    statesHandler_ = Utils::StatesHandler(interfaceMethod_);
   };
 };
 
-TEST_F(ANDDOStatesHandlerTest, CanSaveMinimalState) {
+TEST_F(ANDDOStatesHandlerTest, CanSaveState) {
   underlyingMethod_.calculate(Utils::derivativeType::none);
   auto results = interfaceMethod_->calculate("");
 
-  interfaceMethod_->statesHandler().store(Utils::StateSize::minimal);
-  auto savedState = interfaceMethod_->statesHandler().popNewestState();
-  const auto& stateDensity = savedState->getMatrixState("Density Matrix");
-  const auto& actualDensity = underlyingMethod_.getDensityMatrix().restrictedMatrix();
+  statesHandler_.store();
+
+  auto savedState = statesHandler_.popNewestState();
+  const Eigen::MatrixXd& stateDensity =
+      std::dynamic_pointer_cast<SparrowState>(savedState)->getDensityMatrix().restrictedMatrix();
+  const Eigen::MatrixXd& actualDensity = underlyingMethod_.getDensityMatrix().restrictedMatrix();
 
   for (int i = 0; i < actualDensity.rows(); ++i) {
     for (int j = i; j < actualDensity.cols(); ++j) {
       ASSERT_THAT(stateDensity.col(j)(i), DoubleNear(actualDensity.col(j)(i), 1e-7));
-    }
-  }
-}
-
-TEST_F(ANDDOStatesHandlerTest, CanSaveRegularlySizedState) {
-  underlyingMethod_.calculate(Utils::derivativeType::none);
-  auto results = interfaceMethod_->calculate("");
-
-  interfaceMethod_->statesHandler().store(Utils::StateSize::regular);
-  auto savedState = interfaceMethod_->statesHandler().popNewestState();
-  auto& stateFock = savedState->getMatrixState("Fock Matrix");
-  auto& actualFock = underlyingMethod_.getFockMatrix().restrictedMatrix();
-  auto& stateDensity = savedState->getMatrixState("Density Matrix");
-  auto& actualDensity = underlyingMethod_.getDensityMatrix().restrictedMatrix();
-
-  for (int i = 0; i < actualDensity.rows(); ++i) {
-    for (int j = i; j < actualDensity.cols(); ++j) {
-      ASSERT_THAT(stateDensity.col(j)(i), DoubleNear(actualDensity.col(j)(i), 1e-7));
-    }
-  }
-
-  for (int i = 0; i < actualFock.rows(); ++i) {
-    for (int j = i; j < actualFock.cols(); ++j) {
-      ASSERT_THAT(stateFock.col(j)(i), DoubleNear(actualFock.col(j)(i), 1e-7));
-    }
-  }
-}
-
-TEST_F(ANDDOStatesHandlerTest, CanSaveExtensiveSizedState) {
-  underlyingMethod_.calculate(Utils::derivativeType::none);
-  auto results = interfaceMethod_->calculate("");
-
-  interfaceMethod_->statesHandler().store(Utils::StateSize::extensive);
-  auto savedState = interfaceMethod_->statesHandler().popNewestState();
-  auto& stateFock = savedState->getMatrixState("Fock Matrix");
-  auto& actualFock = underlyingMethod_.getFockMatrix().restrictedMatrix();
-  auto stateDensity = savedState->getMatrixState("Density Matrix");
-  auto actualDensity = underlyingMethod_.getDensityMatrix().restrictedMatrix();
-
-  for (int i = 0; i < actualDensity.rows(); ++i) {
-    for (int j = i; j < actualDensity.cols(); ++j) {
-      ASSERT_THAT(stateDensity.col(j)(i), DoubleNear(actualDensity.col(j)(i), 1e-7));
-    }
-  }
-  for (int i = 0; i < actualFock.rows(); ++i) {
-    for (int j = i; j < actualFock.cols(); ++j) {
-      ASSERT_THAT(stateFock.col(j)(i), DoubleNear(actualFock.col(j)(i), 1e-7));
     }
   }
 }
@@ -132,15 +89,13 @@ TEST_F(ANDDOStatesHandlerTest, CanSaveExtensiveSizedState) {
 TEST_F(ANDDOStatesHandlerTest, LoadsStateCorrectly) {
   underlyingMethod_.calculate(Utils::derivativeType::none);
 
-  auto densityMatrix = underlyingMethod_.getDensityMatrix();
+  Utils::DensityMatrix densityMatrix = underlyingMethod_.getDensityMatrix();
 
-  SparrowState state(Utils::StateSize::minimal, dynamic_cast<GenericMethodWrapper&>(*interfaceMethod_));
-  state.generateDensityMatrixState(densityMatrix, false);
+  statesHandler_.load(std::make_shared<SparrowState>(densityMatrix));
+  statesHandler_.store();
 
-  interfaceMethod_->statesHandler().load(std::make_shared<SparrowState>(state));
-  interfaceMethod_->statesHandler().store(Utils::StateSize::minimal);
-
-  auto loadedDensityMatrix = interfaceMethod_->statesHandler().popNewestState()->getMatrixState("Density Matrix");
+  Eigen::MatrixXd loadedDensityMatrix =
+      std::dynamic_pointer_cast<SparrowState>(statesHandler_.popNewestState())->getDensityMatrix().restrictedMatrix();
 
   for (int i = 0; i < loadedDensityMatrix.rows(); ++i) {
     for (int j = i; j < loadedDensityMatrix.cols(); ++j) {
@@ -150,15 +105,16 @@ TEST_F(ANDDOStatesHandlerTest, LoadsStateCorrectly) {
 }
 
 TEST_F(ANDDOStatesHandlerTest, ReinitializesStateCorrectly) {
-  auto& handler = interfaceMethod_->statesHandler();
-  handler.store(Utils::StateSize::minimal);
+  statesHandler_.store();
   interfaceMethod_->calculate("");
-  handler.store(Utils::StateSize::minimal);
-  auto oldState = handler.getState(0);
-  const auto& initialDensityMatrix = oldState->getMatrixState("Density Matrix");
+  auto oldState = statesHandler_.getState(0);
+  const Eigen::MatrixXd& initialDensityMatrix =
+      std::dynamic_pointer_cast<SparrowState>(oldState)->getDensityMatrix().restrictedMatrix();
 
-  handler.getState(1)->initialize();
-  const auto& endDensityMatrix = handler.getState(1)->getMatrixState("Density Matrix");
+  statesHandler_.store(std::make_shared<SparrowState>(
+      std::dynamic_pointer_cast<GenericMethodWrapper>(interfaceMethod_)->getDensityMatrixGuess()));
+  const Eigen::MatrixXd& endDensityMatrix =
+      std::dynamic_pointer_cast<SparrowState>(statesHandler_.getState(1))->getDensityMatrix().restrictedMatrix();
 
   for (int i = 0; i < initialDensityMatrix.rows(); ++i) {
     for (int j = i; j < initialDensityMatrix.cols(); ++j) {
@@ -168,14 +124,15 @@ TEST_F(ANDDOStatesHandlerTest, ReinitializesStateCorrectly) {
 }
 
 TEST_F(ANDDOStatesHandlerTest, GetsCurrentStateCorrectly) {
-  auto& handler = interfaceMethod_->statesHandler();
   interfaceMethod_->calculate("");
-  handler.store(Utils::StateSize::minimal);
+  statesHandler_.store();
 
-  const auto& endDensityMatrix = handler.getState(0)->getMatrixState("Density Matrix");
+  const Eigen::MatrixXd& endDensityMatrix =
+      std::dynamic_pointer_cast<SparrowState>(statesHandler_.getState(0))->getDensityMatrix().restrictedMatrix();
 
-  const auto currentState = handler.getCurrentState(Utils::StateSize::minimal);
-  const auto& currentDM = currentState->getMatrixState("Density Matrix");
+  const auto currentState = interfaceMethod_->getState();
+  const Eigen::MatrixXd& currentDM =
+      std::dynamic_pointer_cast<SparrowState>(currentState)->getDensityMatrix().restrictedMatrix();
   for (int i = 0; i < endDensityMatrix.rows(); ++i) {
     for (int j = i; j < endDensityMatrix.cols(); ++j) {
       ASSERT_THAT(currentDM.col(j)(i), DoubleNear(endDensityMatrix.col(j)(i), 1e-7));

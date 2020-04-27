@@ -7,10 +7,11 @@
 
 #include "ZeroOrderMatricesCalculator.h"
 #include "SKPair.h"
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/DataStructures/DensityMatrix.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
 #include <Utils/Math/DerivOrderEnum.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
 #include <Utils/Typenames.h>
 #include <cmath>
 
@@ -68,7 +69,7 @@ void ZeroOrderMatricesCalculator::initializeH0S() {
       for (int j = 0; j < nAOsA; j++) {
         if (i == j) {
           S(AOindexA + i, AOindexA + j) = 1.0;
-          H0(AOindexA + i, AOindexA + j) = atomicPar_[static_cast<int>(elements_[A])]->getOrbitalEnergy(i);
+          H0(AOindexA + i, AOindexA + j) = atomicPar_[Utils::ElementInfo::Z(elements_[A])]->getOrbitalEnergy(i);
         }
         else {
           S(AOindexA + i, AOindexA + j) = 0.0;
@@ -128,14 +129,14 @@ void ZeroOrderMatricesCalculator::constructPartOfH0S() {
       int nAOsB = aoIndexes_.getNOrbitals(b);
       int AOindexB = aoIndexes_.getFirstOrbitalIndex(b);
 
-      Eigen::RowVector3d R = positions_.row(b) - positions_.row(a);
+      Eigen::Vector3d R = positions_.row(b) - positions_.row(a);
       double dist = R.norm();
 
       SKPair* parameters;
       if (elements_[a] <= elements_[b])
-        parameters = diatomicPar_[static_cast<int>(elements_[a])][static_cast<int>(elements_[b])].get();
+        parameters = diatomicPar_[Utils::ElementInfo::Z(elements_[a])][Utils::ElementInfo::Z(elements_[b])].get();
       else {
-        parameters = diatomicPar_[static_cast<int>(elements_[b])][static_cast<int>(elements_[a])].get();
+        parameters = diatomicPar_[Utils::ElementInfo::Z(elements_[b])][Utils::ElementInfo::Z(elements_[a])].get();
         R *= -1.0;
       }
 

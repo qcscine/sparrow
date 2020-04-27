@@ -8,7 +8,7 @@
 #ifndef SPARROW_MNDOMETHOD_H
 #define SPARROW_MNDOMETHOD_H
 
-#include <Utils/MethodEssentials/Methods/SCFMethod.h>
+#include <Utils/Scf/MethodInterfaces/ScfMethod.h>
 
 namespace Scine {
 namespace Utils {
@@ -23,7 +23,7 @@ class RawParametersContainer;
 class OneElectronMatrix;
 class TwoElectronMatrix;
 
-class MNDOMethod : public Utils::SCFMethod {
+class MNDOMethod : public Utils::ScfMethod {
  public:
   MNDOMethod();
   ~MNDOMethod() override;

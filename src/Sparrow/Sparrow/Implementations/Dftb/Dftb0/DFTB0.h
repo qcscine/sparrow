@@ -9,7 +9,7 @@
 #define SPARROW_DFTB_H
 
 #include "Sparrow/Implementations/Dftb/Utils/DFTBCommon.h"
-#include <Utils/MethodEssentials/Methods/LCAOMethod.h>
+#include <Utils/Scf/MethodInterfaces/LcaoMethod.h>
 #include <string>
 
 namespace Scine {
@@ -23,7 +23,7 @@ namespace Sparrow {
 namespace dftb {
 class ZeroOrderMatricesCalculator;
 
-class DFTB0 : public Utils::LCAOMethod {
+class DFTB0 : public Utils::LcaoMethod {
  public:
   DFTB0();
   ~DFTB0() override;

@@ -7,9 +7,10 @@
 
 #include "SecondOrderFock.h"
 #include "ZeroOrderMatricesCalculator.h"
+#include <Utils/DataStructures/DensityMatrix.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
-#include <Utils/MethodEssentials/util/LcaoUtil/LcaoUtil.h>
+#include <Utils/Scf/LcaoUtils/LcaoUtils.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -58,7 +59,7 @@ void SecondOrderFock::constructG() {
 #pragma omp parallel for private(result)
   for (int a = 0; a < getNumberAtoms(); ++a) {
     for (int b = a; b < getNumberAtoms(); ++b) {
-      Eigen::RowVector3d R = (positions_.row(b) - positions_.row(a));
+      Eigen::Vector3d R = (positions_.row(b) - positions_.row(a));
       result = gamma<O>(a, b);
       auto v = get3Dfrom1D<O>(result, R);
 #pragma omp critical(aFirst)
@@ -76,8 +77,8 @@ Value1DType<O> SecondOrderFock::gamma(int a, int b) const {
   // formulae are better explained in supplementary info of gaus2011
   auto R = variableWithUnitDerivative<O>((positions_.row(b) - positions_.row(a)).norm());
   auto R2 = R * R;
-  double Ua = atomicPar_[static_cast<int>(elements_[a])]->getHubbardParameter();
-  double Ub = atomicPar_[static_cast<int>(elements_[b])]->getHubbardParameter();
+  double Ua = atomicPar_[Utils::ElementInfo::Z(elements_[a])]->getHubbardParameter();
+  double Ub = atomicPar_[Utils::ElementInfo::Z(elements_[b])]->getHubbardParameter();
 
   if (getValue1DAsDouble<O>(R) == 0.0)
     return constant1D<O>(Ua);
@@ -99,7 +100,8 @@ Value1DType<O> SecondOrderFock::gamma(int a, int b) const {
 
   // Get precomputed parameters
   double term1a, term1b, term2a, term2b;
-  diatomicPar_[static_cast<int>(elements_[a])][static_cast<int>(elements_[b])]->getGammaTerms(term1a, term1b, term2a, term2b);
+  diatomicPar_[Utils::ElementInfo::Z(elements_[a])][Utils::ElementInfo::Z(elements_[b])]->getGammaTerms(term1a, term1b,
+                                                                                                        term2a, term2b);
 
   auto terma = -expa * (term1a - term2a / R);
   auto termb = -expb * (term1b - term2b / R);
@@ -148,18 +150,21 @@ void SecondOrderFock::addDerivatives(DerivativeContainerType<Utils::derivativeTy
   zeroOrderMatricesCalculator_.addDerivatives(derivatives, energyWeightedDensityMatrix_ -
                                                                HXoverS_.cwiseProduct(densityMatrix_.restrictedMatrix()));
   addSecondOrderDerivatives<Utils::derivativeType::first>(derivatives);
+  ScfFock::addDerivatives(derivatives);
 }
 
 void SecondOrderFock::addDerivatives(DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
   zeroOrderMatricesCalculator_.addDerivatives(derivatives, energyWeightedDensityMatrix_ -
                                                                HXoverS_.cwiseProduct(densityMatrix_.restrictedMatrix()));
   addSecondOrderDerivatives<Utils::derivativeType::second_atomic>(derivatives);
+  ScfFock::addDerivatives(derivatives);
 }
 
 void SecondOrderFock::addDerivatives(DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
   zeroOrderMatricesCalculator_.addDerivatives(derivatives, energyWeightedDensityMatrix_ -
                                                                HXoverS_.cwiseProduct(densityMatrix_.restrictedMatrix()));
   addSecondOrderDerivatives<Utils::derivativeType::second_full>(derivatives);
+  ScfFock::addDerivatives(derivatives);
 }
 
 template<Utils::derivativeType O>

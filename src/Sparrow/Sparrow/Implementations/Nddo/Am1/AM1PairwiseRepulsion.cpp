@@ -17,7 +17,7 @@ namespace nddo {
 AM1PairwiseRepulsion::AM1PairwiseRepulsion(const AtomicParameters& A, const AtomicParameters& B) : pA_(A), pB_(B) {
 }
 
-void AM1PairwiseRepulsion::calculate(const Eigen::Vector3d& R, Utils::derivOrder order) {
+void AM1PairwiseRepulsion::calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order) {
   double Rabs = R.norm();
   if (order == Utils::derivOrder::zero) {
     repulsionEnergy_ = calculateRepulsion<Utils::derivOrder::zero>(Rabs);

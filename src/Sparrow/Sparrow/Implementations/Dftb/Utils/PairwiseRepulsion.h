@@ -26,7 +26,7 @@ class PairwiseRepulsion {
  public:
   explicit PairwiseRepulsion(const RepulsionParameters& repulsionPars);
 
-  void calculate(const Eigen::Vector3d& R, Utils::derivOrder order);
+  void calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order);
 
   double getRepulsionEnergy() const;
   template<Utils::derivativeType O>

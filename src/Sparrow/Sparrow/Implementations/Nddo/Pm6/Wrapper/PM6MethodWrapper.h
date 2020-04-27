@@ -45,6 +45,7 @@ class PM6MethodWrapper : public Utils::CloneInterface<PM6MethodWrapper, NDDOMeth
   void applySettings() final;
 
  private:
+  bool successfulCalculation() const final;
   Eigen::MatrixXd getOneElectronMatrix() const final;
   Utils::SpinAdaptedMatrix getTwoElectronMatrix() const final;
 
@@ -53,8 +54,8 @@ class PM6MethodWrapper : public Utils::CloneInterface<PM6MethodWrapper, NDDOMeth
   void initialize() final;
 
   //! Returns the underlying method
-  Utils::LCAOMethod& getLCAOMethod() final;
-  const Utils::LCAOMethod& getLCAOMethod() const final;
+  Utils::LcaoMethod& getLcaoMethod() final;
+  const Utils::LcaoMethod& getLcaoMethod() const final;
   void calculateImpl(Utils::derivativeType requiredDerivative) final;
   nddo::PM6Method method_;
 };

@@ -10,11 +10,12 @@
 #include "DFTB0Settings.h"
 #include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMomentCalculator.h>
+#include <Sparrow/StatesHandling/SparrowState.h>
 /* External Includes */
 #include <Core/Exceptions.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/NativeFilenames.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <memory>
 
@@ -27,7 +28,7 @@ DFTB0MethodWrapper::DFTB0MethodWrapper() {
   dipoleCalculator_ = std::make_unique<DFTBDipoleMomentCalculator<dftb::DFTB0>>(method_);
   dipoleMatrixCalculator_ = DFTBDipoleMatrixCalculator<dftb::DFTB0>::create(method_);
   applySettings();
-};
+}
 
 DFTB0MethodWrapper::DFTB0MethodWrapper(const DFTB0MethodWrapper& rhs) : DFTB0MethodWrapper() {
   copyInto(*this, rhs);
@@ -41,17 +42,16 @@ DFTB0MethodWrapper& DFTB0MethodWrapper::operator=(const DFTB0MethodWrapper& rhs)
 DFTB0MethodWrapper::~DFTB0MethodWrapper() = default;
 
 void DFTB0MethodWrapper::applySettings() {
+  GenericMethodWrapper::applySettings();
   if (settings_->check()) {
     int molecularCharge = settings_->getInt(Utils::SettingsNames::molecularCharge);
-    auto logVerbosity = settings_->getString(Utils::SettingsNames::loggerVerbosity);
 
     method_.setMolecularCharge(molecularCharge);
-    method_.startLogger(logVerbosity);
   }
   else {
     throw Core::InitializationException("settings invalid!");
   }
-};
+}
 
 std::string DFTB0MethodWrapper::name() const {
   return "DFTB0";
@@ -69,11 +69,11 @@ void DFTB0MethodWrapper::initialize() {
   }
 }
 
-Utils::LCAOMethod& DFTB0MethodWrapper::getLCAOMethod() {
+Utils::LcaoMethod& DFTB0MethodWrapper::getLcaoMethod() {
   return method_;
 }
 
-const Utils::LCAOMethod& DFTB0MethodWrapper::getLCAOMethod() const {
+const Utils::LcaoMethod& DFTB0MethodWrapper::getLcaoMethod() const {
   return method_;
 }
 
@@ -90,10 +90,14 @@ Utils::DensityMatrix DFTB0MethodWrapper::getDensityMatrixGuess() const {
 void DFTB0MethodWrapper::copyInto(DFTB0MethodWrapper& instance, const DFTB0MethodWrapper& classToCopy) {
   instance.results() = classToCopy.results();
   instance.settings() = classToCopy.settings();
-  // Concurrent calling of the logger introduces race conditions
-  // that eventually trigger a segfault
-  instance.settings().modifyString(Utils::SettingsNames::loggerVerbosity, Utils::SettingsNames::LogLevels::none);
   instance.setStructure(*classToCopy.getStructure());
+}
+
+bool DFTB0MethodWrapper::successfulCalculation() const {
+  return true;
+}
+
+void DFTB0MethodWrapper::loadState(std::shared_ptr<Core::State> state) {
 }
 
 } /* namespace Sparrow */

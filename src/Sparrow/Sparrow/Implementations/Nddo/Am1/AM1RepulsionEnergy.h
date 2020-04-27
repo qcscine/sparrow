@@ -9,7 +9,7 @@
 #define SPARROW_AM1REPULSIONENERGY_H
 
 #include "AM1PairwiseRepulsion.h"
-#include <Utils/MethodEssentials/Methods/RepulsionCalculator.h>
+#include <Utils/Scf/MethodInterfaces/RepulsionCalculator.h>
 #include <memory>
 #include <vector>
 
@@ -24,7 +24,7 @@ class ElementParameters;
 /**
  * @brief This class sums up the core-core repulsion energies and the corresponding derivatives with respect to
  *        the nuclear cartesian coordinate between all pairs of cores.
- * It inherits from Utils::RepulsionCalculator in order for it to work with the LCAO/SCFMethod polymorphic system.
+ * It inherits from Utils::RepulsionCalculator in order for it to work with the LCAO/ScfMethod polymorphic system.
  */
 class AM1RepulsionEnergy : public Utils::RepulsionCalculator {
  public:
@@ -62,8 +62,6 @@ class AM1RepulsionEnergy : public Utils::RepulsionCalculator {
   const ElementParameters& elementParameters_;
   Container rep_;
   int nAtoms_;
-  const Utils::ElementTypeCollection& elementTypes_;
-  const Utils::PositionCollection& positions_;
 };
 
 } // namespace nddo

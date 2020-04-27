@@ -10,7 +10,7 @@
 
 #include "DFTBCommon.h"
 #include "ScfFock.h"
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 

@@ -9,8 +9,8 @@
 #define SPARROW_DFTB_ZEROORDERMATRICESCALCULATOR_H
 
 #include "DFTBCommon.h"
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsTypesHelper.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
 #include <Eigen/Core>
 
 namespace Scine {

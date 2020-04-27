@@ -44,14 +44,15 @@ class DFTB2MethodWrapper : public Utils::CloneInterface<DFTB2MethodWrapper, DFTB
   void applySettings() final;
 
  private:
+  bool successfulCalculation() const final;
   Utils::DensityMatrix getDensityMatrixGuess() const final;
   //! Initializes a method with the parameter file present in the settings.
   void initialize() final;
   //! Calls the underlying method's calculate() function.
   void calculateImpl(Utils::derivativeType requiredDerivative) final;
   //! Get the underlying method as a LCAO method.
-  const Utils::LCAOMethod& getLCAOMethod() const final;
-  Utils::LCAOMethod& getLCAOMethod() final;
+  const Utils::LcaoMethod& getLcaoMethod() const final;
+  Utils::LcaoMethod& getLcaoMethod() final;
 
   dftb::DFTB2 method_;
 };

@@ -50,6 +50,15 @@ TEST_F(AAtomicParameters, SetsNumberOfAOsWhenElementTypeIsSet) {
   ASSERT_THAT(AtomicParameters(Utils::ElementType::V).nAOs(), Eq(9));
 }
 
+TEST_F(AAtomicParameters, MonoisotopicElementsWork) {
+  p.setElement(Utils::ElementType::Al);
+  // Al has Z = 13, 10 core electrons, so 3 core charge
+  ASSERT_THAT(p.coreCharge(), Eq(3.0));
+  p.setElement(Utils::ElementType::F);
+  // F has Z = 9, 2 core electrons, so 7 core charge
+  ASSERT_THAT(p.coreCharge(), Eq(7.0));
+}
+
 TEST_F(AAtomicParameters, CanSetCoreCharge) {
   p.setCoreCharge(arbitraryCharge);
 

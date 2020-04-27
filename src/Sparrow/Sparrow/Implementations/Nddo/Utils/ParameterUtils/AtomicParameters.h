@@ -11,8 +11,8 @@
 #include "PrincipalQuantumNumbers.h"
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ChargeSeparationParameter.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/KlopmanParameter.h>
+#include <Utils/DataStructures/AtomicGtos.h>
 #include <Utils/Geometry/ElementTypes.h>
-#include <Utils/MethodEssentials/util/atomicGTOs.h>
 #include <cmath>
 #include <tuple>
 #include <utility>
@@ -48,11 +48,11 @@ class AtomicParameters {
     return e_;
   }
 
-  void setGTOs(Utils::AtomicGTOs gtos) {
+  void setGTOs(Utils::AtomicGtos gtos) {
     gtos_ = std::move(gtos);
   }
 
-  const Utils::AtomicGTOs& GTOs() const {
+  const Utils::AtomicGtos& GTOs() const {
     return gtos_;
   }
 
@@ -187,7 +187,7 @@ class AtomicParameters {
   int nAOs_{0};
   double coreCharge_{0.};
   double coreCharge13_{}; // cubic root of coreCharge_
-  Utils::AtomicGTOs gtos_{};
+  Utils::AtomicGtos gtos_{};
   double betaS_{0.}, betaP_{0.}, betaD_{0.};
   double Uss_{0.}, Upp_{0.}, Udd_{0.};
   double alpha_{0.};

@@ -29,8 +29,8 @@ class AM1TypeSettings : public Scine::Utils::Settings {
     : Settings(std::move(settingsDescription)) {
     auto fullParameterPath = std::move(parameterFolderName) + "/parameters.xml";
 
-    Utils::UniversalSettings::SettingPopulator::populateLCAOSettings(_fields);
-    Utils::UniversalSettings::SettingPopulator::populateSCFSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateLcaoSettings(_fields);
+    Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, fullParameterPath);
     Utils::UniversalSettings::BoolDescriptor useNDDODipoleApprox("Sets use of NDDO dipole approximation.");
     useNDDODipoleApprox.setDefaultValue(true);

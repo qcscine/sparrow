@@ -18,7 +18,7 @@ MNDOPairwiseRepulsion::MNDOPairwiseRepulsion(const AtomicParameters& A, const At
 }
 // No need of atomic writing as this class is local to a single atom pair
 // -> no race condition
-void MNDOPairwiseRepulsion::calculate(const Eigen::Vector3d& R, Utils::derivOrder order) {
+void MNDOPairwiseRepulsion::calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order) {
   double Rabs = R.norm();
   if (order == Utils::derivOrder::zero) {
     repulsionEnergy_ = calculateRepulsion<Utils::derivOrder::zero>(Rabs);

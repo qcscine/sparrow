@@ -11,6 +11,7 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/AtomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/PM6DiatomicParameters.h>
 #include <Utils/Constants.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Geometry/ElementTypes.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
 #include <Eigen/Core>
@@ -29,7 +30,7 @@ class PM6PairwiseRepulsion{
  public:
   PM6PairwiseRepulsion(const AtomicParameters& A, const AtomicParameters&B, const PM6DiatomicParameters& AB);
 
-  void calculate(const Eigen::Vector3d &R, Utils::derivOrder order);
+  void calculate(const Eigen::Vector3d& R, Utils::derivOrder order);
 
   double getRepulsionEnergy() const { return repulsionEnergy_; }
 
@@ -102,8 +103,8 @@ Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::parenthesi
 template<Utils::derivOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::additionalTerm(double R) const {
   auto RD = radius<O>(R);
-  double za13 = std::pow(static_cast<int>(pA_.element()), 1.0 / 3.0);
-  double zb13 = std::pow(static_cast<int>(pB_.element()), 1.0 / 3.0);
+  double za13 = std::pow(Utils::ElementInfo::Z(pA_.element()), 1.0 / 3.0);
+  double zb13 = std::pow(Utils::ElementInfo::Z(pB_.element()), 1.0 / 3.0);
   auto v = Utils::AutomaticDifferentiation::constant1D<O>(za13 + zb13);
   v /= RD;
   auto v2 = v * v;

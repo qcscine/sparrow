@@ -42,6 +42,7 @@ class DFTB0MethodWrapper : public Utils::CloneInterface<DFTB0MethodWrapper, DFTB
   void applySettings() final;
 
  private:
+  bool successfulCalculation() const final;
   //! This function hides the templated generic function in @file DFTBMethodWrapper.h.
   void copyInto(DFTB0MethodWrapper& instance, const DFTB0MethodWrapper& classToCopy);
   Utils::DensityMatrix getDensityMatrixGuess() const final;
@@ -50,8 +51,9 @@ class DFTB0MethodWrapper : public Utils::CloneInterface<DFTB0MethodWrapper, DFTB
   //! Calls the underlying method's calculate() function.
   void calculateImpl(Utils::derivativeType requiredDerivative) final;
   //! Get the underlying method as a LCAO method.
-  Utils::LCAOMethod& getLCAOMethod() final;
-  const Utils::LCAOMethod& getLCAOMethod() const final;
+  Utils::LcaoMethod& getLcaoMethod() final;
+  const Utils::LcaoMethod& getLcaoMethod() const final;
+  void loadState(std::shared_ptr<Core::State> state) final;
   dftb::DFTB0 method_;
 };
 

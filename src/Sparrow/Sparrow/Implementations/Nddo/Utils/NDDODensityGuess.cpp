@@ -7,10 +7,10 @@
 
 #include "NDDODensityGuess.h"
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
+#include <Utils/DataStructures/DensityMatrix.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
 #include <Utils/Math/DerivOrderEnum.h>
-#include <Utils/MethodEssentials/Methods/OverlapCalculator.h>
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
+#include <Utils/Scf/MethodInterfaces/OverlapCalculator.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 

@@ -9,7 +9,7 @@
 #include "FockMatrix.h"
 #include "OneElectronMatrix.h"
 #include "TwoElectronMatrix.h"
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
+#include <Utils/DataStructures/DensityMatrix.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -22,7 +22,9 @@ NDDOElectronicEnergyCalculator::NDDOElectronicEnergyCalculator(const Utils::Dens
   : densityMatrix_(densityMatrix),
     oneElectronMatrix_(fockCalculator.getOneElectronMatrix()),
     twoElectronMatrix_(fockCalculator.getTwoElectronMatrix()),
-    unrestrictedCalculationRunning_(unrestrictedCalculationRunning) {
+    unrestrictedCalculationRunning_(unrestrictedCalculationRunning),
+    densityDependentContributions_(fockCalculator.getDensityDependentContributions()),
+    densityIndependentContributions_(fockCalculator.getDensityIndependentContributions()) {
 }
 
 double NDDOElectronicEnergyCalculator::calculateElectronicEnergy() {

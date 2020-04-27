@@ -62,9 +62,9 @@ void DFTBDipoleMatrixCalculator<DFTBMethod>::fillDipoleMatrix(const Eigen::RowVe
     calculateUnrestrictedTransitionChargeMatrices(positions);
 
   for (int atom = 0; atom < transitionChargeMatrices_.size(); ++atom) {
-    dipoleMatrixMO_.x() += transitionChargeMatrices_[atom] * positions.row(atom).x();
-    dipoleMatrixMO_.y() += transitionChargeMatrices_[atom] * positions.row(atom).y();
-    dipoleMatrixMO_.z() += transitionChargeMatrices_[atom] * positions.row(atom).z();
+    dipoleMatrixMO_.x().template get<Utils::derivOrder::zero>() += transitionChargeMatrices_[atom] * positions.row(atom).x();
+    dipoleMatrixMO_.y().template get<Utils::derivOrder::zero>() += transitionChargeMatrices_[atom] * positions.row(atom).y();
+    dipoleMatrixMO_.z().template get<Utils::derivOrder::zero>() += transitionChargeMatrices_[atom] * positions.row(atom).z();
   }
   valid_ = true;
 }

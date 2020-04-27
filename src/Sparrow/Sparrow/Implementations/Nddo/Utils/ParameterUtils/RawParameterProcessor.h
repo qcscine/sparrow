@@ -41,7 +41,7 @@ class RawParameterProcessor {
   void computeSlaterCondonParameters(AtomicParameters& runtimeAtomicPar, const RawAtomicParameters& p);
   void setKlopman(AtomicParameters& par, const RawAtomicParameters& p) const;
   void setChargeSeparations(Utils::ElementType e, AtomicParameters& par, const RawAtomicParameters& p) const;
-  void setGTOExpansion(Utils::ElementType e, AtomicParameters& par, const RawAtomicParameters& p) const;
+  void setGtoExpansion(Utils::ElementType e, AtomicParameters& par, const RawAtomicParameters& p) const;
   void setDiatomicExponent(PM6DiatomicParameters& par, Utils::ElementType e1, Utils::ElementType e2,
                            const RawDiatomicParameters& p);
   const RawParametersContainer& rawParameters_;

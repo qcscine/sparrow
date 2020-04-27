@@ -12,8 +12,8 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementPairParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParametersContainer.h>
-#include <Utils/MethodEssentials/Methods/StructureDependentInitializer.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/Scf/MethodInterfaces/StructureDependentInitializer.h>
 #include <string>
 #include <vector>
 

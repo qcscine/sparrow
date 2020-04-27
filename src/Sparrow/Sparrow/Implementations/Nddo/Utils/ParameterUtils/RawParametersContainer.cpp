@@ -7,7 +7,8 @@
 
 #include "RawParametersContainer.h"
 #include "RawParameters.h"
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Geometry/ElementInfo.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <algorithm>
 #include <cassert>
 #include <cereal/archives/xml.hpp>
@@ -34,7 +35,7 @@ RawParametersContainer::~RawParametersContainer() = default;
 
 RawParametersContainer::RawParametersContainer(RawParametersContainer&& rhs) noexcept = default;
 
-RawParametersContainer& RawParametersContainer::operator=(RawParametersContainer&& rhs) noexcept = default;
+RawParametersContainer& RawParametersContainer::operator=(RawParametersContainer&& rhs) = default;
 
 void RawParametersContainer::writeParameterXMLFile(std::string fileName) {
   std::ofstream fs(fileName);
@@ -43,7 +44,7 @@ void RawParametersContainer::writeParameterXMLFile(std::string fileName) {
 }
 
 bool RawParametersContainer::isAvailable(Utils::ElementType e) const {
-  return atomics_.find(std::to_string(int(e))) != atomics_.end();
+  return atomics_.find(std::to_string(Utils::ElementInfo::Z(e))) != atomics_.end();
 }
 
 bool RawParametersContainer::isAvailable(Utils::ElementType e1, Utils::ElementType e2) const {
@@ -53,50 +54,50 @@ bool RawParametersContainer::isAvailable(Utils::ElementType e1, Utils::ElementTy
 
 RawAtomicParameters& RawParametersContainer::getAtomicParameters(Utils::ElementType e) {
   assert(isAvailable(e) && "Parameters do not exist for e!");
-  return atomics_.at(std::to_string(int(e)));
+  return atomics_.at(std::to_string(Utils::ElementInfo::Z(e)));
 }
 
 const RawAtomicParameters& RawParametersContainer::getAtomicParameters(Utils::ElementType e) const {
   assert(isAvailable(e) && "Parameters do not exist for e!");
-  return atomics_.at(std::to_string(int(e)));
+  return atomics_.at(std::to_string(Utils::ElementInfo::Z(e)));
 }
 
 RawDiatomicParameters& RawParametersContainer::getDiatomicParameters(Utils::ElementType e1, Utils::ElementType e2) {
   assert(isAvailable(e1, e2) && "Parameters do not exist for e1-e2!");
-  std::string key(std::to_string(int(e1)) + "-" + std::to_string(int(e2)));
+  std::string key(std::to_string(Utils::ElementInfo::Z(e1)) + "-" + std::to_string(Utils::ElementInfo::Z(e2)));
   return diatomics_.at(key);
 }
 
 const RawDiatomicParameters& RawParametersContainer::getDiatomicParameters(Utils::ElementType e1, Utils::ElementType e2) const {
   assert(isAvailable(e1, e2) && "Parameters do not exist for e1-e2!");
-  std::string key(std::to_string(int(e1)) + "-" + std::to_string(int(e2)));
+  std::string key(std::to_string(Utils::ElementInfo::Z(e1)) + "-" + std::to_string(Utils::ElementInfo::Z(e2)));
   return diatomics_.at(key);
 }
 
 void RawParametersContainer::setAtomicParameters(Utils::ElementType e, const RawAtomicParameters& par) {
-  atomics_[std::to_string(int(e))] = par;
+  atomics_[std::to_string(Utils::ElementInfo::Z(e))] = par;
 }
 
 void RawParametersContainer::setDiatomicParameters(Utils::ElementType e1, Utils::ElementType e2,
                                                    const RawDiatomicParameters& par) {
-  std::string key(std::to_string(int(e1)) + "-" + std::to_string(int(e2)));
+  std::string key(std::to_string(Utils::ElementInfo::Z(e1)) + "-" + std::to_string(Utils::ElementInfo::Z(e2)));
   diatomics_[key] = par;
 }
 
 unsigned int RawParametersContainer::index(Utils::ElementType e) const {
-  return static_cast<unsigned>(e);
+  return Utils::ElementInfo::Z(e);
 }
 
 unsigned int RawParametersContainer::firstIndex(Utils::ElementType e1, Utils::ElementType e2) const {
-  auto i1 = static_cast<unsigned>(e1);
-  auto i2 = static_cast<unsigned>(e2);
+  auto i1 = Utils::ElementInfo::Z(e1);
+  auto i2 = Utils::ElementInfo::Z(e2);
 
   return std::max(i1, i2);
 }
 
 unsigned int RawParametersContainer::secondIndex(Utils::ElementType e1, Utils::ElementType e2) const {
-  auto i1 = static_cast<unsigned>(e1);
-  auto i2 = static_cast<unsigned>(e2);
+  auto i1 = Utils::ElementInfo::Z(e1);
+  auto i2 = Utils::ElementInfo::Z(e2);
 
   return std::min(i1, i2);
 }

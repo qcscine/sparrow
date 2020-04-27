@@ -44,14 +44,15 @@ class AM1TypeMethodWrapper
   void applySettings() final;
 
  protected:
+  bool successfulCalculation() const final;
   Eigen::MatrixXd getOneElectronMatrix() const final;
   Utils::SpinAdaptedMatrix getTwoElectronMatrix() const final;
 
   Utils::DensityMatrix getDensityMatrixGuess() const final;
   //! Initializes a method with the parameter file present in the settings.
   void initialize() override;
-  Utils::LCAOMethod& getLCAOMethod() final;
-  const Utils::LCAOMethod& getLCAOMethod() const final;
+  Utils::LcaoMethod& getLcaoMethod() final;
+  const Utils::LcaoMethod& getLcaoMethod() const final;
 
   void calculateImpl(Utils::derivativeType requiredDerivative) final;
 

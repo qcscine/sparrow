@@ -15,7 +15,7 @@
 namespace Scine {
 
 namespace Utils {
-class AtomicGTOs;
+class AtomicGtos;
 }
 
 namespace Sparrow {
@@ -34,11 +34,11 @@ class AtomPairOverlap {
   using Value3D = Utils::AutomaticDifferentiation::Value3DType<O>;
 
   Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic>
-  getMatrixBlock(const Utils::AtomicGTOs& pA, const Utils::AtomicGTOs& pB, Eigen::Vector3d Rab) const;
+  getMatrixBlock(const Utils::AtomicGtos& pA, const Utils::AtomicGtos& pB, Eigen::Vector3d Rab) const;
 
  private:
-  Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic> getInitialBlock(const Utils::AtomicGTOs& pA,
-                                                                         const Utils::AtomicGTOs& pB) const;
+  Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic> getInitialBlock(const Utils::AtomicGtos& pA,
+                                                                         const Utils::AtomicGtos& pB) const;
 };
 
 } // namespace nddo

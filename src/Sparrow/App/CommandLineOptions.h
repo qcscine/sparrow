@@ -43,6 +43,8 @@ class CommandLineOptions {
   std::string getStructureCoordinatesFile() const;
   /** @brief returns the desired calculation description. */
   std::string getCalculationDescription() const;
+  /** @brief returns the desired verbosity of the logging. */
+  std::string getLoggerVerbosity() const;
   /** @brief returns whether the gradients have to be computed. */
   bool gradientRequired() const;
   /** @brief returns whether the hessian matrix has to be computed. */
@@ -51,6 +53,10 @@ class CommandLineOptions {
   bool bondOrdersRequired() const;
   /** @brief returns whether the normal modes output is printed or suppressed. */
   bool suppressNormalModes() const;
+  /** @brief returns whether the wavefunction output is printed as a molden file. */
+  bool wavefunctionRequired() const;
+  /** @brief returns whether the thermochemical properties are calculated. */
+  bool thermochemistryRequired() const;
 
   /** @brief updates a setting with the option parsed from the command line. */
   void updateSettings(Utils::Settings& settingsToUpdate) const;

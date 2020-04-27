@@ -15,7 +15,7 @@ namespace Scine {
 
 namespace Utils {
 class Settings;
-class SCFMethod;
+class ScfMethod;
 class SpinAdaptedMatrix;
 } // namespace Utils
 
@@ -52,15 +52,15 @@ class NDDOMethodWrapper : public Utils::CloneInterface<Utils::Abstract<NDDOMetho
     instance.settings() = classToCopy.settings();
     // Concurrent calling of the logger introduces race conditions
     // that eventually trigger a segfault
-    instance.settings().modifyString(Utils::SettingsNames::loggerVerbosity, Utils::SettingsNames::LogLevels::none);
     instance.setStructure(*classToCopy.getStructure());
-    instance.statesHandler().load(classToCopy.statesHandler().getCurrentState(Utils::StateSize::minimal));
+    instance.loadState(classToCopy.getState());
   }
   virtual Eigen::MatrixXd getOneElectronMatrix() const = 0;
   virtual Utils::SpinAdaptedMatrix getTwoElectronMatrix() const = 0;
-  Utils::Results assembleResults(const std::string& description) const final;
+  void assembleResults(const std::string& description) final;
 
-  void applySettings(std::unique_ptr<Utils::Settings>& settings, Utils::SCFMethod& method);
+  void applySettings(std::unique_ptr<Utils::Settings>& settings, Utils::ScfMethod& method);
+  bool getZPVEInclusion() const final;
 };
 
 } // namespace Sparrow

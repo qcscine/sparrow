@@ -18,13 +18,13 @@ namespace nddo {
 
 MNDORepulsionEnergy::MNDORepulsionEnergy(const Utils::ElementTypeCollection& elements,
                                          const Utils::PositionCollection& positions, const ElementParameters& elementParameters)
-  : elementParameters_(elementParameters), elementTypes_(elements), positions_(positions) {
+  : RepulsionCalculator(elements, positions), elementParameters_(elementParameters) {
 }
 
 MNDORepulsionEnergy::~MNDORepulsionEnergy() = default;
 
 void MNDORepulsionEnergy::initialize() {
-  nAtoms_ = elementTypes_.size();
+  nAtoms_ = elements_.size();
 
   // Create 2D-vector of empty uni
   rep_ = Container(nAtoms_);
@@ -39,8 +39,8 @@ void MNDORepulsionEnergy::initialize() {
 }
 
 void MNDORepulsionEnergy::initializePair(int i, int j) {
-  Utils::ElementType e1 = elementTypes_[i];
-  Utils::ElementType e2 = elementTypes_[j];
+  Utils::ElementType e1 = elements_[i];
+  Utils::ElementType e2 = elements_[j];
   const auto& p1 = elementParameters_.get(e1);
   const auto& p2 = elementParameters_.get(e2);
 
@@ -59,7 +59,7 @@ void MNDORepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
 void MNDORepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
   auto pA = positions_.row(i);
   auto pB = positions_.row(j);
-  auto Rab = pB - pA;
+  Eigen::Vector3d Rab = pB - pA;
 
   rep_[i][j]->calculate(Rab, order);
 }

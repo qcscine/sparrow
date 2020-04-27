@@ -7,26 +7,27 @@
 
 #include "DFTBMethodWrapper.h"
 #include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.h>
-#include <Sparrow/StatesHandling/DFTBStatesHandler.h>
+#include <Utils/CalculatorBasics/PropertyList.h>
 
 namespace Scine {
 namespace Sparrow {
 
-DFTBMethodWrapper::DFTBMethodWrapper() {
-  this->statesHandler_ = std::make_unique<DFTBStatesHandler>(*this);
-}
+DFTBMethodWrapper::DFTBMethodWrapper() = default;
 
 DFTBMethodWrapper::~DFTBMethodWrapper() = default;
 
 Utils::PropertyList DFTBMethodWrapper::possibleProperties() const {
-  return Utils::Property::Energy | Utils::Property::Gradients | Utils::Property::Dipole |
-         Utils::Property::DipoleGradient | Utils::Property::DipoleMatrixMO;
+  auto properties = GenericMethodWrapper::possibleProperties();
+  properties.addProperty(Utils::Property::DipoleGradient);
+  properties.addProperty(Utils::Property::DipoleMatrixMO);
+
+  return properties;
 }
 
-Utils::Results DFTBMethodWrapper::assembleResults(const std::string& description) const {
+void DFTBMethodWrapper::assembleResults(const std::string& description) {
   bool MODipoleMatrixRequired = requiredProperties_.containsSubSet(Utils::Property::DipoleMatrixMO) &&
                                 possibleProperties().containsSubSet(Utils::Property::DipoleMatrixMO);
-  auto results = GenericMethodWrapper::assembleResults(description);
+  GenericMethodWrapper::assembleResults(description);
 
   auto dipoleEvaluationCoordinate = Utils::Position::Zero();
 
@@ -34,9 +35,12 @@ Utils::Results DFTBMethodWrapper::assembleResults(const std::string& description
     if (!dipoleMatrixCalculator_->isValid()) {
       dipoleMatrixCalculator_->fillDipoleMatrix(dipoleEvaluationCoordinate);
     }
-    results.setMODipoleMatrix(dipoleMatrixCalculator_->getMODipoleMatrix());
+    results_.set<Utils::Property::DipoleMatrixMO>(dipoleMatrixCalculator_->getMODipoleMatrix());
   }
-  return results;
+}
+
+bool DFTBMethodWrapper::getZPVEInclusion() const {
+  return false;
 }
 
 } // namespace Sparrow

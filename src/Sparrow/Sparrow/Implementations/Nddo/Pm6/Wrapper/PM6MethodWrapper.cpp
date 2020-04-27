@@ -17,7 +17,7 @@
 #include <Utils/CalculatorBasics.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/NativeFilenames.h>
-#include <Utils/MethodEssentials/util/MethodExceptions.h>
+#include <Utils/Scf/MethodExceptions.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <memory>
 
@@ -69,11 +69,11 @@ void PM6MethodWrapper::initialize() {
   }
 }
 
-const Utils::LCAOMethod& PM6MethodWrapper::getLCAOMethod() const {
+const Utils::LcaoMethod& PM6MethodWrapper::getLcaoMethod() const {
   return method_;
 }
 
-Utils::LCAOMethod& PM6MethodWrapper::getLCAOMethod() {
+Utils::LcaoMethod& PM6MethodWrapper::getLcaoMethod() {
   return method_;
 }
 
@@ -99,6 +99,10 @@ Utils::SpinAdaptedMatrix PM6MethodWrapper::getTwoElectronMatrix() const {
 
 Utils::DensityMatrix PM6MethodWrapper::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+bool PM6MethodWrapper::successfulCalculation() const {
+  return method_.hasConverged();
 }
 
 } /* namespace Sparrow */

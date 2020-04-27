@@ -12,9 +12,9 @@
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/oneCenterTwoElectronIntegrals.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/AtomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
+#include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/DataStructures/DensityMatrix.h>
 #include <Utils/Math/AutomaticDifferentiation/MethodsHelpers.h>
-#include <Utils/MethodEssentials/util/AtomsOrbitalsIndexes.h>
-#include <Utils/MethodEssentials/util/DensityMatrix.h>
 #include <omp.h>
 
 namespace Scine {

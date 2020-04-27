@@ -12,7 +12,7 @@
 #include "Sparrow/Implementations/Dftb/Utils/Repulsion.h"
 #include "Sparrow/Implementations/Dftb/Utils/ThirdOrderFock.h"
 #include "Sparrow/Implementations/Dftb/Utils/ZeroOrderMatricesCalculator.h"
-#include <Utils/MethodEssentials/util/LcaoUtil/LcaoUtil.h>
+#include <Utils/Scf/LcaoUtils/LcaoUtils.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -21,7 +21,7 @@ using namespace Utils::AutomaticDifferentiation;
 
 namespace dftb {
 
-DFTB3::DFTB3() : SCFMethod(false, Utils::derivOrder::two), atomParameters(110) {
+DFTB3::DFTB3() : ScfMethod(true, Utils::derivOrder::two), atomParameters(110) {
   dftbBase = std::make_shared<DFTBCommon>(elementTypes_, nElectrons_, molecularCharge_, atomParameters, pairParameters);
   matricesCalculator_ = std::make_unique<dftb::ZeroOrderMatricesCalculator>(elementTypes_, positions_, aoIndexes_,
                                                                             atomParameters, pairParameters, densityMatrix_);
@@ -40,7 +40,7 @@ DFTB3::~DFTB3() = default;
 
 void DFTB3::initializeFromParameterPath(const std::string& path) {
   dftbBase->setMethodDetails(path, 3);
-  SCFMethod::initialize();
+  ScfMethod::initialize();
 }
 
 } // namespace dftb

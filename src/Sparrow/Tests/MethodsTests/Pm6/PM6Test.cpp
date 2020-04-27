@@ -14,11 +14,12 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
 #include <Utils/Constants.h>
 #include <Utils/Geometry/AtomCollection.h>
-#include <Utils/IO/ChemicalFileFormats/XYZStreamHandler.h>
-#include <Utils/MethodEssentials/MethodFactories/MixerFactory.h>
+#include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
+#include <Utils/Scf/ConvergenceAccelerators/ConvergenceAcceleratorFactory.h>
 #include <Utils/Typenames.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <gmock/gmock.h>
+#include <omp.h>
 #include <Eigen/Core>
 #include <boost/dll/runtime_symbol_info.hpp>
 
@@ -45,13 +46,11 @@ class APM6Calculation : public Test {
     pm6MethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
     pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
     pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_pm6);
-    pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::loggerVerbosity, Utils::SettingsNames::LogLevels::none);
     polymorphicMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
     polymorphicMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
     polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
     polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_pm6);
-    polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::loggerVerbosity,
-                                                      Utils::SettingsNames::LogLevels::none);
+    Utils::Log::startConsoleLogging(Utils::SettingsNames::LogLevels::none);
   }
 };
 TEST_F(APM6Calculation, HasTheCorrectNumberOfAOsAfterInitialization) {
@@ -60,7 +59,7 @@ TEST_F(APM6Calculation, HasTheCorrectNumberOfAOsAfterInitialization) {
                         "V      0.0529177211   -0.3175063264    0.2645886053\n"
                         "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                         "H     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto as = Utils::XYZStreamHandler::read(ssH);
+  auto as = Utils::XyzStreamHandler::read(ssH);
   method.setStructure(as, parameters_pm6);
   ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(15));
 }
@@ -68,7 +67,7 @@ TEST_F(APM6Calculation, HasTheCorrectNumberOfAOsAfterInitialization) {
 TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForH) {
   std::stringstream ssH("1\n\n"
                         "H -1.0 0.2 -0.3\n");
-  auto as = Utils::XYZStreamHandler::read(ssH);
+  auto as = Utils::XyzStreamHandler::read(ssH);
   method.setStructure(as, parameters_pm6);
 
   method.calculateDensityIndependentQuantities();
@@ -78,7 +77,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForH) {
 TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForC) {
   std::stringstream ssC("1\n\n"
                         "C 0.0 0.0 0.0\n");
-  auto as = Utils::XYZStreamHandler::read(ssC);
+  auto as = Utils::XyzStreamHandler::read(ssC);
   method.setStructure(as, parameters_pm6);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
@@ -92,7 +91,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForH2) {
   std::stringstream ssH2("2\n\n"
                          "H -0.529177  0.105835 -0.158753\n"
                          "H -0.105835  0.105835 -0.158753\n");
-  auto as = Utils::XYZStreamHandler::read(ssH2);
+  auto as = Utils::XyzStreamHandler::read(ssH2);
   method.setStructure(as, parameters_pm6);
 
   method.calculateDensityIndependentQuantities();
@@ -105,7 +104,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForCC) {
   std::stringstream ssC2("2\n\n"
                          "C 0.0 0.0 0.0\n"
                          "C 0.423342  0.0529177 -0.0529177\n");
-  auto as = Utils::XYZStreamHandler::read(ssC2);
+  auto as = Utils::XyzStreamHandler::read(ssC2);
   method.setStructure(as, parameters_pm6);
 
   method.calculateDensityIndependentQuantities();
@@ -124,7 +123,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForCH2O) {
                        "O      0.0529177211   -0.3175063264    0.2645886053\n"
                        "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                        "H     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
 
   method.calculateDensityIndependentQuantities();
@@ -142,7 +141,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForCH2O) {
 TEST_F(APM6Calculation, GetsCorrectEigenvaluesForC) {
   std::stringstream ss("1\n\n"
                        "C     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
@@ -160,7 +159,7 @@ TEST_F(APM6Calculation, GetsCorrectEigenvaluesForC) {
 TEST_F(APM6Calculation, GetsCorrectEigenvaluesForFe) {
   std::stringstream ss("1\n\n"
                        "Fe     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
@@ -183,7 +182,7 @@ TEST_F(APM6Calculation, GetsCorrectEigenvaluesForFe) {
 TEST_F(APM6Calculation, GetsCorrectUnrestrictedEigenvaluesForBoron) {
   std::stringstream ss("1\n\n"
                        "B     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
 
   method.setUnrestrictedCalculation(true);
@@ -211,7 +210,7 @@ TEST_F(APM6Calculation, IsIndependentOfOrderOfAtoms) {
                        "O      0.0000000000    0.0000000000    0.0000000000\n"
                        "H      0.4005871485    0.3100978455    0.0000000000\n"
                        "H     -0.4005871485    0.3100978455    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
   double energy1 = method.getElectronicEnergy();
@@ -220,7 +219,7 @@ TEST_F(APM6Calculation, IsIndependentOfOrderOfAtoms) {
                         "H      0.4005871485    0.3100978455    0.0000000000\n"
                         "H     -0.4005871485    0.3100978455    0.0000000000\n"
                         "O      0.0000000000    0.0000000000    0.0000000000\n");
-  auto as2 = Utils::XYZStreamHandler::read(ss2);
+  auto as2 = Utils::XyzStreamHandler::read(ss2);
   method.setStructure(as2, parameters_pm6);
 
   method.convergedCalculation();
@@ -240,7 +239,7 @@ TEST_F(APM6Calculation, GetsCorrectElectronicEnergyForDimethylZinc) {
                        "H     -2.2133000000   -0.0000000000   -1.0277000000\n"
                        "H     -2.2133000000   -0.8900000000    0.5138100000\n"
                        "H     -2.2133000000    0.8900000000    0.5138100000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
 
   method.convergedCalculation();
@@ -254,7 +253,7 @@ TEST_F(APM6Calculation, GetsCorrectElectronicEnergyForAlH3) {
                        "H     -1.3077000000    0.7550000000    0.0019100000\n"
                        "H      1.3077000000    0.7550000000    0.0019100000\n"
                        "H      0.0000000000   -1.5100000000    0.0019100000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation(Utils::derivativeType::none);
 
@@ -266,7 +265,7 @@ TEST_F(APM6Calculation, GetsCorrectElectronicEnergyForCl2) {
   std::stringstream ss("2\n\n"
                        "Cl    -0.9900000000    0.0000000000   -0.0000000000\n"
                        "Cl     0.9900000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
@@ -278,7 +277,7 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForH2) {
   std::stringstream ssH2("2\n\n"
                          "H -0.529177  0.105835 -0.158753\n"
                          "H -0.105835  0.105835 -0.158753\n");
-  auto as = Utils::XYZStreamHandler::read(ssH2);
+  auto as = Utils::XyzStreamHandler::read(ssH2);
   method.setStructure(as, parameters_pm6);
   method.setScfMixer(Utils::scf_mixer_t::none);
   method.convergedCalculation();
@@ -298,7 +297,7 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForH2AtOtherDistance) {
   std::stringstream ss("2\n\n"
                        "H     0.0000000000    0.0000000000   -0.0000000000\n"
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
@@ -310,7 +309,7 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForC2) {
   std::stringstream ss("2\n\n"
                        "C     0.0000000000    0.0000000000   -0.0000000000\n"
                        "C     2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
@@ -322,7 +321,7 @@ TEST_F(APM6Calculation, GetsCorrectRepulsionEnergyForCH) {
   std::stringstream ss("2\n\n"
                        "C     0.0000000000    0.0000000000   -0.0000000000\n"
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
 
   method.setStructure(as, parameters_pm6);
   method.calculate(Utils::derivativeType::none);
@@ -335,7 +334,7 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForFEHV) {
                        "Fe     0.0000000000    0.0000000000   -0.0000000000\n"
                        "Cl     2.0000000000    0.0000000000    0.0000000000\n"
                        "H     -2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   // method.finalizeCalculation();
   method.setScfMixer(Utils::scf_mixer_t::fock_diis);
@@ -347,7 +346,7 @@ TEST_F(APM6Calculation, DISABLED_GetsCorrectTotalEnergyForHe2) { // TODO: find o
   std::stringstream ss("2\n\n"
                        "He    0.0000000000    0.0000000000   -0.0000000000\n"
                        "He    2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
 
   /*
    * Alain, 28.11.2014:
@@ -376,7 +375,7 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForXe2) {
   std::stringstream ss("2\n\n"
                        "Xe    0.0000000000    0.0000000000   -0.0000000000\n"
                        "Xe    2.0000000000    0.0000000000    0.0000000000\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
@@ -405,7 +404,7 @@ TEST_F(APM6Calculation, GetsCorrectGradientsForMethane) {
                                   "H     -0.6287000000   -0.6287000000    0.6287000000\n"
                                   "H     -0.6287000000    0.6287000000   -0.6287000000\n"
                                   "H      0.6287000000   -0.6287000000   -0.6287000000\n");
-  auto structure = Utils::XYZStreamHandler::read(stream);
+  auto structure = Utils::XyzStreamHandler::read(stream);
   method.setStructure(structure, parameters_pm6);
   method.convergedCalculation(Utils::derivativeType::first);
 
@@ -449,7 +448,7 @@ TEST_F(APM6Calculation, GetsZeroGradientForOptimizedMethane) {
                            "H    -0.62612481   0.62612463  -0.62613657\n"
                            "H     0.62612481  -0.62612464  -0.62613657\n");
 
-  auto structure = Utils::XYZStreamHandler::read(stream);
+  auto structure = Utils::XyzStreamHandler::read(stream);
   method.setStructure(structure, parameters_pm6);
   method.convergedCalculation(Utils::derivativeType::first);
 
@@ -472,7 +471,7 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForEthanol) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
@@ -492,13 +491,13 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithAndWithoutWrapper) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   pm6MethodWrapper->setStructure(as);
   auto result = pm6MethodWrapper->calculate("");
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
-  ASSERT_THAT(method.getEnergy(), DoubleNear(result.getEnergy(), 1e-5));
+  ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
 
 TEST_F(APM6Calculation, GetsSameTotalEnergyWithPolymorphicMethodAndWithMethod) {
@@ -512,13 +511,13 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithPolymorphicMethodAndWithMethod) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   polymorphicMethodWrapper->setStructure(as);
   auto result = polymorphicMethodWrapper->calculate("");
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
-  ASSERT_THAT(method.getEnergy(), DoubleNear(result.getEnergy(), 1e-5));
+  ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
 
 TEST_F(APM6Calculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
@@ -545,15 +544,15 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
   dynamicallyLoadedMethodWrapper->setRequiredProperties(Utils::Property::Energy);
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
   method.setStructure(as, parameters_pm6);
   method.convergedCalculation();
 
-  ASSERT_THAT(result.getEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-618.35221, 4e-3));
-  ASSERT_THAT(method.getEnergy(), DoubleNear(result.getEnergy(), 1e-5));
+  ASSERT_THAT(result.get<Utils::Property::Energy>() * Utils::Constants::ev_per_hartree, DoubleNear(-618.35221, 4e-3));
+  ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
 
 TEST_F(APM6Calculation, MethodWrapperCanBeCloned) {
@@ -580,7 +579,7 @@ TEST_F(APM6Calculation, MethodWrapperCanBeCloned) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -612,7 +611,7 @@ TEST_F(APM6Calculation, StructureIsCorrectlyCloned) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -643,14 +642,14 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculate) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
 
   auto resultCloned = cloned->calculate("");
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
-  ASSERT_THAT(resultCloned.getEnergy(), DoubleNear(result.getEnergy(), 1e-9));
+  ASSERT_THAT(resultCloned.get<Utils::Property::Energy>(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-9));
 }
 
 TEST_F(APM6Calculation, ClonedMethodCanCalculateGradients) {
@@ -676,7 +675,7 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculateGradients) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -687,7 +686,7 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculateGradients) {
   auto resultCloned = cloned->calculate("");
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
 
-  ASSERT_EQ(resultCloned.takeGradients(), result.takeGradients());
+  ASSERT_EQ(resultCloned.take<Utils::Property::Gradients>(), result.take<Utils::Property::Gradients>());
 }
 
 TEST_F(APM6Calculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCores) {
@@ -713,7 +712,7 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCore
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
@@ -721,22 +720,18 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCore
   dynamicallyLoadedMethodWrapper->setRequiredProperties(Utils::Property::Gradients);
   cloned->setRequiredProperties(Utils::Property::Gradients);
 
-#ifdef _OPENMP
   auto numThreads = omp_get_num_threads();
   omp_set_num_threads(1);
-#endif
   auto resultCloned = cloned->calculate("");
-#ifdef _OPENMP
   omp_set_num_threads(4);
-#endif
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
-#ifdef _OPENMP
   omp_set_num_threads(numThreads);
-#endif
 
-  for (int i = 0; i < resultCloned.getGradients().size(); ++i) {
-    ASSERT_THAT(resultCloned.getGradients()(i), DoubleNear(result.getGradients()(i), 1e-7));
+  for (int i = 0; i < resultCloned.get<Utils::Property::Gradients>().size(); ++i) {
+    ASSERT_THAT(resultCloned.get<Utils::Property::Gradients>()(i),
+                DoubleNear(result.get<Utils::Property::Gradients>()(i), 1e-7));
   }
+  ASSERT_EQ(result.get<Utils::Property::SuccessfulCalculation>(), true);
 }
 
 TEST_F(APM6Calculation, NotClonedMethodCanCalculateGradientsWithDifferentNumberCores) {
@@ -764,28 +759,23 @@ TEST_F(APM6Calculation, NotClonedMethodCanCalculateGradientsWithDifferentNumberC
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
   dynamicallyLoadedMethodWrapper2->setStructure(as);
 
   dynamicallyLoadedMethodWrapper->setRequiredProperties(Utils::Property::Gradients);
   dynamicallyLoadedMethodWrapper2->setRequiredProperties(Utils::Property::Gradients);
 
-#ifdef _OPENMP
   auto numThreads = omp_get_num_threads();
   omp_set_num_threads(1);
-#endif
   auto resultCloned = dynamicallyLoadedMethodWrapper2->calculate("");
-#ifdef _OPENMP
   omp_set_num_threads(4);
-#endif
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
-#ifdef _OPENMP
   omp_set_num_threads(numThreads);
-#endif
 
-  for (int i = 0; i < resultCloned.getGradients().size(); ++i) {
-    ASSERT_THAT(resultCloned.getGradients()(i), DoubleNear(result.getGradients()(i), 1e-7));
+  for (int i = 0; i < resultCloned.get<Utils::Property::Gradients>().size(); ++i) {
+    ASSERT_THAT(resultCloned.get<Utils::Property::Gradients>()(i),
+                DoubleNear(result.get<Utils::Property::Gradients>()(i), 1e-7));
   }
 }
 
@@ -812,13 +802,13 @@ TEST_F(APM6Calculation, ClonedMethodCopiesResultsCorrectly) {
                        "H     -0.4063173598    0.9562730342    1.1264955766\n"
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
-  auto as = Utils::XYZStreamHandler::read(ss);
+  auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
 
   auto result = dynamicallyLoadedMethodWrapper->calculate();
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
 
-  ASSERT_THAT(cloned->results().getEnergy(), DoubleNear(result.getEnergy(), 1e-9));
+  ASSERT_THAT(cloned->results().get<Utils::Property::Energy>(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-9));
 }
 
 TEST_F(APM6Calculation, AtomCollectionCanBeReturned) {
@@ -827,11 +817,18 @@ TEST_F(APM6Calculation, AtomCollectionCanBeReturned) {
                         "V      0.0529177211   -0.3175063264    0.2645886053\n"
                         "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                         "H     -0.1058354421    0.1058354421   -0.1587531632\n");
-  auto structure = Utils::XYZStreamHandler::read(ssH);
+  auto structure = Utils::XyzStreamHandler::read(ssH);
   pm6MethodWrapper->setStructure(structure);
   ASSERT_EQ(structure.getPositions(), pm6MethodWrapper->getStructure()->getPositions());
   for (int i = 0; i < structure.getElements().size(); ++i)
     ASSERT_EQ(structure.getElements()[i], pm6MethodWrapper->getStructure()->getElements()[i]);
+}
+
+TEST_F(APM6Calculation, ChargeIsNotSilentlyUnset) {
+  auto calculator = std::make_shared<PM6MethodWrapper>();
+  calculator->settings().modifyInt(Utils::SettingsNames::molecularCharge, -1);
+  calculator->applySettings();
+  ASSERT_EQ(calculator->settings().getInt(Utils::SettingsNames::molecularCharge), -1);
 }
 } // namespace Sparrow
 } // namespace Scine

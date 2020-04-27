@@ -8,13 +8,16 @@
 #ifndef SPARROW_NDDO_ELECTRONICENERGYCALCULATOR_H
 #define SPARROW_NDDO_ELECTRONICENERGYCALCULATOR_H
 
-#include <Utils/MethodEssentials/Methods/ElectronicEnergyCalculator.h>
+#include <Utils/Scf/MethodInterfaces/ElectronicEnergyCalculator.h>
+#include <memory>
+#include <vector>
 
 namespace Scine {
 
 namespace Utils {
 class DensityMatrix;
-}
+class AdditiveElectronicContribution;
+} // namespace Utils
 
 namespace Sparrow {
 
@@ -38,6 +41,8 @@ class NDDOElectronicEnergyCalculator : public Utils::ElectronicEnergyCalculator 
   const OneElectronMatrix& oneElectronMatrix_;
   const TwoElectronMatrix& twoElectronMatrix_;
   const bool& unrestrictedCalculationRunning_;
+  const std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>>&densityIndependentContributions_,
+      densityDependentContributions_;
 };
 
 } // namespace nddo

@@ -6,9 +6,9 @@
  */
 
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/GTOOverlapMatrixBlock.h>
-#include <Utils/MethodEssentials/util/GTOExpansion.h>
-#include <Utils/MethodEssentials/util/MatrixWithDerivatives.h>
-#include <Utils/MethodEssentials/util/STO_nG.h>
+#include <Utils/DataStructures/GtoExpansion.h>
+#include <Utils/DataStructures/MatrixWithDerivatives.h>
+#include <Utils/DataStructures/SlaterToGaussian.h>
 #include <gmock/gmock.h>
 #include <Eigen/Core>
 
@@ -21,17 +21,17 @@ using namespace nddo;
 class AGTOOverlapMatrixBlock : public Test {
  public:
   GTOOverlapMatrixBlock<Utils::derivOrder::one> overlapBlock;
-  Utils::GTOExpansion gs1, gs2, gp1, gp2, gd1, gd2;
+  Utils::GtoExpansion gs1, gs2, gp1, gp2, gd1, gd2;
   Eigen::Vector3d arbitraryVector;
 
   void SetUp() override {
     arbitraryVector = Eigen::Vector3d(1.1, 2.0, 0.23);
-    gs1 = Utils::STO_nG::getGTOExpansion(6, 1, 0);
-    gs2 = Utils::STO_nG::getGTOExpansion(6, 4, 0, 1.42);
-    gp1 = Utils::STO_nG::getGTOExpansion(6, 2, 1, 2.2);
-    gp2 = Utils::STO_nG::getGTOExpansion(6, 3, 1);
-    gd1 = Utils::STO_nG::getGTOExpansion(6, 5, 2, 0.92);
-    gd2 = Utils::STO_nG::getGTOExpansion(6, 4, 2);
+    gs1 = Utils::SlaterToGaussian::getGTOExpansion(6, 1, 0);
+    gs2 = Utils::SlaterToGaussian::getGTOExpansion(6, 4, 0, 1.42);
+    gp1 = Utils::SlaterToGaussian::getGTOExpansion(6, 2, 1, 2.2);
+    gp2 = Utils::SlaterToGaussian::getGTOExpansion(6, 3, 1);
+    gd1 = Utils::SlaterToGaussian::getGTOExpansion(6, 5, 2, 0.92);
+    gd2 = Utils::SlaterToGaussian::getGTOExpansion(6, 4, 2);
   }
 };
 
