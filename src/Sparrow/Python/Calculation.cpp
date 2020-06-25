@@ -88,6 +88,7 @@ void Calculation::setStructure(const std::string& structureFile) {
 }
 
 void Calculation::setElements(pybind11::list elements) {
+  elementTypeCollection_.clear();
   std::string elementString;
   Utils::ElementType elementType;
   for (auto element : elements) {

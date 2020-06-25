@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 2.0.1
+
+- Corrected bug in setting the element collection in Python bindings
+- Added missing include statement that prevented compilation on GCC 10.0.1.
+
 ## Release 2.0.0
 
 - Calculate thermochemical properties

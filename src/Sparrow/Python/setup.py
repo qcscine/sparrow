@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 # Define the setup
 setuptools.setup(
   name="scine_sparrow",
-  version="2.0.0",
+  version="2.0.1",
   author="ETH Zurich, Laboratory for Physical Chemistry, Reiher Group",
   author_email="scine@phys.chem.ethz.ch",
   description="Open source semi-empirical quantum chemistry implementations.",
