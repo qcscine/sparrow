@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Sparrow is a code for fast semiemprical quantum chemical calculations. It
+Sparrow is a code for fast semiempirical quantum chemical calculations. It
 provides the following methods:
 - MNDO
 - AM1
