@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -21,16 +21,14 @@ namespace dftb {
 
 class DensityGuess : public Utils::DensityMatrixGuessCalculator {
  public:
-  DensityGuess(const Utils::AtomsOrbitalsIndexes& aoIndexes, const std::vector<double>& coreCharges, const unsigned& nElectrons);
+  DensityGuess(const Utils::AtomsOrbitalsIndexes& aoIndexes, const std::vector<double>& coreCharges, const int& nElectrons);
 
   Utils::DensityMatrix calculateGuess() const override;
-
-  void setNElectrons(int nElectrons) final;
 
  private:
   const Utils::AtomsOrbitalsIndexes& aoIndexes_;
   const std::vector<double>& coreCharges_;
-  int nElectrons_;
+  const int& nElectrons_;
 };
 
 } // namespace dftb

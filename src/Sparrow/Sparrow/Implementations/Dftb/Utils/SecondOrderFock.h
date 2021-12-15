@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -40,21 +40,22 @@ class SecondOrderFock : public ScfFock {
   //! contribution.
   double calculateElectronicEnergy() const override;
   //! @brief adds the derivatives for the first, second atomic and second full types.
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const override;
+
+  /*! Return gamma and its derivative(s). */
+  template<Utils::DerivativeOrder O>
+  Utils::AutomaticDifferentiation::Value1DType<O> gamma(int a, int b) const;
 
  protected:
  private:
   /// completes the H matrix by adding the first order correction to H0.
   void completeH() override;
-  void constructG(Utils::derivOrder order) override;
-  template<Utils::derivOrder O>
+  void constructG(Utils::DerivativeOrder order) override;
+  template<Utils::DerivativeOrder O>
   void constructG();
-  /*! Return gamma and its derivative(s). */
-  template<Utils::derivOrder O>
-  Utils::AutomaticDifferentiation::Value1DType<O> gamma(int a, int b) const;
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addSecondOrderDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const;
 
   Eigen::MatrixXd G;               // Gamma matrix

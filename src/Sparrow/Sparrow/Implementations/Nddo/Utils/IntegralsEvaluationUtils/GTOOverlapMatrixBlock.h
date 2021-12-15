@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -36,7 +36,7 @@ struct AngularMomentum {
  *        same angular momentum. F.i. s-s, s-p, p-d, d-d, ... according to the Obara-Saika method.
  */
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 class GTOOverlapMatrixBlock {
  public:
   using Value3D = Utils::AutomaticDifferentiation::Value3DType<O>;

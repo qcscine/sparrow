@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -16,7 +16,7 @@ namespace dftb {
 Overlap::Overlap(ZeroOrderMatricesCalculator& matricesCalculator) : matricesCalculator_(matricesCalculator) {
 }
 
-void Overlap::calculateOverlap(Utils::derivOrder highestRequiredOrder) {
+void Overlap::calculateOverlap(Utils::DerivativeOrder highestRequiredOrder) {
   matricesCalculator_.calculateOverlap(highestRequiredOrder);
 }
 

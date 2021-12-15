@@ -1,11 +1,14 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
-#include "../MethodsTests/parameters_location.h"
+#include <Sparrow/Implementations/Dftb/Dftb2/DFTB2.h>
+#include <Sparrow/Implementations/Dftb/Dftb2/Wrapper/DFTB2MethodWrapper.h>
+#include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.h>
+#include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMomentCalculator.h>
 #include <Sparrow/Implementations/Nddo/Pm6/Wrapper/PM6MethodWrapper.h>
 #include <Utils/CalculatorBasics.h>
 #include <Utils/Geometry/AtomCollection.h>
@@ -23,6 +26,7 @@ namespace Sparrow {
 class CommonDipoleCalculation : public Test {
  public:
   std::shared_ptr<PM6MethodWrapper> pm6;
+  std::shared_ptr<DFTB2MethodWrapper> dftb2;
   Utils::AtomCollection HF, CO2, Et;
   std::vector<double> ChargesHF;
   std::vector<double> ChargesCO2;
@@ -35,9 +39,13 @@ class CommonDipoleCalculation : public Test {
  protected:
   void SetUp() override {
     pm6 = std::make_shared<PM6MethodWrapper>();
+    pm6->setLog(Core::Log::silent());
     pm6->setRequiredProperties(Utils::Property::Energy | Utils::Property::Dipole);
-    pm6->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-9);
-    pm6->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+    pm6->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-9);
+    dftb2 = std::make_shared<DFTB2MethodWrapper>();
+    dftb2->setLog(Core::Log::silent());
+    dftb2->setRequiredProperties(Utils::Property::Energy | Utils::Property::Dipole);
+    dftb2->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-9);
     std::stringstream HFss("2\n\n"
                            "H        0.000000000     0.000000000     0.000000000\n"
                            "F        0.965548748     0.000000000     0.000000000\n");
@@ -142,133 +150,6 @@ TEST_F(CommonDipoleCalculation, NDDODipoleIsRotationallyInvariant) {
   ASSERT_THAT(dipole1, DoubleNear(dipole3, 1e-6));
 }
 
-TEST_F(CommonDipoleCalculation, NddoDipoleIsCorrectForBigOrganicMolecule) {
-  pm6->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-5);
-  std::stringstream BigMoleculeSS("113\n\n"
-                                  " O         15.68894000     23.55459000      9.30853000\n"
-                                  " O         15.81287000     29.65719000      8.45683000\n"
-                                  " O         13.40468000     23.13785000      8.04487000\n"
-                                  " O         13.66559000     31.43847000      8.92988000\n"
-                                  " O         11.84316000     25.10056000      6.75053000\n"
-                                  " O         11.27957000     22.92183000      4.48568000\n"
-                                  " O         15.33904000     27.93590000     11.43104000\n"
-                                  " O         14.89455000     24.61996000      2.26223000\n"
-                                  " O         16.96517000     23.15749000      4.02856000\n"
-                                  " O         18.19509000     25.47139000      4.66759000\n"
-                                  " O         14.27744000     27.96112000      8.23079000\n"
-                                  " O         14.19171000     20.98492000      8.01749000\n"
-                                  " O         12.29558000     26.86046000      5.36613000\n"
-                                  " O         17.56628000     25.65774000      2.46106000\n"
-                                  " N         14.56699000     30.07902000     11.30982000\n"
-                                  " C         14.68174000     29.22284000      8.56648000\n"
-                                  " C         15.45143000     24.38602000      8.15052000\n"
-                                  " C         13.50110000     30.02776000      9.09556000\n"
-                                  " C         14.50265000     23.55220000      7.20651000\n"
-                                  " C         13.97563000     24.22371000      5.91584000\n"
-                                  " C         13.34539000     29.74221000     10.59931000\n"
-                                  " C         12.43400000     24.18275000      5.79537000\n"
-                                  " C         11.84834000     24.25174000      4.36145000\n"
-                                  " C         15.49332000     29.13246000     11.64411000\n"
-                                  " C         12.71374000     24.40802000      3.13631000\n"
-                                  " C         14.15346000     24.71850000      3.47199000\n"
-                                  " C         14.69562000     23.79842000      4.58623000\n"
-                                  " C         16.22023000     24.00886000      4.53087000\n"
-                                  " C         16.81442000     25.35470000      4.96225000\n"
-                                  " C         16.55976000     25.70865000      6.39811000\n"
-                                  " C         15.88346000     26.84571000      6.71155000\n"
-                                  " C         15.33940000     27.00498000      8.10391000\n"
-                                  " C         14.75248000     25.68359000      8.61465000\n"
-                                  " C         16.82938000     24.68844000      7.50189000\n"
-                                  " C         17.81199000     25.26213000      8.54280000\n"
-                                  " C         17.53019000     23.39882000      7.06519000\n"
-                                  " C         14.47601000     22.30914000      4.27596000\n"
-                                  " C         15.59993000     27.96092000      5.75969000\n"
-                                  " C         11.71549000     22.82509000      5.85431000\n"
-                                  " C         13.43435000     21.82880000      8.41849000\n"
-                                  " C         12.34736000     21.56724000      9.38923000\n"
-                                  " C         11.33985000     22.48099000      9.67784000\n"
-                                  " C         10.33828000     22.15278000     10.58677000\n"
-                                  " C         10.35451000     20.93427000     11.24191000\n"
-                                  " C         11.35932000     20.02687000     10.96377000\n"
-                                  " C         12.34265000     20.33518000     10.03119000\n"
-                                  " C         12.17664000     30.47797000     11.22155000\n"
-                                  " C         10.95065000     30.57629000     10.56476000\n"
-                                  " C          9.87791000     31.25309000     11.13399000\n"
-                                  " C         10.00793000     31.83076000     12.37913000\n"
-                                  " C         11.21090000     31.74058000     13.04578000\n"
-                                  " C         12.27968000     31.06453000     12.48174000\n"
-                                  " C         11.81973000     26.40896000      6.38046000\n"
-                                  " C         11.13872000     27.18481000      7.46687000\n"
-                                  " C         16.71749000     29.66167000     12.28018000\n"
-                                  " C         16.66427000     30.72002000     13.18879000\n"
-                                  " C         17.81868000     31.13753000     13.83690000\n"
-                                  " C         19.03548000     30.55095000     13.53529000\n"
-                                  " C         19.10009000     29.51933000     12.61263000\n"
-                                  " C         17.94140000     29.06596000     11.99062000\n"
-                                  " C         18.42320000     25.60374000      3.32230000\n"
-                                  " C         19.89529000     25.74309000      3.07987000\n"
-                                  " H         15.16627000     23.88279000     10.05888000\n"
-                                  " H         12.61120000     29.71350000      8.54163000\n"
-                                  " H         15.06941000     22.69588000      6.86985000\n"
-                                  " H         14.19722000     25.27422000      6.01922000\n"
-                                  " H         13.14478000     28.67651000     10.73243000\n"
-                                  " H         14.76787000     31.06382000     11.43566000\n"
-                                  " H         11.06762000     25.00235000      4.23170000\n"
-                                  " H         14.21517000     25.75778000      3.80641000\n"
-                                  " H         15.67245000     25.21900000      2.28643000\n"
-                                  " H         16.27859000     26.06971000      4.35425000\n"
-                                  " H         16.16746000     27.33282000      8.71910000\n"
-                                  " H         11.31303000     23.45050000      9.20152000\n"
-                                  " H          9.53106000     22.84162000     10.79023000\n"
-                                  " H          9.57923000     20.69386000     11.95893000\n"
-                                  " H         11.37607000     19.07270000     11.47077000\n"
-                                  " H         13.11452000     19.60724000      9.81988000\n"
-                                  " H         10.82137000     30.13843000      9.58713000\n"
-                                  " H          8.93238000     31.34348000     10.61877000\n"
-                                  " H          9.17891000     32.35272000     12.83531000\n"
-                                  " H         11.31381000     32.21170000     14.00998000\n"
-                                  " H         13.20619000     31.03173000     13.03773000\n"
-                                  " H         15.74161000     31.22954000     13.42928000\n"
-                                  " H         17.77621000     31.93087000     14.57134000\n"
-                                  " H         19.94155000     30.92231000     13.99551000\n"
-                                  " H         20.06383000     29.08383000     12.38096000\n"
-                                  " H         18.00275000     28.26321000     11.26730000\n"
-                                  " H         12.31093000     25.22577000      2.52791000\n"
-                                  " H         12.65197000     23.52449000      2.50430000\n"
-                                  " H         14.68841000     25.73408000      9.70223000\n"
-                                  " H         13.71185000     25.65042000      8.29542000\n"
-                                  " H         18.78044000     25.48765000      8.09474000\n"
-                                  " H         17.96953000     24.56421000      9.36730000\n"
-                                  " H         18.49572000     23.60736000      6.60120000\n"
-                                  " H         17.69632000     22.73454000      7.91451000\n"
-                                  " H         16.95213000     22.81777000      6.36140000\n"
-                                  " H         14.87233000     21.66911000      5.06649000\n"
-                                  " H         13.43326000     22.04626000      4.14831000\n"
-                                  " H         14.97357000     22.01508000      3.35062000\n"
-                                  " H         16.02277000     27.80580000      4.77422000\n"
-                                  " H         14.52635000     28.09181000      5.63565000\n"
-                                  " H         16.04339000     28.88920000      6.11321000\n"
-                                  " H         10.87952000     22.80916000      6.55984000\n"
-                                  " H         12.34095000     21.95832000      6.06644000\n"
-                                  " H         11.10038000     28.24006000      7.20347000\n"
-                                  " H         10.12125000     26.82392000      7.61594000\n"
-                                  " H         11.68846000     27.07682000      8.40192000\n"
-                                  " H         17.48064000     26.17473000      9.01138000\n"
-                                  " H         20.08808000     25.86160000      2.01213000\n"
-                                  " H         20.27627000     26.62537000      3.59684000\n"
-                                  " H         20.41636000     24.85112000      3.42576000\n"
-                                  " H         13.77125000     31.61639000      7.98284000\n");
-
-  auto BigMolecule = Utils::XyzStreamHandler::read(BigMoleculeSS);
-  pm6->setStructure(BigMolecule);
-
-  auto res = pm6->calculate("");
-  auto dipole = res.get<Utils::Property::Dipole>().norm() * 2.541746;
-
-  // Reference value obtained with MOPAC (as implemented in ADF 2016.107)
-  ASSERT_THAT(dipole, DoubleNear(11.693, 0.005));
-}
-
 TEST_F(CommonDipoleCalculation, CysteineDipoleTest) {
   std::stringstream cysteine("14\n\n"
                              "C     -0.2039680165    1.2296177212   -1.7601331753\n"
@@ -335,5 +216,45 @@ TEST_F(CommonDipoleCalculation, DipoleOfTransitionMetalsCorrectlyCalculated) {
   // Reference value obtained with MOPAC (as implemented in mopac 2016)
   ASSERT_THAT(dipole, DoubleNear(2.455, 0.005));
 }
+
+TEST_F(CommonDipoleCalculation, DFTBCalculatesDipoleCorrectly) {
+  dftb2->setStructure(Et);
+  dftb2->setRequiredProperties(Utils::Property::Dipole);
+  auto dipole = dftb2->calculate("").get<Utils::Property::Dipole>();
+
+  // Reference value obtained with DFTB+
+  Eigen::Vector3d referenceDipoleDftbPlus(-0.36023764, -0.21653604, -0.38972594);
+  EXPECT_THAT(dipole(0), DoubleNear(referenceDipoleDftbPlus(0), 1e-6));
+  EXPECT_THAT(dipole(1), DoubleNear(referenceDipoleDftbPlus(1), 1e-6));
+  EXPECT_THAT(dipole(2), DoubleNear(referenceDipoleDftbPlus(2), 1e-6));
+}
+
+// Test that if you calculate the dipole with the dipole matrix, you get the same
+// as with a Mulliken pop analysis.
+TEST_F(CommonDipoleCalculation, DFTBCalculatedDipoleMatrixCorrectly) {
+  dftb::DFTB2 dftb2Method;
+  Core::Log log = Core::Log::silent();
+  auto dipoleMatrixCalc = DFTBDipoleMatrixCalculator<dftb::DFTB2>::create(dftb2Method);
+  auto dipoleMomentCalc = DFTBDipoleMomentCalculator<dftb::DFTB2>(dftb2Method);
+  dftb2Method.setAtomCollection(Et);
+  dftb2Method.initializeFromParameterPath("mio-1-1");
+  dftb2Method.convergedCalculation(log, Utils::Derivative::None);
+  auto mos = dftb2Method.getMolecularOrbitals().restrictedMatrix();
+  int nOcc = dftb2Method.getElectronicOccupation().numberRestrictedElectrons() / 2;
+
+  dipoleMatrixCalc->fillDipoleMatrix({0, 0, 0});
+  auto dipoleMatrixMO = dipoleMatrixCalc->getMODipoleMatrix();
+
+  auto dipole = dipoleMomentCalc.calculate();
+
+  Eigen::VectorXd coreCharges(9);
+  coreCharges << 4, 4, 6, 1, 1, 1, 1, 1, 1;
+  Eigen::RowVector3d dipAtom;
+  dipAtom = coreCharges.transpose() * dftb2Method.getPositions();
+  EXPECT_THAT(dipAtom.x() - dipoleMatrixMO[0].diagonal().head(nOcc).sum() * 2.0, DoubleNear(dipole.x(), 1e-6));
+  EXPECT_THAT(dipAtom.y() - dipoleMatrixMO[1].diagonal().head(nOcc).sum() * 2.0, DoubleNear(dipole.y(), 1e-6));
+  EXPECT_THAT(dipAtom.z() - dipoleMatrixMO[2].diagonal().head(nOcc).sum() * 2.0, DoubleNear(dipole.z(), 1e-6));
+}
+
 } // namespace Sparrow
 } // namespace Scine

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -15,6 +15,7 @@
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 #include <array>
+#include <boost/functional/hash.hpp>
 #include <memory>
 #include <vector>
 
@@ -32,9 +33,8 @@ namespace dftb {
 class DFTBCommon : public Utils::StructureDependentInitializer {
  public:
   using AtomicParameterContainer = std::vector<std::unique_ptr<SKAtom>>;
-  using SKPairPtr = std::unique_ptr<SKPair>;
-  using SKPairLine = std::array<SKPairPtr, 110>;
-  using DiatomicParameterContainer = std::array<SKPairLine, 110>;
+  using DiatomicParameterKey = std::pair<int, int>;
+  using DiatomicParameterContainer = std::unordered_map<DiatomicParameterKey, SKPair, boost::hash<DiatomicParameterKey>>;
 
   DFTBCommon(const Utils::ElementTypeCollection& elements, int& nEl, int& charge, AtomicParameterContainer& atomicPar,
              DiatomicParameterContainer& diatomicPar);
@@ -45,7 +45,7 @@ class DFTBCommon : public Utils::StructureDependentInitializer {
 
   void reinitializeParameters();
 
-  unsigned int getnAOs() const {
+  unsigned getnAOs() const {
     return nAOs;
   }
   bool hasHubbardDerivatives() const {
@@ -66,26 +66,23 @@ class DFTBCommon : public Utils::StructureDependentInitializer {
   }
 
  private:
-  void readSpinConstants(const std::string& path);
-  void readHubbardDerivatives(const std::string& path);
+  static constexpr int nElements_ = 110;
 
-  const int nElements_;
-  std::vector<bool> atomTypePresent; // tells if atomType present in the structure
-  std::vector<std::string> listAtomTypes;
+  std::vector<bool> atomTypePresent;          // tells if atomType present in the structure
   AtomicParameterContainer& atomParameters;   // parameters for atoms
   DiatomicParameterContainer& pairParameters; // List of pointers to parameters
 
-  unsigned int nAOs;               // Total number of Atomic orbitals
-  unsigned int nAtoms;             // Total number of atoms
-  int& nElectrons_;                // Total number of electrons
-  unsigned int nInitialElectrons_; // initial number of electrons
+  unsigned nAOs;               // Total number of Atomic orbitals
+  unsigned nAtoms;             // Total number of atoms
+  int& nElectrons_;            // Total number of electrons
+  unsigned nInitialElectrons_; // initial number of electrons
   int& molecularCharge_;
   double noInteractionEnergy; // sum of energies of isolated atoms
   bool spinPolarizedPossible; // tells if parameters for SDFTB are present
   bool DFTB3Possible;         // tells if parameters for DFTB3 are present
   std::vector<double> coreCharges_;
   Utils::AtomsOrbitalsIndexes aoIndexes_;
-  const Utils::ElementTypeCollection& elementTypes_;
+  Utils::ElementTypeCollection elementTypes_;
 
   std::string path_;
   unsigned dftbType_;

@@ -1,14 +1,13 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #ifndef SPARROW_PM6SETTINGS_H
 #define SPARROW_PM6SETTINGS_H
 
-#include <Sparrow/ParametersHeader.h>
 #include <Utils/Settings.h>
 #include <Utils/UniversalSettings/SettingPopulator.h>
 
@@ -24,14 +23,13 @@ class PM6Settings : public Scine::Utils::Settings {
   PM6Settings() : Settings("PM6MethodWrapper") {
     Utils::UniversalSettings::SettingPopulator::populateLcaoSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
-    Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "Pm6/parameters.xml");
+    Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "");
 
     Utils::UniversalSettings::BoolDescriptor useNDDODipoleApprox("Sets use of NDDO dipole approximation.");
     useNDDODipoleApprox.setDefaultValue(true);
     _fields.push_back(Utils::SettingsNames::NDDODipoleApproximation, std::move(useNDDODipoleApprox));
 
     resetToDefaults();
-    modifyString(Utils::SettingsNames::parameterRootDirectory, std::string(parametersRootDir));
   };
 };
 

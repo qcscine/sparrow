@@ -1,7 +1,7 @@
 /**
  * @file DFTB3MethodWrapper.h
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_DFTB3METHODWRAPPER_H
@@ -15,12 +15,17 @@
 #include <string>
 
 namespace Scine {
+
+namespace Utils {
+class AdditiveElectronicContribution;
+} // namespace Utils
+
 namespace Sparrow {
 /**
  * @class DFTB3MethodWrapper DFTB3MethodWrapper.h
  * @brief A method wrapper handling DFTB3 calculations.
  */
-class DFTB3MethodWrapper : public Utils::CloneInterface<DFTB3MethodWrapper, DFTBMethodWrapper> {
+class DFTB3MethodWrapper final : public Utils::CloneInterface<DFTB3MethodWrapper, DFTBMethodWrapper> {
  public:
   static constexpr const char* model = "DFTB3";
 
@@ -42,14 +47,20 @@ class DFTB3MethodWrapper : public Utils::CloneInterface<DFTB3MethodWrapper, DFTB
    * @brief Function to apply the settings to the underlying method.
    */
   void applySettings() final;
+  /**
+   * @brief Function to add a contribution to the electronic DFTB3 Hamiltonian.
+   * @param contribution An Utils::AdditiveElectronicContribution polymorphic class.
+   */
+  void addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
 
  private:
+  TDDFTBData getTDDFTBDataImpl() const final;
   bool successfulCalculation() const final;
   Utils::DensityMatrix getDensityMatrixGuess() const final;
   //! Initializes a method with the parameter file present in the settings.
   void initialize() final;
   //! Calls the underlying method's calculate() function.
-  void calculateImpl(Utils::derivativeType requiredDerivative) final;
+  void calculateImpl(Utils::Derivative requiredDerivative) final;
   //! Get the underlying method as a LCAO method.
   Utils::LcaoMethod& getLcaoMethod() final;
   const Utils::LcaoMethod& getLcaoMethod() const final;

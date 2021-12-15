@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -21,7 +21,7 @@ using namespace GeneralTypes;
 using std::exp;
 using std::sqrt;
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 GTOOverlapMatrixBlock<O>::GTOOverlapMatrixBlock() : sqrt3(sqrt(3)), pi(4.0 * atan(1)), nullValue(constant1D<O>(0)) {
   momenta[0] = AngularMomentum(0, 0, 0);
   momenta[1] = AngularMomentum(1, 0, 0);
@@ -46,7 +46,7 @@ GTOOverlapMatrixBlock<O>::GTOOverlapMatrixBlock() : sqrt3(sqrt(3)), pi(4.0 * ata
   AOIndexes[9] = 0;
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Eigen::Matrix<typename GTOOverlapMatrixBlock<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
 GTOOverlapMatrixBlock<O>::getMatrixBlock(const Utils::GtoExpansion& gA, const Utils::GtoExpansion& gB,
                                          const Eigen::Vector3d& Rab) {
@@ -58,20 +58,20 @@ GTOOverlapMatrixBlock<O>::getMatrixBlock(const Utils::GtoExpansion& gA, const Ut
   result.resize(nGTFsA_, nGTFsB_);
   result.setConstant(constant3D<O>(0.0));
 
-  for (int i = 0; i < gA.size(); i++) {
-    for (int j = 0; j < gB.size(); j++) {
+  for (int i = 0; i < static_cast<int>(gA.gtfs.size()); i++) {
+    for (int j = 0; j < static_cast<int>(gB.gtfs.size()); j++) {
       addGTFContribution(i, j, gA, gB, Rab);
     }
   }
 
   return computeBlock(gA, gB);
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Utils::GtoExpansion& gA,
                                                   const Utils::GtoExpansion& gB, const Eigen::Vector3d& Rab) {
   // Get GTO exponents and compute their sum
-  double expA = gA.getExponent(GTFA);
-  double expB = gB.getExponent(GTFB);
+  double expA = gA.gtfs.at(GTFA).exponent;
+  double expB = gB.gtfs.at(GTFB).exponent;
   double expSum = expA + expB;
 
   // Calculate the center of gravity of the two gaussian orbitals
@@ -85,7 +85,7 @@ void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Util
 
   // Compute preexponential factor and multiply it with the contraction coefficients and normalization factors
   KD = getKBase(x, y, z, fac) * exp((x * x + y * y + z * z) * fac) *
-       (gA.getNormalizedCoefficient(GTFA) * gB.getNormalizedCoefficient(GTFB));
+       (gA.gtfs.at(GTFA).normalizedCoefficient * gB.gtfs.at(GTFB).normalizedCoefficient);
 
   // S_00 is known: done in setRArray
   SDo[1][0][0] = SDo[0][0][0];
@@ -100,8 +100,8 @@ void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Util
     // S_i,j = X_PA * S_i-1,j + 1/(2expSum) * ((i-1)*S_i-2,j + j*S_i-1,j-1)
     // S_i,j = X_PB * S_i,j-1 + 1/(2expSum) * (i*S_i-1,j-1 + (j-1)*S_i,j-2)
     // for either k or l equal to zero, only one of them can work
-    for (int k = 0; k <= gA.angularMomentum(); k++) {
-      for (int l = 0; l <= gB.angularMomentum(); l++) {
+    for (int k = 0; k <= gA.angularMomentum; k++) {
+      for (int l = 0; l <= gB.angularMomentum; l++) {
         if (k != 0 || l != 0) {
           SDo[d][k][l] = nullValue;
           if (l == 0) { // use first formula
@@ -133,7 +133,7 @@ void GTOOverlapMatrixBlock<O>::addGTFContribution(int GTFA, int GTFB, const Util
   }   // End loop k
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Eigen::Matrix<typename GTOOverlapMatrixBlock<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
 GTOOverlapMatrixBlock<O>::computeBlock(const Utils::GtoExpansion& gA, const Utils::GtoExpansion& gB) {
   // go from 6 d-type GTFs back to 5 d-type atomic orbitals:
@@ -165,19 +165,19 @@ GTOOverlapMatrixBlock<O>::computeBlock(const Utils::GtoExpansion& gA, const Util
 }
 
 template<>
-inline GTOOverlapMatrixBlock<Utils::derivOrder::zero>::Value3D
-GTOOverlapMatrixBlock<Utils::derivOrder::zero>::directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z) {
+inline GTOOverlapMatrixBlock<Utils::DerivativeOrder::Zero>::Value3D
+GTOOverlapMatrixBlock<Utils::DerivativeOrder::Zero>::directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z) {
   return X * Y * Z;
 }
 template<>
-inline GTOOverlapMatrixBlock<Utils::derivOrder::one>::Value3D
-GTOOverlapMatrixBlock<Utils::derivOrder::one>::directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z) {
+inline GTOOverlapMatrixBlock<Utils::DerivativeOrder::One>::Value3D
+GTOOverlapMatrixBlock<Utils::DerivativeOrder::One>::directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z) {
   return {X.value() * Y.value() * Z.value(), X.derivative() * Y.value() * Z.value(),
           Y.derivative() * X.value() * Z.value(), Z.derivative() * X.value() * Y.value()};
 }
 template<>
-inline GTOOverlapMatrixBlock<Utils::derivOrder::two>::Value3D
-GTOOverlapMatrixBlock<Utils::derivOrder::two>::directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z) {
+inline GTOOverlapMatrixBlock<Utils::DerivativeOrder::Two>::Value3D
+GTOOverlapMatrixBlock<Utils::DerivativeOrder::Two>::directionsProduct(const Value1D& X, const Value1D& Y, const Value1D& Z) {
   return {X.value() * Y.value() * Z.value(),  X.first() * Y.value() * Z.value(),  X.value() * Y.first() * Z.value(),
           X.value() * Y.value() * Z.first(),  X.second() * Y.value() * Z.value(), X.value() * Y.second() * Z.value(),
           X.value() * Y.value() * Z.second(), X.first() * Y.first() * Z.value(),  X.first() * Y.value() * Z.first(),
@@ -185,18 +185,18 @@ GTOOverlapMatrixBlock<Utils::derivOrder::two>::directionsProduct(const Value1D& 
 }
 
 template<>
-inline GTOOverlapMatrixBlock<Utils::derivOrder::zero>::Value3D
-GTOOverlapMatrixBlock<Utils::derivOrder::zero>::getKBase(double /*x*/, double /*y*/, double /*z*/, double /*fac*/) {
+inline GTOOverlapMatrixBlock<Utils::DerivativeOrder::Zero>::Value3D
+GTOOverlapMatrixBlock<Utils::DerivativeOrder::Zero>::getKBase(double /*x*/, double /*y*/, double /*z*/, double /*fac*/) {
   return 1;
 }
 template<>
-inline GTOOverlapMatrixBlock<Utils::derivOrder::one>::Value3D
-GTOOverlapMatrixBlock<Utils::derivOrder::one>::getKBase(double x, double y, double z, double fac) {
+inline GTOOverlapMatrixBlock<Utils::DerivativeOrder::One>::Value3D
+GTOOverlapMatrixBlock<Utils::DerivativeOrder::One>::getKBase(double x, double y, double z, double fac) {
   return {1, 2 * x * fac, 2 * y * fac, 2 * z * fac};
 }
 template<>
-inline GTOOverlapMatrixBlock<Utils::derivOrder::two>::Value3D
-GTOOverlapMatrixBlock<Utils::derivOrder::two>::getKBase(double x, double y, double z, double fac) {
+inline GTOOverlapMatrixBlock<Utils::DerivativeOrder::Two>::Value3D
+GTOOverlapMatrixBlock<Utils::DerivativeOrder::Two>::getKBase(double x, double y, double z, double fac) {
   double xfac2 = 2 * x * fac;
   double yfac2 = 2 * y * fac;
   double zfac2 = 2 * z * fac;
@@ -212,7 +212,7 @@ GTOOverlapMatrixBlock<Utils::derivOrder::two>::getKBase(double x, double y, doub
           yfac2 * zfac2};
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 inline void GTOOverlapMatrixBlock<O>::setRArray(double x, double y, double z, double expSum) {
   SDo[0][0][0] = constant1D<O>(sqrt(pi / expSum));
   r[0] = getFromFull<O>(x, 1, 0);
@@ -220,9 +220,9 @@ inline void GTOOverlapMatrixBlock<O>::setRArray(double x, double y, double z, do
   r[2] = getFromFull<O>(z, 1, 0);
 }
 
-template class GTOOverlapMatrixBlock<Utils::derivOrder::zero>;
-template class GTOOverlapMatrixBlock<Utils::derivOrder::one>;
-template class GTOOverlapMatrixBlock<Utils::derivOrder::two>;
+template class GTOOverlapMatrixBlock<Utils::DerivativeOrder::Zero>;
+template class GTOOverlapMatrixBlock<Utils::DerivativeOrder::One>;
+template class GTOOverlapMatrixBlock<Utils::DerivativeOrder::Two>;
 
 } // namespace nddo
 } // namespace Sparrow

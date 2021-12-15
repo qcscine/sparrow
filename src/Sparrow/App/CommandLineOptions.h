@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_COMMANDLINEOPTIONS_H
@@ -11,6 +11,9 @@
 #include <ostream>
 
 namespace Scine {
+namespace Core {
+class Log;
+} // namespace Core
 namespace Utils {
 class Settings;
 } // namespace Utils
@@ -45,21 +48,39 @@ class CommandLineOptions {
   std::string getCalculationDescription() const;
   /** @brief returns the desired verbosity of the logging. */
   std::string getLoggerVerbosity() const;
+  /** @brief returns the name of the file where the logging should be printed. */
+  std::string getLogFilename() const;
+  /** @brief returns the desired number of orbital steers. */
+  int getNumberOfOrbitalSteers() const;
   /** @brief returns whether the gradients have to be computed. */
   bool gradientRequired() const;
   /** @brief returns whether the hessian matrix has to be computed. */
   bool hessianRequired() const;
+  /** @brief returns whether the atomic Hessians have to be computed. */
+  bool atomicHessiansRequired() const;
   /** @brief returns whether the bond order matrix has to be computed. */
   bool bondOrdersRequired() const;
   /** @brief returns whether the normal modes output is printed or suppressed. */
   bool suppressNormalModes() const;
+  /** @brief returns whether an excited states calculation has to be performed. */
+  bool excitedStatesRequired() const;
+  /** @brief returns whether an orbital steering calculation has to be performed. */
+  bool orbitalSteeringRequired() const;
   /** @brief returns whether the wavefunction output is printed as a molden file. */
   bool wavefunctionRequired() const;
   /** @brief returns whether the thermochemical properties are calculated. */
   bool thermochemistryRequired() const;
+  /** @brief returns whether the excited state basis needs to be pruned. */
+  bool pruneBasis() const;
 
+  /** @brief updates a logger with the verbosity parsed from the command line. */
+  void updateLogger(Core::Log& log) const;
   /** @brief updates a setting with the option parsed from the command line. */
   void updateSettings(Utils::Settings& settingsToUpdate) const;
+  /** @brief updates the excited states setting with the option parsed from the command line. */
+  void updateExcitedStatesSettings(Utils::Settings& settingsToUpdate) const;
+  /** @brief updates the orbital steering setting with the option parsed from the command line. */
+  void updateOrbitalSteeringSettings(Utils::Settings& settingsToUpdate) const;
 
   /** @brief prints the help message. */
   void printHelp(std::ostream& out) const;

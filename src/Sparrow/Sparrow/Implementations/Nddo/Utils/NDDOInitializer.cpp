@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -10,7 +10,7 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/AtomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/PM6DiatomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParameterProcessor.h>
-#include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParametersContainer.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/Scf/MethodExceptions.h>
 #include <Utils/Typenames.h>
 #include <cmath>
@@ -30,8 +30,9 @@ void NDDOInitializer::applyRawParameters(const Utils::ElementTypeCollection& ele
   // Fill atomic parameters
   for (auto e : elements) {
     if (!elementParameters_.isSet(e)) {
-      if (!rawParameters_.isAvailable(e))
+      if (rawParameters_.atomic.count(Utils::ElementInfo::Z(e)) == 0) {
         throw Utils::Methods::ParametersDoNotExistForElementException(e);
+      }
 
       auto par = processor.processAtomicParameters(e);
       elementParameters_.set(e, std::move(par.first));
@@ -46,8 +47,9 @@ void NDDOInitializer::applyRawParameters(const Utils::ElementTypeCollection& ele
         auto e1 = Utils::ElementInfo::element(i);
         auto e2 = Utils::ElementInfo::element(j);
         if (elementParameters_.isSet(e1) && elementParameters_.isSet(e2)) {
-          if (!rawParameters_.isAvailable(e1, e2))
+          if (rawParameters_.diatomic.count(Parameters::key(e1, e2)) == 0) {
             throw Utils::Methods::ParametersDoNotExistForElementPairException(e1, e2);
+          }
 
           elementPairParameters_.set(e1, e2, processor.runtimeDiatomicParameters(e1, e2));
         }
@@ -57,11 +59,11 @@ void NDDOInitializer::applyRawParameters(const Utils::ElementTypeCollection& ele
 }
 
 void NDDOInitializer::readParameters(const std::string& parameterPath) {
-  rawParameters_ = RawParametersContainer(parameterPath);
+  rawParameters_ = Parameters::read(parameterPath);
 }
 
 void NDDOInitializer::saveParameters(const std::string& fileName) {
-  rawParameters_.writeParameterXMLFile(fileName);
+  rawParameters_.write(fileName);
 }
 
 void NDDOInitializer::initialize(const Utils::ElementTypeCollection& elements) {
@@ -78,11 +80,11 @@ void NDDOInitializer::initialize(const Utils::ElementTypeCollection& elements) {
   }
 }
 
-RawParametersContainer& NDDOInitializer::getRawParameters() {
+Parameters& NDDOInitializer::getRawParameters() {
   return rawParameters_;
 }
 
-const RawParametersContainer& NDDOInitializer::getRawParameters() const {
+const Parameters& NDDOInitializer::getRawParameters() const {
   return rawParameters_;
 }
 

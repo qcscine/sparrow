@@ -1,8 +1,11 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
+ *
+ * This file defines multiple functions for the calculation of
+ * semi-empirical two-center two-electron integrals
  */
 
 #ifndef SPARROW_MULTIPOLE_MULTIPOLETYPES_H
@@ -12,15 +15,7 @@
 
 namespace Scine {
 namespace Sparrow {
-
-/*!
- * \file generalTypes.h
- * This file defines multiple functions for the calculation of
- * semi-empirical two-center two-electron integrals
- */
-
 namespace nddo {
-
 namespace multipole {
 
 /** @brief enum listing the possible charge configurations of a multipole.
@@ -28,7 +23,7 @@ namespace multipole {
  * They are separated in monopole (l = 0), dipole (l = 1) and quadrupole (l = 2).
  */
 
-enum multipolePair_t { sp1, pd1, pp2, sd2, dd2, ss0, pp0, dd0 };
+enum class MultipolePair : unsigned { sp1, pd1, pp2, sd2, dd2, ss0, pp0, dd0 };
 /**
  * @brief Multipole types used in the calculation of the ERI with the multipole expansion approximation.
  *
@@ -54,7 +49,7 @@ enum multipolePair_t { sp1, pd1, pp2, sd2, dd2, ss0, pp0, dd0 };
  * \f$ Qzx = \~{Q}_{z,x} = -\~{Q}_{x,z} \f$ a square quadrupole with charges along the x,z axes at \f$ \sqrt{2} \f$
  * distance from the origin with l = 2, m = 2
  */
-enum multipole_t { M00, Qxx, Qyy, Qzz, M1m1, M10, M11, M2m2, M2m1, M20, M21, M22, Qzx };
+enum class Multipole : unsigned { M00, Qxx, Qyy, Qzz, M1m1, M10, M11, M2m2, M2m1, M20, M21, M22, Qzx };
 /**
  * @brief Given 2 orbitals, gives the corresponding orbital pair. Throws InvalidOrbitalPairException() if the orbital
  *        types given are invalid. Order matters.
@@ -68,26 +63,24 @@ GeneralTypes::rotationOrbitalPair getRotPairType(GeneralTypes::orb_t o1, General
  *         0 for a dipole in z direction and 1 for a dipole in x direction. Throws InvalidMultipoleException() if the
  *         multipole is not valid.
  */
-int MQuantumNumber(multipole_t m);
+int MQuantumNumber(Multipole m);
 
 /** @brief Returns the orbital quantum number l of an orbital, i.e. 0 for s, 1 for p and 2 for d type orbitals.
  *         Throws InvalidMultipoleException() if the multipole is not a valid one.
  */
-int LQuantumNumber(multipole_t m);
+int LQuantumNumber(Multipole m);
 
 /**
  * @brief Function to infer the charge configuration of a multipole
  * @param l1 the orbital quantum number of the first orbital
  * @param l2 the orbital quantum number of the second orbital
  * @param l  the multipole orbital quantum number
- * @return throws InvalidQuantumNumbersException() if the quantum number is invalid. Otherwise returns a multipolePair_t.
+ * @return throws InvalidQuantumNumbersException() if the quantum number is invalid. Otherwise returns a MultipolePair.
  */
-multipolePair_t pairType(int l1, int l2, int l);
+MultipolePair pairType(int l1, int l2, int l);
 
 } // namespace multipole
-
 } // namespace nddo
-
 } // namespace Sparrow
 } // namespace Scine
 #endif // SPARROW_MULTIPOLE_MULTIPOLETYPES_H

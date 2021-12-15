@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -196,10 +196,7 @@ class AtomicParameters {
   std::vector<std::tuple<double, double, double>> gaussianRepulsionParameters_{}; // NB: make sure they have units
                                                                                   // compatible with formula so that R
                                                                                   // does not need to be converted to
-                                                                                  //
-  // std::tuple<double, double, double> gaussianRepulsionParameters_; // NB: make sure they have units compatible with
-  // formula so that R does not need to be converted to
-  // another unit!
+                                                                                  // another unit!
   multipole::KlopmanParameter klopman_{};
   multipole::ChargeSeparationParameter chargeSep_{};
   bool pCoreSpecified_{false};

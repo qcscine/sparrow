@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -10,6 +10,7 @@
 #include "OneElectronMatrix.h"
 #include "TwoElectronMatrix.h"
 #include <Utils/DataStructures/DensityMatrix.h>
+#include <Utils/Scf/MethodInterfaces/AdditiveElectronicContribution.h>
 
 namespace Scine {
 namespace Sparrow {
@@ -23,20 +24,31 @@ NDDOElectronicEnergyCalculator::NDDOElectronicEnergyCalculator(const Utils::Dens
     oneElectronMatrix_(fockCalculator.getOneElectronMatrix()),
     twoElectronMatrix_(fockCalculator.getTwoElectronMatrix()),
     unrestrictedCalculationRunning_(unrestrictedCalculationRunning),
-    densityDependentContributions_(fockCalculator.getDensityDependentContributions()),
-    densityIndependentContributions_(fockCalculator.getDensityIndependentContributions()) {
+    densityIndependentContributions_(fockCalculator.getDensityIndependentContributions()),
+    densityDependentContributions_(fockCalculator.getDensityDependentContributions()) {
 }
 
 double NDDOElectronicEnergyCalculator::calculateElectronicEnergy() {
-  if (!unrestrictedCalculationRunning_)
+  for (auto const& contribution : densityDependentContributions_) {
+    if (contribution->isValid()) {
+      contribution->calculate(densityMatrix_, Utils::DerivativeOrder::Zero);
+    }
+  }
+  for (auto const& contribution : densityIndependentContributions_) {
+    if (contribution->isValid()) {
+      contribution->calculate(densityMatrix_, Utils::DerivativeOrder::Zero);
+    }
+  }
+  if (!unrestrictedCalculationRunning_) {
     return restrictedEnergy();
-  else
-    return unrestrictedEnergy();
+  }
+  return unrestrictedEnergy();
 }
 
 double NDDOElectronicEnergyCalculator::restrictedEnergy() {
   auto nAOs = densityMatrix_.restrictedMatrix().rows();
   double electronicEnergy = 0;
+
   for (unsigned int i = 0; i < nAOs; i++) {
     electronicEnergy += 0.5 * densityMatrix_.restricted(i, i) *
                         (twoElectronMatrix_.getMatrix()(i, i) + 2 * oneElectronMatrix_.getMatrix()(i, i));
@@ -44,6 +56,12 @@ double NDDOElectronicEnergyCalculator::restrictedEnergy() {
       electronicEnergy += densityMatrix_.restricted(i, j) *
                           (twoElectronMatrix_.getMatrix()(i, j) + 2 * oneElectronMatrix_.getMatrix()(i, j));
     }
+  }
+  for (auto const& contribution : densityDependentContributions_) {
+    electronicEnergy += contribution->getElectronicEnergyContribution();
+  }
+  for (auto const& contribution : densityIndependentContributions_) {
+    electronicEnergy += contribution->getElectronicEnergyContribution();
   }
   return electronicEnergy;
 }
@@ -60,6 +78,12 @@ double NDDOElectronicEnergyCalculator::unrestrictedEnergy() {
                           densityMatrix_.alpha(i, j) * twoElectronMatrix_.getAlpha()(i, j) +
                           densityMatrix_.beta(i, j) * twoElectronMatrix_.getBeta()(i, j);
     }
+  }
+  for (auto const& contribution : densityDependentContributions_) {
+    electronicEnergy += contribution->getElectronicEnergyContribution();
+  }
+  for (auto const& contribution : densityIndependentContributions_) {
+    electronicEnergy += contribution->getElectronicEnergyContribution();
   }
   return electronicEnergy;
 }

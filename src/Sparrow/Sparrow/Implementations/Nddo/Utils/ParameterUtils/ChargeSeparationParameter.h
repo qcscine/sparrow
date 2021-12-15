@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -9,12 +9,11 @@
 #define SPARROW_CHARGESEPARATIONPARAMETER_H
 
 #include "Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/multipoleTypes.h"
+#include <array>
 
 namespace Scine {
 namespace Sparrow {
-
 namespace nddo {
-
 namespace multipole {
 
 /*!
@@ -23,7 +22,7 @@ namespace multipole {
  *
  * The calculation of the charge separation is described in Thiel, Voityuk, Theor Chim Acta, 1992, 81, 391.
  * The charge separation are stored ad a static c-array of size 5. The charge separations are ordered as in the
- * nddo::multipole::multipolePair_t enum, i.e. sp1, pd1, pp2, sd2, dd2.
+ * nddo::multipole::MultipolePair enum, i.e. sp1, pd1, pp2, sd2, dd2.
  * ss0, pp0, dd0 are not present as there is no charge separation for them (they are monopoles).
  */
 
@@ -53,38 +52,38 @@ class ChargeSeparationParameter {
   void computeFromExponents(unsigned int ns, unsigned int np, unsigned int nd, double zs, double zp, double zd);
   /**
    * @brief sets the value of a charge separation for a given multipole type
-   * @param type one of the first 5 elements of the nddo::multipole:multipolePair_t enum, corresponding to the
+   * @param type one of the first 5 elements of the nddo::multipole:MultipolePair enum, corresponding to the
    *        dipole and the quadrupole charge configurations. The assignment is not checked.
    * @param value the value of the charge separation parameter
    */
-  void set(multipolePair_t type, double value);
+  void set(MultipolePair type, double value);
   /**
    * @brief gets the value corresponding to one of the multipolescharge configuration.
    *
    * No check is performed to ensure that no monopolar charge configuration is requested.
    */
-  double get(multipolePair_t type) const;
+  double get(MultipolePair type) const;
 
  private:
   //! Calculates the factorial recursively
   long long factorial(long long n) const;
   //! Calculates the A factor. It is necessary to calculate the charge separations.
   double A(unsigned int n1, unsigned int n2, double z1, double z2, int L) const;
-  double D_[5];
+  std::array<double, 5> D_;
 };
 
-inline void ChargeSeparationParameter::set(nddo::multipole::multipolePair_t type, double value) {
-  D_[type] = value;
+inline void ChargeSeparationParameter::set(nddo::multipole::MultipolePair type, double value) {
+  using Underlying = std::underlying_type<nddo::multipole::MultipolePair>::type;
+  D_[static_cast<Underlying>(type)] = value;
 }
 
-inline double ChargeSeparationParameter::get(nddo::multipole::multipolePair_t type) const {
-  return D_[type];
+inline double ChargeSeparationParameter::get(nddo::multipole::MultipolePair type) const {
+  using Underlying = std::underlying_type<nddo::multipole::MultipolePair>::type;
+  return D_[static_cast<Underlying>(type)];
 }
 
 } // namespace multipole
-
 } // namespace nddo
-
 } // namespace Sparrow
 } // namespace Scine
 #endif // SPARROW_CHARGESEPARATIONPARAMETER_H

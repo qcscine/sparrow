@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -14,9 +14,7 @@
 
 namespace Scine {
 namespace Sparrow {
-
 namespace nddo {
-
 namespace multipole {
 
 /**
@@ -44,30 +42,29 @@ class MultipoleMultipoleInteractionContainer {
    * @return an Utils::AutomaticDifferentiation::Value1D<O>, i.e. a collection of all the derivative orders up to
    *         the O-th for a 1-dimensional object
    */
-  template<Utils::derivOrder O>
-  static Utils::AutomaticDifferentiation::Value1DType<O> calculate(multipole_t m1, multipole_t m2, double R, double D1,
+  template<Utils::DerivativeOrder O>
+  static Utils::AutomaticDifferentiation::Value1DType<O> calculate(Multipole m1, Multipole m2, double R, double D1,
                                                                    double d2, double squaredRhos);
   /** @brief The function generated the list of multipole interactions statically, and then returns a
    *         MultipoleMultipoleInteraction object with these two multipoles
    */
-  static const MultipoleMultipoleInteraction& get(multipole_t m1, multipole_t m2);
+  static const MultipoleMultipoleInteraction& get(Multipole m1, Multipole m2);
 
  private:
   // Generates the list of monopoles. Is called to generate a static storage object.
   static InteractionLists generateTermLists();
   // Generates the charge configurations of the multipoles and constructs a MultipoleMultipoleInteraction based on it.
-  static MultipoleMultipoleInteraction termList(multipole_t m1, multipole_t m2);
+  static MultipoleMultipoleInteraction termList(Multipole m1, Multipole m2);
 };
 
-inline const MultipoleMultipoleInteraction& MultipoleMultipoleInteractionContainer::get(multipole_t m1, multipole_t m2) {
+inline const MultipoleMultipoleInteraction& MultipoleMultipoleInteractionContainer::get(Multipole m1, Multipole m2) {
   static InteractionLists termLists = generateTermLists();
   return termLists[static_cast<int>(m1)][static_cast<int>(m2)];
 }
 
 } // namespace multipole
-
 } // namespace nddo
-
 } // namespace Sparrow
 } // namespace Scine
+
 #endif // SPARROW_MULTIPOLEMULTIPOLEINTERACTIONCONTAINER_H

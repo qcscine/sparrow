@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -28,8 +28,10 @@ class ChargesInMultipoles {
  public:
   using MultipoleCharges = std::vector<MultipoleCharge>;
   using MultipoleChargesArray = std::array<MultipoleCharges, 13>;
+  static_assert(static_cast<std::underlying_type<Multipole>::type>(Multipole::Qzx) == 12,
+                "multipole type enum layout has changed");
 
-  static const std::vector<MultipoleCharge>& getChargeConfiguration(multipole_t t);
+  static const std::vector<MultipoleCharge>& getChargeConfiguration(Multipole t);
 
  private:
   static MultipoleChargesArray createChargeConfigurations();

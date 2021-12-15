@@ -1,15 +1,18 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 /* Internal Includes */
 #include "AM1TypeMethodWrapper.h"
 #include "AM1Settings.h"
+#include <Sparrow/Implementations/Nddo/Parameters.h>
+#include <Sparrow/Implementations/Nddo/TimeDependent/LinearResponse/CISData.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMomentCalculator.h>
+#include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
 #include <Sparrow/Implementations/Nddo/Utils/OneElectronMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/TwoElectronMatrix.h>
 /* External Includes */
@@ -39,7 +42,7 @@ void AM1TypeMethodWrapper<AM1Type>::applySettings() {
 
   auto& derived = static_cast<AM1Type&>(*this);
   NDDOMethodWrapper::applySettings(derived.settings_, derived.method_);
-};
+}
 
 template<class AM1Type>
 std::string AM1TypeMethodWrapper<AM1Type>::name() const {
@@ -50,10 +53,22 @@ template<class AM1Type>
 void AM1TypeMethodWrapper<AM1Type>::initialize() {
   auto& derived = static_cast<AM1Type&>(*this);
   try {
-    auto parameterFile = derived.settings_->getString(Utils::SettingsNames::parameterFile);
-    auto resourceDirectory = derived.settings_->getString(Utils::SettingsNames::parameterRootDirectory);
-    auto fullPathToParameters = Utils::NativeFilenames::combinePathSegments(resourceDirectory, parameterFile);
-    method_.readParameters(fullPathToParameters);
+    auto parameterFile = derived.settings_->getString(Utils::SettingsNames::methodParameters);
+
+    if (parameterFile.empty()) {
+      if (name() == "AM1") {
+        method_.getInitializer().getRawParameters() = nddo::am1();
+      }
+      else if (name() == "RM1") {
+        method_.getInitializer().getRawParameters() = nddo::rm1();
+      }
+      else if (name() == "PM3") {
+        method_.getInitializer().getRawParameters() = nddo::pm3();
+      }
+    }
+    else {
+      method_.readParameters(parameterFile);
+    }
     method_.initialize();
   }
   catch (Utils::Methods::InitializationException& e) {
@@ -72,8 +87,8 @@ const Utils::LcaoMethod& AM1TypeMethodWrapper<AM1Type>::getLcaoMethod() const {
 }
 
 template<class AM1Type>
-void AM1TypeMethodWrapper<AM1Type>::calculateImpl(Utils::derivativeType requiredDerivative) {
-  method_.calculate(requiredDerivative);
+void AM1TypeMethodWrapper<AM1Type>::calculateImpl(Utils::Derivative requiredDerivative) {
+  method_.calculate(requiredDerivative, this->getLog());
 }
 
 template<class AM1Type>
@@ -84,7 +99,7 @@ Eigen::MatrixXd AM1TypeMethodWrapper<AM1Type>::getOneElectronMatrix() const {
 template<class AM1Type>
 Utils::SpinAdaptedMatrix AM1TypeMethodWrapper<AM1Type>::getTwoElectronMatrix() const {
   Utils::SpinAdaptedMatrix twoElectronMatrix;
-  if (method_.unrestrictedCalculationRunning()) {
+  if (!method_.unrestrictedCalculationRunning()) {
     twoElectronMatrix = Utils::SpinAdaptedMatrix::createRestricted(method_.getTwoElectronMatrix().getMatrix());
   }
   else {
@@ -97,6 +112,16 @@ Utils::SpinAdaptedMatrix AM1TypeMethodWrapper<AM1Type>::getTwoElectronMatrix() c
 template<class AM1Type>
 Utils::DensityMatrix AM1TypeMethodWrapper<AM1Type>::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+template<class AM1Type>
+CISData AM1TypeMethodWrapper<AM1Type>::getCISDataImpl() const {
+  return CISData::constructCISDataFromNDDOMethod(method_);
+}
+
+template<class AM1Type>
+void AM1TypeMethodWrapper<AM1Type>::addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) {
+  method_.addElectronicContribution(std::move(contribution));
 }
 
 template<class AM1Type>

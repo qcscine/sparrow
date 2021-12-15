@@ -1,16 +1,18 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #include "NDDOMethodWrapper.h"
 #include <Core/Exceptions.h>
+#include <Sparrow/Implementations/Nddo/TimeDependent/LinearResponse/CISData.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMomentCalculator.h>
 #include <Utils/CalculatorBasics/PropertyList.h>
 #include <Utils/CalculatorBasics/Results.h>
 #include <Utils/DataStructures/SpinAdaptedMatrix.h>
+#include <Utils/Scf/LcaoUtils/SpinMode.h>
 #include <Utils/Scf/MethodInterfaces/ScfMethod.h>
 #include <Utils/Settings.h>
 #include <Utils/UniversalSettings/SettingPopulator.h>
@@ -48,6 +50,7 @@ void NDDOMethodWrapper::assembleResults(const std::string& description) {
   if (twoElectronMatrixRequired) {
     results_.set<Utils::Property::TwoElectronMatrix>(getTwoElectronMatrix());
   }
+
   if (AODipoleMatrixRequired) {
     if (!dipoleMatrixCalculator_->isValid()) {
       dipoleMatrixCalculator_->fillDipoleMatrix(dipoleEvaluationCoordinate);
@@ -64,34 +67,43 @@ void NDDOMethodWrapper::assembleResults(const std::string& description) {
 
 void NDDOMethodWrapper::applySettings(std::unique_ptr<Utils::Settings>& settings, Utils::ScfMethod& method) {
   GenericMethodWrapper::applySettings();
-  if (settings->check()) {
-    bool isUnrestricted = settings->getBool(Utils::SettingsNames::unrestrictedCalculation);
+  if (settings->valid()) {
+    auto spinMode = Utils::SpinModeInterpreter::getSpinModeFromString(settings->getString(Utils::SettingsNames::spinMode));
     int molecularCharge = settings->getInt(Utils::SettingsNames::molecularCharge);
     int spinMultiplicity = settings->getInt(Utils::SettingsNames::spinMultiplicity);
-    double selfConsistenceCriterion = settings->getDouble(Utils::SettingsNames::selfConsistanceCriterion);
-    int maxIterations = settings->getInt(Utils::SettingsNames::maxIterations);
+    double selfConsistenceCriterion = settings->getDouble(Utils::SettingsNames::selfConsistenceCriterion);
+    double densityRmsdThreshold = settings->getDouble(Utils::SettingsNames::densityRmsdCriterion);
+    int maxScfIterations = settings->getInt(Utils::SettingsNames::maxScfIterations);
     auto scfMixerName = settings->getString(Utils::SettingsNames::mixer);
     auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToScfMixer(scfMixerName);
 
-    method.setUnrestrictedCalculation(isUnrestricted);
+    if (spinMode == Utils::SpinMode::Any) {
+      if (spinMultiplicity == 1) {
+        method.setUnrestrictedCalculation(false);
+      }
+      else {
+        method.setUnrestrictedCalculation(true);
+      }
+    }
+    if (spinMode == Utils::SpinMode::Restricted) {
+      method.setUnrestrictedCalculation(false);
+    }
+    if (spinMode == Utils::SpinMode::Unrestricted) {
+      method.setUnrestrictedCalculation(true);
+    }
     method.setMolecularCharge(molecularCharge);
     method.setSpinMultiplicity(spinMultiplicity);
-    method.setConvergenceCriteria(selfConsistenceCriterion);
-    method.setMaxIterations(maxIterations);
+    method.setConvergenceCriteria({selfConsistenceCriterion, densityRmsdThreshold});
+    method.setMaxIterations(maxScfIterations);
     method.setScfMixer(scfMixerType);
-
-    // After call to verifyPesValidity, update settings if they were internally changed due to
-    // charge/spin multiplicity mismatch if not empty
-    if (getLcaoMethod().getNumberAtomicOrbitals() != 0) {
-      method.verifyPesValidity();
-      settings->modifyBool(Utils::SettingsNames::unrestrictedCalculation, method.unrestrictedCalculationRunning());
-      settings->modifyInt(Utils::SettingsNames::molecularCharge, method.getMolecularCharge());
-      settings->modifyInt(Utils::SettingsNames::spinMultiplicity, method.spinMultiplicity());
-    }
   }
   else {
-    throw Core::InitializationException("settings invalid!");
+    settings->throwIncorrectSettings();
   }
+}
+
+CISData NDDOMethodWrapper::getCISData() const {
+  return getCISDataImpl();
 }
 
 bool NDDOMethodWrapper::getZPVEInclusion() const {

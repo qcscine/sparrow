@@ -1,17 +1,20 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
-#include "../parameters_location.h"
+#include "Utils/Scf/LcaoUtils/SpinMode.h"
 #include <Core/Interfaces/Calculator.h>
+#include <Core/Log.h>
 #include <Core/ModuleManager.h>
 #include <Sparrow/Implementations/Nddo/Pm6/PM6Method.h>
 #include <Sparrow/Implementations/Nddo/Pm6/Wrapper/PM6MethodWrapper.h>
 #include <Sparrow/Implementations/Nddo/Utils/OneElectronMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
+#include <Sparrow/Implementations/OrbitalSteeringCalculator.h>
+#include <Sparrow/Implementations/OrbitalSteeringSettings.h>
 #include <Utils/Constants.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
@@ -21,7 +24,6 @@
 #include <gmock/gmock.h>
 #include <omp.h>
 #include <Eigen/Core>
-#include <boost/dll/runtime_symbol_info.hpp>
 
 namespace Scine {
 namespace Sparrow {
@@ -36,21 +38,21 @@ class APM6Calculation : public Test {
   std::shared_ptr<Core::Calculator> polymorphicMethodWrapper;
   ElementParameters elementParameters;
 
+  Core::Log log;
+
   void SetUp() override {
     pm6MethodWrapper = std::make_shared<PM6MethodWrapper>();
     polymorphicMethodWrapper = std::make_shared<PM6MethodWrapper>();
 
     method.setMaxIterations(10000);
-    method.setConvergenceCriteria(1e-8);
-    pm6MethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
-    pm6MethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-    pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-    pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_pm6);
-    polymorphicMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
-    polymorphicMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-    polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-    polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_pm6);
-    Utils::Log::startConsoleLogging(Utils::SettingsNames::LogLevels::none);
+    method.setConvergenceCriteria({1e-7, 1e-8});
+    pm6MethodWrapper->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
+    pm6MethodWrapper->settings().modifyDouble(Utils::SettingsNames::densityRmsdCriterion, 1e-8);
+    polymorphicMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
+    polymorphicMethodWrapper->settings().modifyDouble(Utils::SettingsNames::densityRmsdCriterion, 1e-8);
+    log = Core::Log::silent();
+    pm6MethodWrapper->setLog(Core::Log::silent());
+    polymorphicMethodWrapper->setLog(Core::Log::silent());
   }
 };
 TEST_F(APM6Calculation, HasTheCorrectNumberOfAOsAfterInitialization) {
@@ -60,15 +62,42 @@ TEST_F(APM6Calculation, HasTheCorrectNumberOfAOsAfterInitialization) {
                         "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                         "H     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ssH);
-  method.setStructure(as, parameters_pm6);
+  method.setMolecularCharge(1);
+  method.setStructure(as);
   ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(15));
+}
+
+TEST_F(APM6Calculation, CanReturnAtomicGtos) {
+  std::stringstream ssH("4\n\n"
+                        "C      0.0000000000    0.0000000000    0.0000000000\n"
+                        "P      0.0529177211   -0.3175063264    0.2645886053\n"
+                        "H     -0.5291772107    0.1058354421   -0.1587531632\n"
+                        "H     -0.1058354421    0.1058354421   -0.1587531632\n");
+  auto as = Utils::XyzStreamHandler::read(ssH);
+  method.setMolecularCharge(1);
+  pm6MethodWrapper->settings().modifyInt(Utils::SettingsNames::molecularCharge, 1);
+  method.setStructure(as);
+  pm6MethodWrapper->setStructure(as);
+  auto gtoMap = pm6MethodWrapper->getAtomicGtosMap();
+  ASSERT_TRUE(gtoMap.find(6) != gtoMap.end());
+  ASSERT_TRUE(gtoMap.find(15) != gtoMap.end());
+  ASSERT_TRUE(gtoMap.find(1) != gtoMap.end());
+  ASSERT_TRUE(gtoMap.find(8) == gtoMap.end());
+  ASSERT_THAT(gtoMap.at(15).p->angularMomentum, Eq(1));
+  ASSERT_THAT(gtoMap.at(6).s->nAOs(), Eq(1));
+  ASSERT_THAT(gtoMap.at(6).p->nAOs(), Eq(3));
+  ASSERT_THAT(gtoMap.at(1).s->gtfs.size(), Eq(6));
+  ASSERT_THAT(gtoMap.at(1).s->gtfs.at(0).exponent, DoubleNear(3.718317372849182e+01, 1e-10));
+  ASSERT_THAT(gtoMap.at(15).p->gtfs.at(2).coefficient, DoubleNear(1.584431977558960e-01, 1e-10));
 }
 
 TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForH) {
   std::stringstream ssH("1\n\n"
                         "H -1.0 0.2 -0.3\n");
   auto as = Utils::XyzStreamHandler::read(ssH);
-  method.setStructure(as, parameters_pm6);
+  method.setSpinMultiplicity(2);
+  method.setUnrestrictedCalculation(true);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   ASSERT_THAT(method.getOneElectronMatrix().getMatrix()(0, 0) * Utils::Constants::ev_per_hartree, DoubleNear(-11.246958, 1e-4));
@@ -78,7 +107,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForC) {
   std::stringstream ssC("1\n\n"
                         "C 0.0 0.0 0.0\n");
   auto as = Utils::XyzStreamHandler::read(ssC);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
   method.calculateDensityIndependentQuantities();
@@ -92,7 +121,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForH2) {
                          "H -0.529177  0.105835 -0.158753\n"
                          "H -0.105835  0.105835 -0.158753\n");
   auto as = Utils::XyzStreamHandler::read(ssH2);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   Eigen::Matrix<double, 2, 2> expected;
@@ -105,7 +134,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForCC) {
                          "C 0.0 0.0 0.0\n"
                          "C 0.423342  0.0529177 -0.0529177\n");
   auto as = Utils::XyzStreamHandler::read(ssC2);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   Eigen::Matrix<double, 8, 8> expected;
@@ -124,7 +153,7 @@ TEST_F(APM6Calculation, GetsCorrectOneElectronPartOfFockForCH2O) {
                        "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                        "H     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   Eigen::Matrix<double, 10, 10> expected;
@@ -142,10 +171,10 @@ TEST_F(APM6Calculation, GetsCorrectEigenvaluesForC) {
   std::stringstream ss("1\n\n"
                        "C     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
-  method.convergedCalculation();
+  method.convergedCalculation(log);
 
   auto eigenvalues = method.getSingleParticleEnergies().getRestrictedEnergies();
 
@@ -160,13 +189,13 @@ TEST_F(APM6Calculation, GetsCorrectEigenvaluesForFe) {
   std::stringstream ss("1\n\n"
                        "Fe     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
   Utils::DensityMatrix P;
   P.setDensity(Eigen::MatrixXd::Ones(9, 9) / 9.0 * 8.0, 8);
   method.setDensityMatrix(P);
-  method.convergedCalculation();
+  method.convergedCalculation(log);
 
   auto eigenvalues = method.getSingleParticleEnergies().getRestrictedEnergies();
 
@@ -183,11 +212,11 @@ TEST_F(APM6Calculation, GetsCorrectUnrestrictedEigenvaluesForBoron) {
   std::stringstream ss("1\n\n"
                        "B     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-
   method.setUnrestrictedCalculation(true);
   method.setSpinMultiplicity(2);
-  method.convergedCalculation(Utils::derivativeType::none);
+  method.setStructure(as);
+
+  method.convergedCalculation(log, Utils::Derivative::None);
 
   auto alphaEigenvalues = method.getSingleParticleEnergies().getAlphaEnergies();
   auto betaEigenvalues = method.getSingleParticleEnergies().getBetaEnergies();
@@ -211,8 +240,8 @@ TEST_F(APM6Calculation, IsIndependentOfOrderOfAtoms) {
                        "H      0.4005871485    0.3100978455    0.0000000000\n"
                        "H     -0.4005871485    0.3100978455    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
   double energy1 = method.getElectronicEnergy();
 
   std::stringstream ss2("3\n\n"
@@ -220,9 +249,9 @@ TEST_F(APM6Calculation, IsIndependentOfOrderOfAtoms) {
                         "H     -0.4005871485    0.3100978455    0.0000000000\n"
                         "O      0.0000000000    0.0000000000    0.0000000000\n");
   auto as2 = Utils::XyzStreamHandler::read(ss2);
-  method.setStructure(as2, parameters_pm6);
+  method.setStructure(as2);
 
-  method.convergedCalculation();
+  method.convergedCalculation(log);
   double energy2 = method.getElectronicEnergy();
 
   ASSERT_THAT(energy1, DoubleNear(energy2, 1e-10));
@@ -240,9 +269,9 @@ TEST_F(APM6Calculation, GetsCorrectElectronicEnergyForDimethylZinc) {
                        "H     -2.2133000000   -0.8900000000    0.5138100000\n"
                        "H     -2.2133000000    0.8900000000    0.5138100000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
 
-  method.convergedCalculation();
+  method.convergedCalculation(log);
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(642.08271, 1e-3));
   ASSERT_THAT(method.getElectronicEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-996.23478, 1e-3));
 }
@@ -254,8 +283,8 @@ TEST_F(APM6Calculation, GetsCorrectElectronicEnergyForAlH3) {
                        "H      1.3077000000    0.7550000000    0.0019100000\n"
                        "H      0.0000000000   -1.5100000000    0.0019100000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation(Utils::derivativeType::none);
+  method.setStructure(as);
+  method.convergedCalculation(log, Utils::Derivative::None);
 
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(93.17841, 1e-3));
   ASSERT_THAT(method.getElectronicEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-181.33808, 1e-3));
@@ -266,8 +295,8 @@ TEST_F(APM6Calculation, GetsCorrectElectronicEnergyForCl2) {
                        "Cl    -0.9900000000    0.0000000000   -0.0000000000\n"
                        "Cl     0.9900000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(303.41784, 1e-3));
   ASSERT_THAT(method.getElectronicEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-811.76884, 1e-3));
@@ -278,9 +307,9 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForH2) {
                          "H -0.529177  0.105835 -0.158753\n"
                          "H -0.105835  0.105835 -0.158753\n");
   auto as = Utils::XyzStreamHandler::read(ssH2);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
-  method.convergedCalculation();
+  method.convergedCalculation(log);
 
   auto eigenvalues = method.getSingleParticleEnergies().getRestrictedEnergies();
   std::vector<double> expected = {-17.81134, 9.76611};
@@ -298,8 +327,8 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForH2AtOtherDistance) {
                        "H     0.0000000000    0.0000000000   -0.0000000000\n"
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(6.48781, 1e-4));
   ASSERT_THAT(method.getElectronicEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-26.79570, 1e-3));
@@ -310,8 +339,8 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForC2) {
                        "C     0.0000000000    0.0000000000   -0.0000000000\n"
                        "C     2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(102.50659, 1e-4));
   ASSERT_THAT(method.getElectronicEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-332.24339, 1e-3));
@@ -323,8 +352,10 @@ TEST_F(APM6Calculation, GetsCorrectRepulsionEnergyForCH) {
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
 
-  method.setStructure(as, parameters_pm6);
-  method.calculate(Utils::derivativeType::none);
+  method.setUnrestrictedCalculation(true);
+  method.setSpinMultiplicity(2);
+  method.setStructure(as);
+  method.calculate(Utils::Derivative::None, log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(25.82052, 1e-4));
 }
@@ -335,10 +366,10 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForFEHV) {
                        "Cl     2.0000000000    0.0000000000    0.0000000000\n"
                        "H     -2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
+  method.setStructure(as);
   // method.finalizeCalculation();
   method.setScfMixer(Utils::scf_mixer_t::fock_diis);
-  method.convergedCalculation(Utils::derivativeType::none);
+  method.convergedCalculation(log, Utils::Derivative::None);
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(411.98969, 1e-3));
 }
 
@@ -356,8 +387,8 @@ TEST_F(APM6Calculation, DISABLED_GetsCorrectTotalEnergyForHe2) { // TODO: find o
    * Basically the one-electon matrix should have the same structure as, for instance
    * C2 or Xe2, as they have the same number of orbitals etc., but it is not the case.
    */
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
   /*!
   std::cout << "dens. \n" << method.getDensityMatrix() << std::endl;
   std::cout << "overlap \n" << method.getOverlapMatrix() << std::endl;
@@ -376,8 +407,8 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForXe2) {
                        "Xe    0.0000000000    0.0000000000   -0.0000000000\n"
                        "Xe    2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(257.56561, 1e-3));
   ASSERT_THAT(method.getElectronicEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-2131.51516, 1e-3));
@@ -405,8 +436,8 @@ TEST_F(APM6Calculation, GetsCorrectGradientsForMethane) {
                                   "H     -0.6287000000    0.6287000000   -0.6287000000\n"
                                   "H      0.6287000000   -0.6287000000   -0.6287000000\n");
   auto structure = Utils::XyzStreamHandler::read(stream);
-  method.setStructure(structure, parameters_pm6);
-  method.convergedCalculation(Utils::derivativeType::first);
+  method.setStructure(structure);
+  method.convergedCalculation(log, Utils::Derivative::First);
 
   Eigen::RowVector3d cOneGradient(0.000009, -0.000017, 0.000005);
   Eigen::RowVector3d hOneGradient(1.725729, 1.725682, 1.725542);
@@ -449,8 +480,8 @@ TEST_F(APM6Calculation, GetsZeroGradientForOptimizedMethane) {
                            "H     0.62612481  -0.62612464  -0.62613657\n");
 
   auto structure = Utils::XyzStreamHandler::read(stream);
-  method.setStructure(structure, parameters_pm6);
-  method.convergedCalculation(Utils::derivativeType::first);
+  method.setStructure(structure);
+  method.convergedCalculation(log, Utils::Derivative::First);
 
   ASSERT_THAT(method.getEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-177.17021, 1e-3));
   ASSERT_TRUE(method.getGradients().row(0).norm() < 1e-3);
@@ -472,8 +503,8 @@ TEST_F(APM6Calculation, GetsCorrectTotalEnergyForEthanol) {
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-618.35221, 4e-3));
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(1133.72286, 4e-3));
@@ -494,8 +525,8 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithAndWithoutWrapper) {
   auto as = Utils::XyzStreamHandler::read(ss);
   pm6MethodWrapper->setStructure(as);
   auto result = pm6MethodWrapper->calculate("");
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
@@ -514,26 +545,18 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithPolymorphicMethodAndWithMethod) {
   auto as = Utils::XyzStreamHandler::read(ss);
   polymorphicMethodWrapper->setStructure(as);
   auto result = polymorphicMethodWrapper->calculate("");
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
 
 TEST_F(APM6Calculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
-  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
+  dynamicallyLoadedMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
+  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-8);
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
                        "C      1.3088788172   -0.0403821764    0.1943189946\n"
@@ -548,8 +571,8 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
   dynamicallyLoadedMethodWrapper->setStructure(as);
   dynamicallyLoadedMethodWrapper->setRequiredProperties(Utils::Property::Energy);
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
-  method.setStructure(as, parameters_pm6);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(result.get<Utils::Property::Energy>() * Utils::Constants::ev_per_hartree, DoubleNear(-618.35221, 4e-3));
   ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
@@ -557,17 +580,9 @@ TEST_F(APM6Calculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
 
 TEST_F(APM6Calculation, MethodWrapperCanBeCloned) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
+  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-8);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -584,22 +599,14 @@ TEST_F(APM6Calculation, MethodWrapperCanBeCloned) {
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
 
-  auto scc = Utils::SettingsNames::selfConsistanceCriterion;
+  auto scc = Utils::SettingsNames::selfConsistenceCriterion;
   ASSERT_EQ(cloned->settings().getDouble(scc), dynamicallyLoadedMethodWrapper->settings().getDouble(scc));
 }
 
 TEST_F(APM6Calculation, StructureIsCorrectlyCloned) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -621,16 +628,8 @@ TEST_F(APM6Calculation, StructureIsCorrectlyCloned) {
 
 TEST_F(APM6Calculation, ClonedMethodCanCalculate) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -654,16 +653,8 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculate) {
 
 TEST_F(APM6Calculation, ClonedMethodCanCalculateGradients) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -686,21 +677,16 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculateGradients) {
   auto resultCloned = cloned->calculate("");
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
 
-  ASSERT_EQ(resultCloned.take<Utils::Property::Gradients>(), result.take<Utils::Property::Gradients>());
+  for (int i = 0; i < resultCloned.get<Utils::Property::Gradients>().rows(); ++i)
+    for (int j = 0; j < resultCloned.get<Utils::Property::Gradients>().cols(); ++j)
+      ASSERT_THAT(resultCloned.get<Utils::Property::Gradients>()(i, j),
+                  DoubleNear(result.get<Utils::Property::Gradients>()(i, j), 1e-12));
 }
 
 TEST_F(APM6Calculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCores) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -736,18 +722,10 @@ TEST_F(APM6Calculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCore
 
 TEST_F(APM6Calculation, NotClonedMethodCanCalculateGradientsWithDifferentNumberCores) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
   auto dynamicallyLoadedMethodWrapper2 = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
-  dynamicallyLoadedMethodWrapper2->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
+  dynamicallyLoadedMethodWrapper2->setLog(Core::Log::silent());
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -781,16 +759,8 @@ TEST_F(APM6Calculation, NotClonedMethodCanCalculateGradientsWithDifferentNumberC
 
 TEST_F(APM6Calculation, ClonedMethodCopiesResultsCorrectly) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("PM6");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(Core::Log::silent());
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -818,10 +788,12 @@ TEST_F(APM6Calculation, AtomCollectionCanBeReturned) {
                         "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                         "H     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto structure = Utils::XyzStreamHandler::read(ssH);
+  pm6MethodWrapper->settings().modifyInt(Utils::SettingsNames::molecularCharge, 1);
   pm6MethodWrapper->setStructure(structure);
   ASSERT_EQ(structure.getPositions(), pm6MethodWrapper->getStructure()->getPositions());
-  for (int i = 0; i < structure.getElements().size(); ++i)
+  for (unsigned int i = 0; i < structure.getElements().size(); ++i) {
     ASSERT_EQ(structure.getElements()[i], pm6MethodWrapper->getStructure()->getElements()[i]);
+  }
 }
 
 TEST_F(APM6Calculation, ChargeIsNotSilentlyUnset) {
@@ -830,5 +802,172 @@ TEST_F(APM6Calculation, ChargeIsNotSilentlyUnset) {
   calculator->applySettings();
   ASSERT_EQ(calculator->settings().getInt(Utils::SettingsNames::molecularCharge), -1);
 }
+
+TEST_F(APM6Calculation, CorrectlyCalculatesThermochemistry) {
+  auto calculator = std::make_shared<PM6MethodWrapper>();
+  calculator->setLog(Core::Log::silent());
+  std::stringstream ssN2{"2\n\n"
+                         "N      -0.5585    0.0000    0.0000\n"
+                         "N       0.5585    0.0000   -0.0000\n"};
+  calculator->settings().modifyInt("symmetry_number", 2);
+  calculator->settings().modifyDouble(Utils::SettingsNames::temperature, 300.0);
+  calculator->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-9);
+  calculator->setRequiredProperties(Utils::Property::Thermochemistry);
+  calculator->setStructure(Utils::XyzStreamHandler::read(ssN2));
+  calculator->calculate("");
+  auto thermo = calculator->results().get<Utils::Property::Thermochemistry>();
+  EXPECT_THAT(thermo.vibrationalComponent.enthalpy,
+              DoubleNear(0.0636 / 1000.0 * Utils::Constants::hartree_per_kCalPerMol, 1e-6));
+  EXPECT_THAT(thermo.vibrationalComponent.entropy,
+              DoubleNear(0.0002 / 1000.0 * Utils::Constants::hartree_per_kCalPerMol, 1e-6));
+  EXPECT_THAT(thermo.rotationalComponent.enthalpy,
+              DoubleNear(596.1620 / 1000.0 * Utils::Constants::hartree_per_kCalPerMol, 1e-6));
+  EXPECT_THAT(thermo.rotationalComponent.entropy, DoubleNear(9.9162 / 1000.0 * Utils::Constants::hartree_per_kCalPerMol, 1e-6));
+  EXPECT_THAT(thermo.translationalComponent.enthalpy,
+              DoubleNear(1490.4049 / 1000.0 * Utils::Constants::hartree_per_kCalPerMol, 1e-6));
+  EXPECT_THAT(thermo.translationalComponent.entropy,
+              DoubleNear(35.9559 / 1000.0 * Utils::Constants::hartree_per_kCalPerMol, 1e-6));
+}
+
+TEST_F(APM6Calculation, UpdatesCorrectlySpinMode) {
+  std::stringstream ssN2{"2\n\n"
+                         "N      -0.5585    0.0000    0.0000\n"
+                         "N       0.5585    0.0000   -0.0000\n"};
+  auto structure = Utils::XyzStreamHandler::read(ssN2);
+  pm6MethodWrapper->setStructure(structure);
+  EXPECT_EQ(pm6MethodWrapper->settings().getString(Utils::SettingsNames::spinMode),
+            Utils::SpinModeInterpreter::getStringFromSpinMode(Utils::SpinMode::Any));
+  pm6MethodWrapper->calculate("");
+  EXPECT_EQ(pm6MethodWrapper->settings().getString(Utils::SettingsNames::spinMode),
+            Utils::SpinModeInterpreter::getStringFromSpinMode(Utils::SpinMode::Restricted));
+}
+
+TEST_F(APM6Calculation, GetsCorrectAtomicHessians) {
+  std::stringstream ssH("5\n\n"
+                        "C     -4.22875    2.29085   -0.00000\n"
+                        "H     -3.42876    2.04248    0.66574\n"
+                        "H     -3.90616    3.05518   -0.67574\n"
+                        "H     -4.51405    1.42151   -0.55475\n"
+                        "H     -5.06606    2.64424    0.56475\n");
+  auto structure = Utils::XyzStreamHandler::read(ssH);
+  method.setStructure(structure);
+  method.convergedCalculation(log, Utils::Derivative::SecondAtomic);
+
+  auto ah = method.getAtomicSecondDerivatives();
+  ASSERT_EQ(ah.size(), 5);
+  // Reference data has been generated with original re-implementation in Sparrow
+  ASSERT_NEAR(ah.getAtomicHessian(0)(0, 0), 0.59720109232151419, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(0, 1), 1.5639100396924732e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(0, 2), 5.949380209022137e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(1, 0), 1.5639100396924732e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(1, 1), 0.59720271417414317, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(1, 2), -3.3392744368428151e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(2, 0), 5.949380209022137e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(2, 1), -3.3392744368428151e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(2, 2), 0.59720302471686415, 1e-6);
+}
+
+TEST_F(APM6Calculation, OrbitalSteeringSavesStretchedMethane) {
+  std::stringstream ssStretchedMethane{"5\n\n"
+                                       "C      0.00000    0.00000    0.00000\n"
+                                       "H      0.00000    0.00000    2.58900\n"
+                                       "H      1.02672    0.00000   -0.36300\n"
+                                       "H     -0.51336   -0.88916   -0.36300\n"
+                                       "H     -0.51336    0.88916   -0.36300"};
+  pm6MethodWrapper->setStructure(Utils::XyzStreamHandler::read(ssStretchedMethane));
+  pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::spinMode, "unrestricted");
+  OrbitalSteeringCalculator steerer;
+  steerer.setLog(Core::Log::silent());
+  steerer.settings().modifyInt(mixingFrequencyKey, 1);
+  steerer.setReferenceCalculator(pm6MethodWrapper);
+  steerer.referenceCalculation();
+  double energy1 = steerer.results().get<Utils::Property::Energy>();
+  double energy2 = 0.0;
+  // The steering is undeterministic, so we need to do it a couple of times to be sure
+  // that it happens. In the norm it is steered after the first iteration, but sometimes
+  // also after the second one or so.
+  for (int i = 0; i < 15; ++i) {
+    energy2 = steerer.calculate().get<Utils::Property::Energy>();
+  }
+
+  ASSERT_LT(energy2, energy1);
+}
+
+TEST_F(APM6Calculation, OrbitalSteeringHasAllRequiredProperties) {
+  std::stringstream ssStretchedMethane{"5\n\n"
+                                       "C      0.00000    0.00000    0.00000\n"
+                                       "H      0.00000    0.00000    2.58900\n"
+                                       "H      1.02672    0.00000   -0.36300\n"
+                                       "H     -0.51336   -0.88916   -0.36300\n"
+                                       "H     -0.51336    0.88916   -0.36300"};
+  pm6MethodWrapper->setStructure(Utils::XyzStreamHandler::read(ssStretchedMethane));
+  pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::spinMode, "unrestricted");
+  pm6MethodWrapper->setRequiredProperties(Utils::Property::Energy | Utils::Property::Gradients);
+  OrbitalSteeringCalculator steerer;
+  steerer.setLog(Core::Log::silent());
+  steerer.settings().modifyInt(mixingFrequencyKey, 2);
+  steerer.setReferenceCalculator(pm6MethodWrapper);
+  auto steeredResults = steerer.calculate();
+  // The steering is undeterministic, so we need to do it a couple of times to be sure
+  // that it happens. In the norm it is steered after the first iteration, but sometimes
+  // also after the second one or so.
+  // Here I want to check that independently from when it happens, one always gets energy and
+  // gradients.
+  for (int i = 0; i < 10; ++i) {
+    steeredResults = steerer.calculate();
+    ASSERT_TRUE(steeredResults.has<Utils::Property::Energy>());
+    ASSERT_TRUE(steeredResults.has<Utils::Property::Gradients>());
+  }
+}
+
+TEST_F(APM6Calculation, OrbitalSteeringIssuesWarningForRestrictedOrbitalsInFirstIteration) {
+  std::stringstream ssStretchedMethane{"5\n\n"
+                                       "C      0.00000    0.00000    0.00000\n"
+                                       "H      0.00000    0.00000    2.58900\n"
+                                       "H      1.02672    0.00000   -0.36300\n"
+                                       "H     -0.51336   -0.88916   -0.36300\n"
+                                       "H     -0.51336    0.88916   -0.36300"};
+  pm6MethodWrapper->setStructure(Utils::XyzStreamHandler::read(ssStretchedMethane));
+  pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::spinMode, "restricted");
+  pm6MethodWrapper->setRequiredProperties(Utils::Property::Energy);
+  OrbitalSteeringCalculator steerer;
+
+  auto testStream = std::make_shared<std::ostringstream>(std::ios_base::out | std::ios_base::app);
+
+  steerer.settings().modifyInt(mixingFrequencyKey, 2);
+  steerer.setReferenceCalculator(pm6MethodWrapper);
+  steerer.getLog() = Core::Log::silent();
+  steerer.getLog().warning.add("testout", testStream);
+  auto steeredResults = steerer.calculate();
+  EXPECT_FALSE(testStream->str().empty());
+  testStream->str("");
+  // Here I want to check that the warning that the orbitals are restricted
+  // is printed only at the first iteration and not every iteration.
+  // The warning log should then be empty. Multiple testing to be sure that
+  // also if the steering happens nothing bad happens.
+  for (int i = 0; i < 10; ++i) {
+    steeredResults = steerer.calculate();
+    EXPECT_TRUE(testStream->str().empty());
+  }
+}
+
+TEST_F(APM6Calculation, AfterSetStructureResultsDestroyed) {
+  std::stringstream ssH2("2\n\n"
+                         "H -0.529177  0.105835 -0.158753\n"
+                         "H -0.105835  0.105835 -0.158753\n");
+  auto structure = Utils::XyzStreamHandler::read(ssH2);
+  pm6MethodWrapper->setStructure(structure);
+  pm6MethodWrapper->settings().modifyString(Utils::SettingsNames::spinMode, "restricted");
+  pm6MethodWrapper->setRequiredProperties(Utils::Property::Energy);
+  const auto& results = pm6MethodWrapper->calculate("");
+  ASSERT_TRUE(results.has<Utils::Property::Energy>());
+  pm6MethodWrapper->setStructure(structure);
+  ASSERT_FALSE(results.has<Utils::Property::Energy>());
+  pm6MethodWrapper->calculate("");
+  ASSERT_TRUE(results.has<Utils::Property::Energy>());
+  pm6MethodWrapper->modifyPositions(structure.getPositions());
+  ASSERT_FALSE(results.has<Utils::Property::Energy>());
+}
+
 } // namespace Sparrow
 } // namespace Scine

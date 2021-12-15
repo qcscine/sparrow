@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -75,8 +75,8 @@ void OneElectronMatrix::calculateSameAtomBlock(int a, int startIndex, int nAOs) 
         auto posB = positions_.row(b);
         Eigen::RowVector3d Rab = posB - posA;
 
-        V_.calculate<Utils::derivOrder::zero>(Rab, ap.chargeSeparations(), ap.klopmanParameters(), pB.pCore(),
-                                              pB.coreCharge());
+        V_.calculate<Utils::DerivativeOrder::Zero>(Rab, ap.chargeSeparations(), ap.klopmanParameters(), pB.pCore(),
+                                                   pB.coreCharge());
         for (int i = 0; i < nAOs; i++) {
           for (int j = 0; j <= i; j++) {
 #pragma omp atomic
@@ -133,7 +133,7 @@ void OneElectronMatrix::calculateDifferentAtomsBlock(int startRow, int startCol,
   }
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void OneElectronMatrix::addDerivatives(DerivativeContainerType<O>& derivativeContainer,
                                        const Utils::MatrixWithDerivatives& S) const {
   for (int i = 0; i < nAtoms_; ++i) {
@@ -153,7 +153,7 @@ void OneElectronMatrix::addDerivatives(DerivativeContainerType<O>& derivativeCon
   }
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void OneElectronMatrix::addDerivativesContribution1(DerivativeContainerType<O>& derivativeContainer, int a,
                                                     int startIndex, int nAOs) const {
   const auto& ap = elementParameters.get(elementTypes_[a]);
@@ -208,7 +208,7 @@ void OneElectronMatrix::addDerivativesContribution1(DerivativeContainerType<O>& 
   }
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void OneElectronMatrix::addDerivativesContribution2(DerivativeContainerType<O>& derivativeContainer, int a, int b,
                                                     int indexA, int indexB, int nAOsA, int nAOsB,
                                                     const Utils::MatrixWithDerivatives& S) const {
@@ -228,13 +228,13 @@ void OneElectronMatrix::addDerivativesContribution2(DerivativeContainerType<O>& 
   addDerivativeToContainer<O>(derivativeContainer, a, b, derivativeContribution);
 }
 
+template void OneElectronMatrix::addDerivatives<Utils::Derivative::First>(DerivativeContainerType<Utils::Derivative::First>&,
+                                                                          const Utils::MatrixWithDerivatives&) const;
+template void OneElectronMatrix::addDerivatives<Utils::Derivative::SecondAtomic>(
+    DerivativeContainerType<Utils::Derivative::SecondAtomic>&, const Utils::MatrixWithDerivatives&) const;
 template void
-OneElectronMatrix::addDerivatives<Utils::derivativeType::first>(DerivativeContainerType<Utils::derivativeType::first>&,
-                                                                const Utils::MatrixWithDerivatives&) const;
-template void OneElectronMatrix::addDerivatives<Utils::derivativeType::second_atomic>(
-    DerivativeContainerType<Utils::derivativeType::second_atomic>&, const Utils::MatrixWithDerivatives&) const;
-template void OneElectronMatrix::addDerivatives<Utils::derivativeType::second_full>(
-    DerivativeContainerType<Utils::derivativeType::second_full>&, const Utils::MatrixWithDerivatives&) const;
+OneElectronMatrix::addDerivatives<Utils::Derivative::SecondFull>(DerivativeContainerType<Utils::Derivative::SecondFull>&,
+                                                                 const Utils::MatrixWithDerivatives&) const;
 
 } // namespace nddo
 } // namespace Sparrow

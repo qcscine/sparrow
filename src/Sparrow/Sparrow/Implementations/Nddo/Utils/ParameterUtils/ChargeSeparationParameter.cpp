@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -24,17 +24,17 @@ ChargeSeparationParameter::ChargeSeparationParameter() {
 void ChargeSeparationParameter::computeFromExponents(unsigned int ns, unsigned int np, double zs, double zp) {
   // set(sp1, A(ns,np,zs,zp,1) / std::sqrt(3)); THIS SHOULD BE THE CORRECT FORMULA!
   unsigned int n = (ns <= np) ? ns : np;
-  set(sp1, A(n, n, zs, zp, 1) / std::sqrt(3));
+  set(MultipolePair::sp1, A(n, n, zs, zp, 1) / std::sqrt(3));
   // set(pp2, std::sqrt(A(np,np,zp,zp,2)) / std::sqrt(5));THIS SHOULD BE THE CORRECT FORMULA!
-  set(pp2, std::sqrt(A(n, n, zp, zp, 2)) / std::sqrt(5));
+  set(MultipolePair::pp2, std::sqrt(A(n, n, zp, zp, 2)) / std::sqrt(5));
 }
 
 void ChargeSeparationParameter::computeFromExponents(unsigned int ns, unsigned int np, unsigned int nd, double zs,
                                                      double zp, double zd) {
   computeFromExponents(ns, np, zs, zp);
-  set(pd1, A(np, nd, zp, zd, 1) / std::sqrt(5));
-  set(sd2, std::sqrt(A(ns, nd, zs, zd, 2)) / std::pow(15.0, 0.25));
-  set(dd2, std::sqrt(A(nd, nd, zd, zd, 2)) / std::sqrt(7));
+  set(MultipolePair::pd1, A(np, nd, zp, zd, 1) / std::sqrt(5));
+  set(MultipolePair::sd2, std::sqrt(A(ns, nd, zs, zd, 2)) / std::pow(15.0, 0.25));
+  set(MultipolePair::dd2, std::sqrt(A(nd, nd, zd, zd, 2)) / std::sqrt(7));
 }
 
 double ChargeSeparationParameter::A(unsigned int n1, unsigned int n2, double z1, double z2, int L) const {

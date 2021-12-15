@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -54,7 +54,7 @@ class MultipoleMultipoleTerm {
    * @return an Utils::AutomaticDifferentiation::Value1DType<O> object, storing the value of the interaction up to the
    *         O-th derivative
    */
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value1DType<O> calculate(double R, double D1, double d2, double squaredRhos) const {
     double dx = d2 * x2_ - D1 * x1_;
     double dy = d2 * y2_ - D1 * y1_;
@@ -72,7 +72,7 @@ class MultipoleMultipoleTerm {
    * @return an Utils::AutomaticDifferentiation::Value1DType<O> object containing the derivatives of the interaction
    * energy up to the O-th order
    */
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value1DType<O> expr(double f, double dz, double invsqrt) const;
 
  private:
@@ -81,18 +81,18 @@ class MultipoleMultipoleTerm {
 };
 
 template<>
-inline Utils::AutomaticDifferentiation::Value1DType<Utils::derivOrder::zero>
-MultipoleMultipoleTerm::expr<Utils::derivOrder::zero>(double f, double /*dz*/, double invsqrt) const {
+inline Utils::AutomaticDifferentiation::Value1DType<Utils::DerivativeOrder::Zero>
+MultipoleMultipoleTerm::expr<Utils::DerivativeOrder::Zero>(double f, double /*dz*/, double invsqrt) const {
   return f * invsqrt;
 }
 template<>
-inline Utils::AutomaticDifferentiation::Value1DType<Utils::derivOrder::one>
-MultipoleMultipoleTerm::expr<Utils::derivOrder::one>(double f, double dz, double invsqrt) const {
+inline Utils::AutomaticDifferentiation::Value1DType<Utils::DerivativeOrder::One>
+MultipoleMultipoleTerm::expr<Utils::DerivativeOrder::One>(double f, double dz, double invsqrt) const {
   return {f * invsqrt, -dz * f * invsqrt * invsqrt * invsqrt};
 }
 template<>
-inline Utils::AutomaticDifferentiation::Value1DType<Utils::derivOrder::two>
-MultipoleMultipoleTerm::expr<Utils::derivOrder::two>(double f, double dz, double invsqrt) const {
+inline Utils::AutomaticDifferentiation::Value1DType<Utils::DerivativeOrder::Two>
+MultipoleMultipoleTerm::expr<Utils::DerivativeOrder::Two>(double f, double dz, double invsqrt) const {
   double inv3 = invsqrt * invsqrt * invsqrt;
   return {f * invsqrt, -dz * f * inv3, f * inv3 * (3 * dz * dz * invsqrt * invsqrt - 1)};
 }

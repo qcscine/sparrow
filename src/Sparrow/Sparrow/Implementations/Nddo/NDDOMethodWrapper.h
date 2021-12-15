@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_NDDOMETHODWRAPPER_H
@@ -20,12 +20,12 @@ class SpinAdaptedMatrix;
 } // namespace Utils
 
 namespace Sparrow {
-
+class CISData;
 class DipoleMatrixCalculator;
 
 /**
  * @class NDDOMethodWrapper
- * @brief Abstract class acting as a generic Wrapper for NDDO methods.
+ * @brief Abstract class acting as a genericWrapper for NDDO methods.
  */
 class NDDOMethodWrapper : public Utils::CloneInterface<Utils::Abstract<NDDOMethodWrapper>, GenericMethodWrapper> {
  public:
@@ -44,19 +44,28 @@ class NDDOMethodWrapper : public Utils::CloneInterface<Utils::Abstract<NDDOMetho
 
   friend class NDDOStatesHandler;
 
+  /**
+   * @brief This function is needed in the calcualtion of the CIS matrix in
+   *        linear response method.
+   */
+  CISData getCISData() const;
+
  protected:
   // Extracted method from all copy constructors and copy assignment operators.
   template<class NDDOMethod>
   void copyInto(NDDOMethod& instance, const NDDOMethod& classToCopy) {
-    instance.results() = classToCopy.results();
+    auto results = classToCopy.results();
     instance.settings() = classToCopy.settings();
     // Concurrent calling of the logger introduces race conditions
     // that eventually trigger a segfault
     instance.setStructure(*classToCopy.getStructure());
+    instance.results() = std::move(results);
     instance.loadState(classToCopy.getState());
+    instance.setLog(classToCopy.getLog());
   }
   virtual Eigen::MatrixXd getOneElectronMatrix() const = 0;
   virtual Utils::SpinAdaptedMatrix getTwoElectronMatrix() const = 0;
+  virtual CISData getCISDataImpl() const = 0;
   void assembleResults(const std::string& description) final;
 
   void applySettings(std::unique_ptr<Utils::Settings>& settings, Utils::ScfMethod& method);

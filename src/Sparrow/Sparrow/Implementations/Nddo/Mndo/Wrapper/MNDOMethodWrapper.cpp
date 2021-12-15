@@ -1,15 +1,18 @@
 /**
  * @file MNDOMethodWrapper.cpp
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 /* Internal Includes */
 #include "MNDOMethodWrapper.h"
 #include "MNDOSettings.h"
+#include <Sparrow/Implementations/Nddo/Parameters.h>
+#include <Sparrow/Implementations/Nddo/TimeDependent/LinearResponse/CISData.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMomentCalculator.h>
+#include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
 #include <Sparrow/Implementations/Nddo/Utils/OneElectronMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/TwoElectronMatrix.h>
 /* External Includes */
@@ -30,7 +33,7 @@ MNDOMethodWrapper::MNDOMethodWrapper() {
   this->settings_ = std::make_unique<MNDOSettings>();
   requiredProperties_ = Utils::Property::Energy;
   applySettings();
-};
+}
 
 MNDOMethodWrapper::MNDOMethodWrapper(const MNDOMethodWrapper& rhs) : MNDOMethodWrapper() {
   copyInto(*this, rhs);
@@ -50,7 +53,7 @@ void MNDOMethodWrapper::applySettings() {
   NDDODipoleCalculator.useNDDOApproximation(useNDDOApprox);
 
   NDDOMethodWrapper::applySettings(settings_, method_);
-};
+}
 
 std::string MNDOMethodWrapper::name() const {
   return "MNDO";
@@ -58,10 +61,14 @@ std::string MNDOMethodWrapper::name() const {
 
 void MNDOMethodWrapper::initialize() {
   try {
-    auto parameterFile = settings_->getString(Utils::SettingsNames::parameterFile);
-    auto resourceDirectory = settings_->getString(Utils::SettingsNames::parameterRootDirectory);
-    auto fullPathToParameters = Utils::NativeFilenames::combinePathSegments(resourceDirectory, parameterFile);
-    method_.readParameters(fullPathToParameters);
+    auto parameterFile = settings_->getString(Utils::SettingsNames::methodParameters);
+
+    if (parameterFile.empty()) {
+      method_.getInitializer().getRawParameters() = nddo::mndo();
+    }
+    else {
+      method_.readParameters(parameterFile);
+    }
     method_.initialize();
   }
   catch (Utils::Methods::InitializationException& e) {
@@ -77,8 +84,8 @@ const Utils::LcaoMethod& MNDOMethodWrapper::getLcaoMethod() const {
   return method_;
 }
 
-void MNDOMethodWrapper::calculateImpl(Utils::derivativeType requiredDerivative) {
-  method_.calculate(requiredDerivative);
+void MNDOMethodWrapper::calculateImpl(Utils::Derivative requiredDerivative) {
+  method_.calculate(requiredDerivative, getLog());
 }
 
 Eigen::MatrixXd MNDOMethodWrapper::getOneElectronMatrix() const {
@@ -87,7 +94,7 @@ Eigen::MatrixXd MNDOMethodWrapper::getOneElectronMatrix() const {
 
 Utils::SpinAdaptedMatrix MNDOMethodWrapper::getTwoElectronMatrix() const {
   Utils::SpinAdaptedMatrix twoElectronMatrix;
-  if (method_.unrestrictedCalculationRunning()) {
+  if (!method_.unrestrictedCalculationRunning()) {
     twoElectronMatrix = Utils::SpinAdaptedMatrix::createRestricted(method_.getTwoElectronMatrix().getMatrix());
   }
   else {
@@ -101,8 +108,17 @@ Utils::DensityMatrix MNDOMethodWrapper::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
 }
 
+CISData MNDOMethodWrapper::getCISDataImpl() const {
+  return CISData::constructCISDataFromNDDOMethod(method_);
+}
+
+void MNDOMethodWrapper::addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) {
+  method_.addElectronicContribution(std::move(contribution));
+}
+
 bool MNDOMethodWrapper::successfulCalculation() const {
   return method_.hasConverged();
 }
+
 } /* namespace Sparrow */
 } /* namespace Scine */

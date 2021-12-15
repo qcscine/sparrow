@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -49,7 +49,7 @@ class OneElectronMatrix {
   void calculateDifferentAtomsBlock(int startRow, int startCol, const AtomicParameters& pA, const AtomicParameters& pB,
                                     const Utils::MatrixWithDerivatives& S);
   //! @brief Calculates the derivative contribution up to the order \tparam O.
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivativeContainer,
                       const Utils::MatrixWithDerivatives& S) const;
   //! @brief Getter for the one-electron matrix H.
@@ -61,10 +61,10 @@ class OneElectronMatrix {
   }
 
  private:
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivativesContribution1(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivativeContainer,
                                    int a, int startIndex, int nAOs) const;
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivativesContribution2(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivativeContainer,
                                    int a, int b, int indexA, int indexB, int nAOsA, int nAOsB,
                                    const Utils::MatrixWithDerivatives& S) const;

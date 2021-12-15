@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -14,66 +14,112 @@ namespace nddo {
 
 namespace multipole {
 
-const std::vector<MultipoleCharge>& ChargesInMultipoles::getChargeConfiguration(multipole_t t) {
+template<typename T>
+auto underlying(T t) {
+  return static_cast<typename std::underlying_type<T>::type>(t);
+}
+
+const std::vector<MultipoleCharge>& ChargesInMultipoles::getChargeConfiguration(Multipole t) {
   static MultipoleChargesArray chargeConfigurations = createChargeConfigurations();
-  return chargeConfigurations[static_cast<int>(t)];
+  return chargeConfigurations[underlying(t)];
 }
 
 ChargesInMultipoles::MultipoleChargesArray ChargesInMultipoles::createChargeConfigurations() {
   MultipoleChargesArray chargeConfigurations;
 
-  chargeConfigurations[static_cast<int>(M00)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::d0, 1);
+  chargeConfigurations[underlying(Multipole::M00)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::d0, 1);
 
-  chargeConfigurations[static_cast<int>(Qxx)].emplace_back(ChargeDistance::dm2, ChargeDistance::d0, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(Qxx)].emplace_back(ChargeDistance::dp2, ChargeDistance::d0, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(Qxx)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::d0, -0.50);
+  chargeConfigurations[underlying(Multipole::Qxx)].emplace_back(ChargeDistance::dm2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::Qxx)].emplace_back(ChargeDistance::dp2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::Qxx)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.50);
 
-  chargeConfigurations[static_cast<int>(Qyy)].emplace_back(ChargeDistance::d0, ChargeDistance::dm2, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(Qyy)].emplace_back(ChargeDistance::d0, ChargeDistance::dp2, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(Qyy)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::d0, -0.50);
+  chargeConfigurations[underlying(Multipole::Qyy)].emplace_back(ChargeDistance::d0, ChargeDistance::dm2,
+                                                                ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::Qyy)].emplace_back(ChargeDistance::d0, ChargeDistance::dp2,
+                                                                ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::Qyy)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.50);
 
-  chargeConfigurations[static_cast<int>(Qzz)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dm2, 0.25);
-  chargeConfigurations[static_cast<int>(Qzz)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dp2, 0.25);
-  chargeConfigurations[static_cast<int>(Qzz)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::d0, -0.50);
+  chargeConfigurations[underlying(Multipole::Qzz)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dm2, 0.25);
+  chargeConfigurations[underlying(Multipole::Qzz)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dp2, 0.25);
+  chargeConfigurations[underlying(Multipole::Qzz)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.50);
 
-  chargeConfigurations[static_cast<int>(M2m2)].emplace_back(ChargeDistance::dp1, ChargeDistance::dp1, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(M2m2)].emplace_back(ChargeDistance::dm1, ChargeDistance::dm1, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(M2m2)].emplace_back(ChargeDistance::dp1, ChargeDistance::dm1, ChargeDistance::d0, -0.25);
-  chargeConfigurations[static_cast<int>(M2m2)].emplace_back(ChargeDistance::dm1, ChargeDistance::dp1, ChargeDistance::d0, -0.25);
+  chargeConfigurations[underlying(Multipole::M2m2)].emplace_back(ChargeDistance::dp1, ChargeDistance::dp1,
+                                                                 ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::M2m2)].emplace_back(ChargeDistance::dm1, ChargeDistance::dm1,
+                                                                 ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::M2m2)].emplace_back(ChargeDistance::dp1, ChargeDistance::dm1,
+                                                                 ChargeDistance::d0, -0.25);
+  chargeConfigurations[underlying(Multipole::M2m2)].emplace_back(ChargeDistance::dm1, ChargeDistance::dp1,
+                                                                 ChargeDistance::d0, -0.25);
 
-  chargeConfigurations[static_cast<int>(M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dp1, ChargeDistance::dp1, 0.25);
-  chargeConfigurations[static_cast<int>(M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dm1, ChargeDistance::dm1, 0.25);
-  chargeConfigurations[static_cast<int>(M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dp1, ChargeDistance::dm1, -0.25);
-  chargeConfigurations[static_cast<int>(M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dm1, ChargeDistance::dp1, -0.25);
+  chargeConfigurations[underlying(Multipole::M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dp1,
+                                                                 ChargeDistance::dp1, 0.25);
+  chargeConfigurations[underlying(Multipole::M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dm1,
+                                                                 ChargeDistance::dm1, 0.25);
+  chargeConfigurations[underlying(Multipole::M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dp1,
+                                                                 ChargeDistance::dm1, -0.25);
+  chargeConfigurations[underlying(Multipole::M2m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dm1,
+                                                                 ChargeDistance::dp1, -0.25);
 
-  chargeConfigurations[static_cast<int>(M21)].emplace_back(ChargeDistance::dp1, ChargeDistance::d0, ChargeDistance::dp1, 0.25);
-  chargeConfigurations[static_cast<int>(M21)].emplace_back(ChargeDistance::dm1, ChargeDistance::d0, ChargeDistance::dm1, 0.25);
-  chargeConfigurations[static_cast<int>(M21)].emplace_back(ChargeDistance::dp1, ChargeDistance::d0, ChargeDistance::dm1, -0.25);
-  chargeConfigurations[static_cast<int>(M21)].emplace_back(ChargeDistance::dm1, ChargeDistance::d0, ChargeDistance::dp1, -0.25);
+  chargeConfigurations[underlying(Multipole::M21)].emplace_back(ChargeDistance::dp1, ChargeDistance::d0,
+                                                                ChargeDistance::dp1, 0.25);
+  chargeConfigurations[underlying(Multipole::M21)].emplace_back(ChargeDistance::dm1, ChargeDistance::d0,
+                                                                ChargeDistance::dm1, 0.25);
+  chargeConfigurations[underlying(Multipole::M21)].emplace_back(ChargeDistance::dp1, ChargeDistance::d0,
+                                                                ChargeDistance::dm1, -0.25);
+  chargeConfigurations[underlying(Multipole::M21)].emplace_back(ChargeDistance::dm1, ChargeDistance::d0,
+                                                                ChargeDistance::dp1, -0.25);
 
-  chargeConfigurations[static_cast<int>(M20)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dps2, 0.250);
-  chargeConfigurations[static_cast<int>(M20)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dms2, 0.250);
-  chargeConfigurations[static_cast<int>(M20)].emplace_back(ChargeDistance::dps2, ChargeDistance::d0, ChargeDistance::d0, -0.375);
-  chargeConfigurations[static_cast<int>(M20)].emplace_back(ChargeDistance::dms2, ChargeDistance::d0, ChargeDistance::d0, -0.375);
-  chargeConfigurations[static_cast<int>(M20)].emplace_back(ChargeDistance::d0, ChargeDistance::dps2, ChargeDistance::d0, 0.125);
-  chargeConfigurations[static_cast<int>(M20)].emplace_back(ChargeDistance::d0, ChargeDistance::dms2, ChargeDistance::d0, 0.125);
+  chargeConfigurations[underlying(Multipole::M20)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dps2, 0.250);
+  chargeConfigurations[underlying(Multipole::M20)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dms2, 0.250);
+  chargeConfigurations[underlying(Multipole::M20)].emplace_back(ChargeDistance::dps2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.375);
+  chargeConfigurations[underlying(Multipole::M20)].emplace_back(ChargeDistance::dms2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.375);
+  chargeConfigurations[underlying(Multipole::M20)].emplace_back(ChargeDistance::d0, ChargeDistance::dps2,
+                                                                ChargeDistance::d0, 0.125);
+  chargeConfigurations[underlying(Multipole::M20)].emplace_back(ChargeDistance::d0, ChargeDistance::dms2,
+                                                                ChargeDistance::d0, 0.125);
 
-  chargeConfigurations[static_cast<int>(M22)].emplace_back(ChargeDistance::dps2, ChargeDistance::d0, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(M22)].emplace_back(ChargeDistance::dms2, ChargeDistance::d0, ChargeDistance::d0, 0.25);
-  chargeConfigurations[static_cast<int>(M22)].emplace_back(ChargeDistance::d0, ChargeDistance::dps2, ChargeDistance::d0, -0.25);
-  chargeConfigurations[static_cast<int>(M22)].emplace_back(ChargeDistance::d0, ChargeDistance::dms2, ChargeDistance::d0, -0.25);
+  chargeConfigurations[underlying(Multipole::M22)].emplace_back(ChargeDistance::dps2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::M22)].emplace_back(ChargeDistance::dms2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, 0.25);
+  chargeConfigurations[underlying(Multipole::M22)].emplace_back(ChargeDistance::d0, ChargeDistance::dps2,
+                                                                ChargeDistance::d0, -0.25);
+  chargeConfigurations[underlying(Multipole::M22)].emplace_back(ChargeDistance::d0, ChargeDistance::dms2,
+                                                                ChargeDistance::d0, -0.25);
 
-  chargeConfigurations[static_cast<int>(Qzx)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dps2, 0.25);
-  chargeConfigurations[static_cast<int>(Qzx)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dms2, 0.25);
-  chargeConfigurations[static_cast<int>(Qzx)].emplace_back(ChargeDistance::dps2, ChargeDistance::d0, ChargeDistance::d0, -0.25);
-  chargeConfigurations[static_cast<int>(Qzx)].emplace_back(ChargeDistance::dms2, ChargeDistance::d0, ChargeDistance::d0, -0.25);
+  chargeConfigurations[underlying(Multipole::Qzx)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dps2, 0.25);
+  chargeConfigurations[underlying(Multipole::Qzx)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dms2, 0.25);
+  chargeConfigurations[underlying(Multipole::Qzx)].emplace_back(ChargeDistance::dps2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.25);
+  chargeConfigurations[underlying(Multipole::Qzx)].emplace_back(ChargeDistance::dms2, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.25);
 
-  chargeConfigurations[static_cast<int>(M10)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dm1, -0.5);
-  chargeConfigurations[static_cast<int>(M10)].emplace_back(ChargeDistance::d0, ChargeDistance::d0, ChargeDistance::dp1, 0.5);
-  chargeConfigurations[static_cast<int>(M11)].emplace_back(ChargeDistance::dm1, ChargeDistance::d0, ChargeDistance::d0, -0.5);
-  chargeConfigurations[static_cast<int>(M11)].emplace_back(ChargeDistance::dp1, ChargeDistance::d0, ChargeDistance::d0, 0.5);
-  chargeConfigurations[static_cast<int>(M1m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dm1, ChargeDistance::d0, -0.5);
-  chargeConfigurations[static_cast<int>(M1m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dp1, ChargeDistance::d0, 0.5);
+  chargeConfigurations[underlying(Multipole::M10)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dm1, -0.5);
+  chargeConfigurations[underlying(Multipole::M10)].emplace_back(ChargeDistance::d0, ChargeDistance::d0,
+                                                                ChargeDistance::dp1, 0.5);
+  chargeConfigurations[underlying(Multipole::M11)].emplace_back(ChargeDistance::dm1, ChargeDistance::d0,
+                                                                ChargeDistance::d0, -0.5);
+  chargeConfigurations[underlying(Multipole::M11)].emplace_back(ChargeDistance::dp1, ChargeDistance::d0,
+                                                                ChargeDistance::d0, 0.5);
+  chargeConfigurations[underlying(Multipole::M1m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dm1,
+                                                                 ChargeDistance::d0, -0.5);
+  chargeConfigurations[underlying(Multipole::M1m1)].emplace_back(ChargeDistance::d0, ChargeDistance::dp1,
+                                                                 ChargeDistance::d0, 0.5);
 
   return chargeConfigurations;
 }

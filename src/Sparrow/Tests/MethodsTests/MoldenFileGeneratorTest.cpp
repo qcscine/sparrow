@@ -1,15 +1,15 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
-#include "parameters_location.h"
 #include <Core/ModuleManager.h>
 #include <Sparrow/Implementations/MoldenFileGenerator.h>
 #include <Sparrow/Implementations/Nddo/Pm6/Wrapper/PM6MethodWrapper.h>
 #include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
+#include <Utils/Scf/LcaoUtils/SpinMode.h>
 #include <gmock/gmock.h>
 
 using namespace testing;
@@ -24,7 +24,7 @@ class AMoldenFileGeneratorTest : public Test {
   Eigen::VectorXd mosFeO;
 
  protected:
-  bool headerPresent(const std::string& filename) {
+  bool headerPresent() {
     std::ifstream molden("moldenTest.molden");
     std::string buffer;
     bool result = false;
@@ -51,13 +51,15 @@ class AMoldenFileGeneratorTest : public Test {
     auto structure = Utils::XyzStreamHandler::read(h2o);
 
     calculator = std::make_shared<PM6MethodWrapper>();
-    calculator->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+    calculator->setLog(Core::Log::silent());
     calculator->setStructure(structure);
     calculatorFeO = calculator->clone();
+    calculatorFeO->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1.0e-9);
+    calculatorFeO->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
     calculatorFeO->setStructure(Utils::XyzStreamHandler::read(feo));
     mosFeO = Eigen::VectorXd(13);
-    mosFeO << -0.1894410376, -0.0293471793, -0.0293471793, 0.0000000000, 0.2036461848, -0.0000000000, 0.0000000000,
-        -0.0000000000, -0.3527255388, -0.8901491672, -0.0454805742, -0.0454805742, 0.0000000000;
+    mosFeO << 0.1894410450, 0.0293471702, 0.0293471702, -0.0000000000, -0.2036462089, 0.0000000000, 0.0000000000,
+        0.0000000000, 0.3527255805, 0.8901491471, 0.0454805458, 0.0454805458, 0.0000000000;
   }
 
   void TearDown() final {
@@ -197,7 +199,7 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateGTOAtomAndMOsForWavefunctionH2O) {
     ASSERT_TRUE(fiveDPresent && sevenFPresent && nineGPresent);
   }
 
-  ASSERT_TRUE(headerPresent("moldenTest.molden"));
+  ASSERT_TRUE(headerPresent());
 }
 
 TEST_F(AMoldenFileGeneratorTest, CanGenerateWavefunctionThroughInterfaceH2O) {
@@ -207,7 +209,8 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateWavefunctionThroughInterfaceH2O) {
   if (!manager.moduleLoaded("Sparrow"))
     manager.load("Sparrow");
   auto wfGen = manager.get<Core::WavefunctionOutputGenerator>("PM6");
-  wfGen->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  std::dynamic_pointer_cast<Core::Calculator>(wfGen)->setLog(Core::Log::silent());
+
   wfGen->setStructure(*calculator->getStructure());
   wfGen->loadState(calculator->getState());
   wfGen->generateWavefunctionInformation("moldenTest.molden");
@@ -238,7 +241,7 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateMOsForWavefunctionFeO) {
         line = std::stringstream(buffer);
         line >> description >> doubleEntry;
         ASSERT_EQ(description, "Ene=");
-        ASSERT_THAT(doubleEntry, DoubleNear(-1.1239734808, 1e-9));
+        ASSERT_THAT(doubleEntry, DoubleNear(-1.1239734744, 1e-9));
         std::getline(molden, buffer);
         line = std::stringstream(buffer);
         line >> description >> stringEntry;
@@ -254,17 +257,20 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateMOsForWavefunctionFeO) {
           line = std::stringstream(buffer);
           line >> description >> doubleEntry;
           ASSERT_EQ(description, std::to_string(i));
+          SCOPED_TRACE(std::to_string(doubleEntry) + " for index " + std::to_string(i) + " " +
+                       std::to_string(std::fabs(mosFeO(i - 1))));
           ASSERT_THAT(std::fabs(doubleEntry), DoubleNear(std::fabs(mosFeO(i - 1)), 1e-9));
         }
       }
     }
   }
 
-  ASSERT_TRUE(headerPresent("moldenTest.molden"));
+  ASSERT_TRUE(headerPresent());
 }
 
 TEST_F(AMoldenFileGeneratorTest, CanGenerateMOsForUnrestrictedWavefunctionFeO) {
-  calculatorFeO->settings().modifyBool(Utils::SettingsNames::unrestrictedCalculation, true);
+  calculatorFeO->settings().modifyString(Utils::SettingsNames::spinMode,
+                                         Utils::SpinModeInterpreter::getStringFromSpinMode(Utils::SpinMode::Unrestricted));
   calculatorFeO->calculate("");
   MoldenFileGenerator wfGen(*calculatorFeO);
   std::ofstream output("moldenTest.molden");
@@ -289,7 +295,7 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateMOsForUnrestrictedWavefunctionFeO) {
         line = std::stringstream(buffer);
         line >> description >> doubleEntry;
         ASSERT_EQ(description, "Ene=");
-        ASSERT_THAT(doubleEntry, DoubleNear(-1.1239734808, 1e-9));
+        ASSERT_THAT(doubleEntry, DoubleNear(-1.1239734738, 1e-9));
         std::getline(molden, buffer);
         line = std::stringstream(buffer);
         line >> description >> stringEntry;
@@ -311,7 +317,7 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateMOsForUnrestrictedWavefunctionFeO) {
     }
   }
 
-  ASSERT_TRUE(headerPresent("moldenTest.molden"));
+  ASSERT_TRUE(headerPresent());
 }
 
 TEST_F(AMoldenFileGeneratorTest, CanGenerateWavefunctionThroughInterfaceFeO) {
@@ -321,7 +327,7 @@ TEST_F(AMoldenFileGeneratorTest, CanGenerateWavefunctionThroughInterfaceFeO) {
   if (!manager.moduleLoaded("Sparrow"))
     manager.load("Sparrow");
   auto wfGen = manager.get<Core::WavefunctionOutputGenerator>("PM6");
-  wfGen->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  std::dynamic_pointer_cast<Core::Calculator>(wfGen)->setLog(Core::Log::silent());
   wfGen->setStructure(*calculatorFeO->getStructure());
   wfGen->loadState(calculatorFeO->getState());
   wfGen->generateWavefunctionInformation("moldenTest.molden");

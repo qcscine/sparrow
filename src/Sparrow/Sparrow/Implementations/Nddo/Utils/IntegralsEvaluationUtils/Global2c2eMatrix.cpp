@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -37,15 +37,15 @@ Global2c2eMatrix::Global2c2eMatrix(int l1, int l2, const ChargeSeparationParamet
   nullDeriv = First3D(0, 0, 0, 0);
   oneDeriv = First3D(1, 0, 0, 0);
   globalMatrix_ = Eigen::MatrixXd::Zero(d1_, d2_);
-  globalMatrixOne_ =
-      Eigen::Matrix<First3D, Eigen::Dynamic, Eigen::Dynamic>::Constant(d1_, d2_, constant3D<Utils::derivOrder::one>(0.0));
-  globalMatrixTwo_ =
-      Eigen::Matrix<Second3D, Eigen::Dynamic, Eigen::Dynamic>::Constant(d1_, d2_, constant3D<Utils::derivOrder::two>(0.0));
+  globalMatrixOne_ = Eigen::Matrix<First3D, Eigen::Dynamic, Eigen::Dynamic>::Constant(
+      d1_, d2_, constant3D<Utils::DerivativeOrder::One>(0.0));
+  globalMatrixTwo_ = Eigen::Matrix<Second3D, Eigen::Dynamic, Eigen::Dynamic>::Constant(
+      d1_, d2_, constant3D<Utils::DerivativeOrder::Two>(0.0));
 }
 
 template<>
-Value3DType<Utils::derivOrder::zero>
-Global2c2eMatrix::evaluateMatrixElement<Utils::derivOrder::zero>(orbPair_index_t op1, orbPair_index_t op2) {
+Value3DType<Utils::DerivativeOrder::Zero>
+Global2c2eMatrix::evaluateMatrixElement<Utils::DerivativeOrder::Zero>(orbPair_index_t op1, orbPair_index_t op2) {
   double element = 0;
   const std::list<RotationTerm>& expr = terms_.getTermList(op1, op2);
   for (const auto& term : expr) {
@@ -56,8 +56,8 @@ Global2c2eMatrix::evaluateMatrixElement<Utils::derivOrder::zero>(orbPair_index_t
   return element;
 }
 template<>
-Value3DType<Utils::derivOrder::one> Global2c2eMatrix::evaluateMatrixElement<Utils::derivOrder::one>(orbPair_index_t op1,
-                                                                                                    orbPair_index_t op2) {
+Value3DType<Utils::DerivativeOrder::One>
+Global2c2eMatrix::evaluateMatrixElement<Utils::DerivativeOrder::One>(orbPair_index_t op1, orbPair_index_t op2) {
   First3D element = nullDeriv;
   const std::list<RotationTerm>& expr = terms_.getTermList(op1, op2);
   for (const auto& term : expr) {
@@ -70,8 +70,8 @@ Value3DType<Utils::derivOrder::one> Global2c2eMatrix::evaluateMatrixElement<Util
   return element;
 }
 template<>
-Value3DType<Utils::derivOrder::two> Global2c2eMatrix::evaluateMatrixElement<Utils::derivOrder::two>(orbPair_index_t op1,
-                                                                                                    orbPair_index_t op2) {
+Value3DType<Utils::DerivativeOrder::Two>
+Global2c2eMatrix::evaluateMatrixElement<Utils::DerivativeOrder::Two>(orbPair_index_t op1, orbPair_index_t op2) {
   Second3D element;
   element.setZero();
   const std::list<RotationTerm>& expr = terms_.getTermList(op1, op2);
@@ -94,30 +94,30 @@ Value3DType<Utils::derivOrder::two> Global2c2eMatrix::evaluateMatrixElement<Util
 }
 
 template<>
-void Global2c2eMatrix::evaluate<Utils::derivOrder::zero>() {
+void Global2c2eMatrix::evaluate<Utils::DerivativeOrder::Zero>() {
   for (int i = 0; i < d1_; i++)
     for (int j = 0; j < d2_; j++)
-      globalMatrix_(i, j) = evaluateMatrixElement<Utils::derivOrder::zero>(i, j);
+      globalMatrix_(i, j) = evaluateMatrixElement<Utils::DerivativeOrder::Zero>(i, j);
 }
 template<>
-void Global2c2eMatrix::evaluate<Utils::derivOrder::one>() {
+void Global2c2eMatrix::evaluate<Utils::DerivativeOrder::One>() {
   for (int i = 0; i < d1_; i++)
     for (int j = 0; j < d2_; j++) {
-      globalMatrixOne_(i, j) = evaluateMatrixElement<Utils::derivOrder::one>(i, j);
+      globalMatrixOne_(i, j) = evaluateMatrixElement<Utils::DerivativeOrder::One>(i, j);
       globalMatrix_(i, j) = globalMatrixOne_(i, j).value();
     }
 }
 template<>
-void Global2c2eMatrix::evaluate<Utils::derivOrder::two>() {
+void Global2c2eMatrix::evaluate<Utils::DerivativeOrder::Two>() {
   for (int i = 0; i < d1_; i++)
     for (int j = 0; j < d2_; j++) {
-      globalMatrixTwo_(i, j) = evaluateMatrixElement<Utils::derivOrder::two>(i, j);
+      globalMatrixTwo_(i, j) = evaluateMatrixElement<Utils::DerivativeOrder::Two>(i, j);
       globalMatrix_(i, j) = globalMatrixTwo_(i, j).value();
     }
 }
 
 template<>
-void Global2c2eMatrix::calculate<Utils::derivOrder::zero>(const Eigen::Vector3d& Rab) {
+void Global2c2eMatrix::calculate<Utils::DerivativeOrder::Zero>(const Eigen::Vector3d& Rab) {
   R_ = rotationsZero_.setVector(Rab);
   RNormX_ = Rab[0] / R_;
   RNormY_ = Rab[1] / R_;
@@ -125,10 +125,10 @@ void Global2c2eMatrix::calculate<Utils::derivOrder::zero>(const Eigen::Vector3d&
 
   localZero_.calculate(R_);
   rotationsZero_.evaluate();
-  evaluate<Utils::derivOrder::zero>();
+  evaluate<Utils::DerivativeOrder::Zero>();
 }
 template<>
-void Global2c2eMatrix::calculate<Utils::derivOrder::one>(const Eigen::Vector3d& Rab) {
+void Global2c2eMatrix::calculate<Utils::DerivativeOrder::One>(const Eigen::Vector3d& Rab) {
   R_ = rotationsOne_.setVector(Rab);
   RNormX_ = Rab[0] / R_;
   RNormY_ = Rab[1] / R_;
@@ -136,10 +136,10 @@ void Global2c2eMatrix::calculate<Utils::derivOrder::one>(const Eigen::Vector3d& 
 
   localOne_.calculate(R_);
   rotationsOne_.evaluate();
-  evaluate<Utils::derivOrder::one>();
+  evaluate<Utils::DerivativeOrder::One>();
 }
 template<>
-void Global2c2eMatrix::calculate<Utils::derivOrder::two>(const Eigen::Vector3d& Rab) {
+void Global2c2eMatrix::calculate<Utils::DerivativeOrder::Two>(const Eigen::Vector3d& Rab) {
   R_ = rotationsTwo_.setVector(Rab);
   RNormX_ = Rab[0] / R_;
   RNormY_ = Rab[1] / R_;
@@ -147,7 +147,7 @@ void Global2c2eMatrix::calculate<Utils::derivOrder::two>(const Eigen::Vector3d& 
 
   localTwo_.calculate(R_);
   rotationsTwo_.evaluate();
-  evaluate<Utils::derivOrder::two>();
+  evaluate<Utils::DerivativeOrder::Two>();
 }
 
 double Global2c2eMatrix::get(orb_index_t o1, orb_index_t o2, orb_index_t o3, orb_index_t o4) const {

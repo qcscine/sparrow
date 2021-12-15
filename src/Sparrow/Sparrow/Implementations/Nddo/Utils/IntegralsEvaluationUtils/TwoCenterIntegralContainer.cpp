@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -49,7 +49,7 @@ void TwoCenterIntegralContainer::initializePair(unsigned int i, unsigned int j) 
     matrices_[i][j]->setSymmetric(true);
 }
 
-void TwoCenterIntegralContainer::update(Utils::derivOrder order) {
+void TwoCenterIntegralContainer::update(Utils::DerivativeOrder order) {
 #pragma omp parallel for schedule(dynamic)
   for (unsigned i = 0; i < nAtoms_; ++i) {
     for (unsigned int j = i + 1; j < nAtoms_; j++) {
@@ -58,18 +58,21 @@ void TwoCenterIntegralContainer::update(Utils::derivOrder order) {
   }
 }
 
-void TwoCenterIntegralContainer::updatePair(unsigned int i, unsigned int j, Utils::derivOrder order) {
-  auto pA = positions_.row(i);
-  auto pB = positions_.row(j);
+void TwoCenterIntegralContainer::updatePair(unsigned int i, unsigned int j, Utils::DerivativeOrder order) {
+  Eigen::RowVector3d pA = positions_.row(i);
+  Eigen::RowVector3d pB = positions_.row(j);
   Eigen::RowVector3d Rab = pB - pA;
 
-  if (order == Utils::derivOrder::zero)
-    matrices_[i][j]->calculate<Utils::derivOrder::zero>(Rab);
-  else if (order == Utils::derivOrder::one)
-    matrices_[i][j]->calculate<Utils::derivOrder::one>(Rab);
-  else if (order == Utils::derivOrder::two)
-    matrices_[i][j]->calculate<Utils::derivOrder::two>(Rab);
-}
+  if (order == Utils::DerivativeOrder::Zero) {
+    matrices_[i][j]->calculate<Utils::DerivativeOrder::Zero>(Rab);
+  }
+  else if (order == Utils::DerivativeOrder::One) {
+    matrices_[i][j]->calculate<Utils::DerivativeOrder::One>(Rab);
+  }
+  else if (order == Utils::DerivativeOrder::Two) {
+    matrices_[i][j]->calculate<Utils::DerivativeOrder::Two>(Rab);
+  }
+} // namespace nddo
 
 } // namespace nddo
 } // namespace Sparrow

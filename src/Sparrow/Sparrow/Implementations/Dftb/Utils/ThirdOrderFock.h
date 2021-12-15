@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -38,23 +38,24 @@ class ThirdOrderFock : public ScfFock {
   //! @brief Sums up the electronic energy contributions of the zeroth, first and second order Hamiltonian corrections.
   double calculateElectronicEnergy() const override;
   //! @brief calculates automatically the derivatives of the energy with respect to the nuclear cartesian coordinates.
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const override;
+  Eigen::MatrixXd getGammaMatrix() const;
 
  protected:
  private:
   void completeH() override;
-  void constructG(Utils::derivOrder order) override;
-  template<Utils::derivOrder O>
+  void constructG(Utils::DerivativeOrder order) override;
+  template<Utils::DerivativeOrder O>
   void constructG();
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void gammah(int a, int b, Utils::AutomaticDifferentiation::Value1DType<O>& gamma,
               Utils::AutomaticDifferentiation::Value1DType<O>& Gab, Utils::AutomaticDifferentiation::Value1DType<O>& Gba) const;
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void hFactor(double Ua, double Ub, const Utils::AutomaticDifferentiation::Value1DType<O>& R,
                Utils::AutomaticDifferentiation::Value1DType<O>& h, Utils::AutomaticDifferentiation::Value1DType<O>& dhdU) const;
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addThirdOrderDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const;
 
   Eigen::MatrixXd g;               // gamma matrix

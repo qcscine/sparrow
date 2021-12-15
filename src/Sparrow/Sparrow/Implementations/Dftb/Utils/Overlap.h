@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -13,7 +13,7 @@
 namespace Scine {
 
 namespace Utils {
-enum class derivOrder;
+enum class DerivativeOrder;
 }
 
 namespace Sparrow {
@@ -25,7 +25,7 @@ class Overlap : public Utils::OverlapCalculator {
  public:
   explicit Overlap(ZeroOrderMatricesCalculator& matricesCalculator);
 
-  void calculateOverlap(Utils::derivOrder highestRequiredOrder) override;
+  void calculateOverlap(Utils::DerivativeOrder highestRequiredOrder) override;
   const Utils::MatrixWithDerivatives& getOverlap() const override;
   void reset() override;
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -9,9 +9,8 @@
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/AtomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/PM6DiatomicParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParameterProcessor.h>
-#include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParameters.h>
-#include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParametersContainer.h>
 #include <Utils/Constants.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <gmock/gmock.h>
 
 namespace Scine {
@@ -24,49 +23,41 @@ using namespace nddo;
 
 class ARawParameterProcessing : public Test {
  public:
-  ARawParameterProcessing() : processor(cont) {
+  ARawParameterProcessing() : processor(parameters) {
   }
 
-  RawAtomicParameters rawAtomicPar;
-  RawDiatomicParameters rawDiatomicPar;
+  Parameters parameters;
+  Parameters::Atomic iodine;
+  Parameters::Diatomic cadmiumChlorine;
   std::unique_ptr<AtomicParameters> atomicPar;
   std::shared_ptr<PM6DiatomicParameters> diatomicPar;
   std::shared_ptr<OneCenterTwoElectronIntegrals> integral;
-  RawParametersContainer cont;
   RawParameterProcessor processor;
 
   void SetUp() override {
     // Those are the parameters for iodine
-    rawAtomicPar.uss = -59.9732;
-    rawAtomicPar.upp = -56.4598;
-    rawAtomicPar.udd = -28.8226;
-    rawAtomicPar.bs = -30.5225;
-    rawAtomicPar.bp = -5.94212;
-    rawAtomicPar.bd = -7.67611;
-    rawAtomicPar.gss = 7.23476;
-    rawAtomicPar.gpp = 9.87747;
-    rawAtomicPar.gsp = 9.15441;
-    rawAtomicPar.gp2 = 8.03592;
-    rawAtomicPar.hsp = 5.00422;
-    rawAtomicPar.zs = 4.49865;
-    rawAtomicPar.zp = 1.91707;
-    rawAtomicPar.zd = 1.87518;
-    rawAtomicPar.zsn = 9.13524;
-    rawAtomicPar.zpn = 6.88819;
-    rawAtomicPar.zdn = 3.79152;
-    rawAtomicPar.pcore = 1.8806;
-    rawAtomicPar.f0sd = 20.495;
-    rawAtomicPar.g2sd = 2.16014;
-    // rawAtomicPar.grepa = -0.035519;
-    // rawAtomicPar.grepb = 1.74439;
-    // rawAtomicPar.grepc = 1.22384;
+    iodine.pack.oneCenterEnergy = {-59.9732, -56.4598, -28.8226};
+    iodine.pack.beta = {-30.5225, -5.94212, -7.67611};
+    iodine.pack.gss = 7.23476;
+    iodine.pack.gpp = 9.87747;
+    iodine.pack.gsp = 9.15441;
+    iodine.pack.gp2 = 8.03592;
+    iodine.pack.hsp = 5.00422;
+    iodine.pack.orbitalExponent = {4.49865, 1.91707, 1.87518};
+    iodine.pack.internalExponent = {9.13524, 6.88819, 3.79152};
+    iodine.pack.pcore = 1.8806;
+    iodine.pack.f0sd = 20.495;
+    iodine.pack.g2sd = 2.16014;
+    // iodine.grepa = -0.035519;
+    // iodine.grepb = 1.74439;
+    // iodine.grepc = 1.22384;
 
     // Those are parameters for the Cd-Cl pair:
-    rawDiatomicPar.exponent = 0.943547;
-    rawDiatomicPar.factor = 0.140424;
+    cadmiumChlorine.exponent = 0.943547;
+    cadmiumChlorine.factor = 0.140424;
 
-    cont.setAtomicParameters(Utils::ElementType::I, rawAtomicPar);
-    cont.setDiatomicParameters(Utils::ElementType::Cd, Utils::ElementType::Cl, rawDiatomicPar);
+    parameters.atomic.emplace(Utils::ElementInfo::Z(Utils::ElementType::I), iodine);
+    parameters.diatomic.emplace(Parameters::key(Utils::ElementType::Cd, Utils::ElementType::Cl), cadmiumChlorine);
     auto par = processor.processAtomicParameters(Utils::ElementType::I);
     atomicPar = std::move(par.first);
     integral = std::move(par.second);
@@ -75,53 +66,53 @@ class ARawParameterProcessing : public Test {
 };
 
 TEST_F(ARawParameterProcessing, SetsBetaValuesCorrectly) {
-  ASSERT_THAT(atomicPar->betaS(), DoubleEq(rawAtomicPar.bs * Utils::Constants::hartree_per_ev));
-  ASSERT_THAT(atomicPar->betaP(), DoubleEq(rawAtomicPar.bp * Utils::Constants::hartree_per_ev));
-  ASSERT_THAT(atomicPar->betaD(), DoubleEq(rawAtomicPar.bd * Utils::Constants::hartree_per_ev));
+  ASSERT_THAT(atomicPar->betaS(), DoubleEq(iodine.pack.beta.s * Utils::Constants::hartree_per_ev));
+  ASSERT_THAT(atomicPar->betaP(), DoubleEq(iodine.pack.beta.p * Utils::Constants::hartree_per_ev));
+  ASSERT_THAT(atomicPar->betaD(), DoubleEq(iodine.pack.beta.d * Utils::Constants::hartree_per_ev));
 }
 
 TEST_F(ARawParameterProcessing, SetsUValuesCorrectly) {
-  ASSERT_THAT(atomicPar->Uss(), DoubleEq(rawAtomicPar.uss * Utils::Constants::hartree_per_ev));
-  ASSERT_THAT(atomicPar->Upp(), DoubleEq(rawAtomicPar.upp * Utils::Constants::hartree_per_ev));
-  ASSERT_THAT(atomicPar->Udd(), DoubleEq(rawAtomicPar.udd * Utils::Constants::hartree_per_ev));
+  ASSERT_THAT(atomicPar->Uss(), DoubleEq(iodine.pack.oneCenterEnergy.s * Utils::Constants::hartree_per_ev));
+  ASSERT_THAT(atomicPar->Upp(), DoubleEq(iodine.pack.oneCenterEnergy.p * Utils::Constants::hartree_per_ev));
+  ASSERT_THAT(atomicPar->Udd(), DoubleEq(iodine.pack.oneCenterEnergy.d * Utils::Constants::hartree_per_ev));
 }
 
 TEST_F(ARawParameterProcessing, SetsChargeSeparationsCorrectly) {
   auto d = atomicPar->chargeSeparations();
 
-  ASSERT_THAT(d.get(multipole::sp1), DoubleNear(0.3746525, 1e-4));
-  ASSERT_THAT(d.get(multipole::pp2), DoubleNear(1.89517161 / SQRT2, 1e-5));
-  ASSERT_THAT(d.get(multipole::sd2), DoubleNear(0.77747018 / SQRT2, 1e-5));
-  ASSERT_THAT(d.get(multipole::pd1), DoubleNear(1.29634171, 1e-5));
-  ASSERT_THAT(d.get(multipole::dd2), DoubleNear(1.63749938 / SQRT2, 1e-5));
+  ASSERT_THAT(d.get(multipole::MultipolePair::sp1), DoubleNear(0.3746525, 1e-4));
+  ASSERT_THAT(d.get(multipole::MultipolePair::pp2), DoubleNear(1.89517161 / SQRT2, 1e-5));
+  ASSERT_THAT(d.get(multipole::MultipolePair::sd2), DoubleNear(0.77747018 / SQRT2, 1e-5));
+  ASSERT_THAT(d.get(multipole::MultipolePair::pd1), DoubleNear(1.29634171, 1e-5));
+  ASSERT_THAT(d.get(multipole::MultipolePair::dd2), DoubleNear(1.63749938 / SQRT2, 1e-5));
 }
 
 TEST_F(ARawParameterProcessing, GtoExpansionHasBeenPerformed) {
-  ASSERT_TRUE(atomicPar->GTOs().hasS());
-  ASSERT_TRUE(atomicPar->GTOs().hasP());
-  ASSERT_TRUE(atomicPar->GTOs().hasD());
+  ASSERT_TRUE(atomicPar->GTOs().s);
+  ASSERT_TRUE(atomicPar->GTOs().p);
+  ASSERT_TRUE(atomicPar->GTOs().d);
 }
 
 /*TEST_F(ARawParameterProcessing, SetsGaussianRepulsionParameters) {
   auto g = atomicPar->getGaussianRepulsionParameters();
 
   ASSERT_TRUE(atomicPar->hasGaussianRepulsionParameters());
-  ASSERT_THAT(std::get<0>(g), DoubleEq(rawAtomicPar.grepa * Utils::Constants::bohr_per_angstrom));
-  ASSERT_THAT(std::get<1>(g), DoubleEq(rawAtomicPar.grepb * Utils::Constants::angstrom_per_bohr *
-Utils::Constants::angstrom_per_bohr)); ASSERT_THAT(std::get<2>(g), DoubleEq(rawAtomicPar.grepc *
+  ASSERT_THAT(std::get<0>(g), DoubleEq(iodine.grepa * Utils::Constants::bohr_per_angstrom));
+  ASSERT_THAT(std::get<1>(g), DoubleEq(iodine.grepb * Utils::Constants::angstrom_per_bohr *
+Utils::Constants::angstrom_per_bohr)); ASSERT_THAT(std::get<2>(g), DoubleEq(iodine.grepc *
 Utils::Constants::bohr_per_angstrom));
 }*/
 
 TEST_F(ARawParameterProcessing, SetsDiatomicExponentCorrectly) {
-  ASSERT_THAT(diatomicPar->alpha(), Eq(rawDiatomicPar.exponent * Utils::Constants::angstrom_per_bohr));
+  ASSERT_THAT(diatomicPar->alpha(), Eq(cadmiumChlorine.exponent * Utils::Constants::angstrom_per_bohr));
 }
 
 TEST_F(ARawParameterProcessing, SetsDiatomicFactorCorrectly) {
-  ASSERT_THAT(diatomicPar->x(), Eq(rawDiatomicPar.factor));
+  ASSERT_THAT(diatomicPar->x(), Eq(cadmiumChlorine.factor));
 }
 
 TEST_F(ARawParameterProcessing, SetsPCoreCorrectly) {
-  ASSERT_THAT(atomicPar->pCore(), DoubleEq(rawAtomicPar.pcore));
+  ASSERT_THAT(atomicPar->pCore(), DoubleEq(iodine.pack.pcore));
 }
 
 TEST_F(ARawParameterProcessing, Returns1c2eIntegrals) {

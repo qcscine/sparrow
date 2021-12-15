@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -37,8 +37,8 @@ class Local2c2eIntegralCalculator {
    */
   struct LocalTerm {
     double f;
-    multipolePair_t p1, p2;
-    multipole_t m1, m2;
+    MultipolePair p1, p2;
+    Multipole m1, m2;
   };
 
   //! Each charge distribution might be expanded in more than just one multipole (so, more than one LocalTerm possible).
@@ -47,7 +47,7 @@ class Local2c2eIntegralCalculator {
   using LocalTermArray = std::array<std::array<LocalTerms, 40>, 40>;
 
   //! Wrapper around the next overload. It enables the reference of the twoElIntegral_t without the need to cast them.
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value1DType<O> static getIntegral(
       GeneralTypes::twoElIntegral_t t1, GeneralTypes::twoElIntegral_t t2, double R, const ChargeSeparationParameter& D1,
       const ChargeSeparationParameter& d2, const KlopmanParameter& rho1, const KlopmanParameter& rho2);
@@ -64,7 +64,7 @@ class Local2c2eIntegralCalculator {
    * @param rho2 the Klopman parameter for the second center.
    * @return The 2-center-2-electron value up to the O-th derivative in the local coordinates system.
    */
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value1DType<O> static getIntegral(int t1, int t2, double R,
                                                                      const ChargeSeparationParameter& D1,
                                                                      const ChargeSeparationParameter& d2,
@@ -77,7 +77,7 @@ class Local2c2eIntegralCalculator {
   /// Generates a multipole corresponding to the two electron integral type t.
   /// hasD makes sure that charge configuration corresponding to different multipoles in presence or absence
   /// of d basis functions are correctly represented
-  static std::list<std::pair<double, multipole_t>> getMultipoles(GeneralTypes::twoElIntegral_t t, bool hasD);
+  static std::list<std::pair<double, Multipole>> getMultipoles(GeneralTypes::twoElIntegral_t t, bool hasD);
 };
 
 } // namespace multipole

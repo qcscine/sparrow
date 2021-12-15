@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -38,7 +38,7 @@ class SDFTB {
   void calculateSpinContribution();
   void constructSpinHamiltonians(Utils::SpinAdaptedMatrix& H, const Eigen::MatrixXd& overlap) const;
   double spinEnergyContribution() const;
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivativesContainer,
                       const Utils::MatrixWithDerivatives& overlapDeriv, const Eigen::MatrixXd& pUp,
                       const Eigen::MatrixXd& pDn) const;

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -43,7 +43,7 @@ const Utils::MatrixWithDerivatives& ZeroOrderMatricesCalculator::getZeroOrderHam
   return zeroOrderHamiltonian_;
 }
 
-void ZeroOrderMatricesCalculator::calculateOverlap(Utils::derivOrder highestRequiredOrder) {
+void ZeroOrderMatricesCalculator::calculateOverlap(Utils::DerivativeOrder highestRequiredOrder) {
   constructH0S(highestRequiredOrder);
 }
 
@@ -60,38 +60,28 @@ void ZeroOrderMatricesCalculator::initializeH0S() {
   auto nAOs = aoIndexes_.getNAtomicOrbitals();
 
   Eigen::MatrixXd H0 = Eigen::MatrixXd::Zero(nAOs, nAOs);
-  Eigen::MatrixXd S = Eigen::MatrixXd::Zero(nAOs, nAOs);
-#pragma omp parallel for
-  for (int A = 0; A < elements_.size(); A++) {
+  Eigen::MatrixXd S = Eigen::MatrixXd::Identity(nAOs, nAOs);
+  for (int A = 0; A < static_cast<int>(elements_.size()); A++) {
     int nAOsA = aoIndexes_.getNOrbitals(A);
     int AOindexA = aoIndexes_.getFirstOrbitalIndex(A);
     for (int i = 0; i < nAOsA; i++) {
-      for (int j = 0; j < nAOsA; j++) {
-        if (i == j) {
-          S(AOindexA + i, AOindexA + j) = 1.0;
-          H0(AOindexA + i, AOindexA + j) = atomicPar_[Utils::ElementInfo::Z(elements_[A])]->getOrbitalEnergy(i);
-        }
-        else {
-          S(AOindexA + i, AOindexA + j) = 0.0;
-          H0(AOindexA + i, AOindexA + j) = 0.0;
-        }
-      }
+      H0(AOindexA + i, AOindexA + i) = atomicPar_[Utils::ElementInfo::Z(elements_[A])]->getOrbitalEnergy(i);
     }
   }
   overlap_.setBaseMatrix(S);
   zeroOrderHamiltonian_.setBaseMatrix(H0);
 }
 
-void ZeroOrderMatricesCalculator::constructH0S(Utils::derivOrder order) {
-  if (order == Utils::derivOrder::zero)
-    constructH0S<Utils::derivOrder::zero>();
-  else if (order == Utils::derivOrder::one)
-    constructH0S<Utils::derivOrder::one>();
-  else if (order == Utils::derivOrder::two)
-    constructH0S<Utils::derivOrder::two>();
+void ZeroOrderMatricesCalculator::constructH0S(Utils::DerivativeOrder order) {
+  if (order == Utils::DerivativeOrder::Zero)
+    constructH0S<Utils::DerivativeOrder::Zero>();
+  else if (order == Utils::DerivativeOrder::One)
+    constructH0S<Utils::DerivativeOrder::One>();
+  else if (order == Utils::DerivativeOrder::Two)
+    constructH0S<Utils::DerivativeOrder::Two>();
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void ZeroOrderMatricesCalculator::constructH0S() {
   zeroOrderHamiltonian_.setOrder(O);
   overlap_.setOrder(O);
@@ -108,13 +98,13 @@ void ZeroOrderMatricesCalculator::constructH0S() {
   }
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void ZeroOrderMatricesCalculator::constructPartOfH0S() {
   using Val = Value3DType<O>;
   auto& H0 = zeroOrderHamiltonian_.get<O>();
   auto& S = overlap_.get<O>();
 
-#pragma omp parallel for // private(me, v, v2, vv, I, val)
+#pragma omp parallel for
   for (int a = 0; a < aoIndexes_.getNAtoms(); a++) {
     Val me[2][9][9]; // Matrix elements; me[0][][] -> overlap; me[1][][] -> hamiltonian
     Val v[3];        // x, y, z
@@ -132,15 +122,16 @@ void ZeroOrderMatricesCalculator::constructPartOfH0S() {
       Eigen::Vector3d R = positions_.row(b) - positions_.row(a);
       double dist = R.norm();
 
-      SKPair* parameters;
+      std::pair<int, int> key;
       if (elements_[a] <= elements_[b])
-        parameters = diatomicPar_[Utils::ElementInfo::Z(elements_[a])][Utils::ElementInfo::Z(elements_[b])].get();
+        key = std::make_pair(Utils::ElementInfo::Z(elements_[a]), Utils::ElementInfo::Z(elements_[b]));
       else {
-        parameters = diatomicPar_[Utils::ElementInfo::Z(elements_[b])][Utils::ElementInfo::Z(elements_[a])].get();
+        key = std::make_pair(Utils::ElementInfo::Z(elements_[b]), Utils::ElementInfo::Z(elements_[a]));
         R *= -1.0;
       }
+      const auto& parameters = diatomicPar_.at(key);
 
-      if (parameters->getHS(dist, val) == 0) { // if all values and derivatives are zero
+      if (parameters.getHS(dist, val) == 0) { // if all values and derivatives are zero
         for (int i = 0; i < nAOsA; i++) {
           for (int j = 0; j < nAOsB; j++) {
             S(AOindexA + i, AOindexB + j) = constant3D<O>(0.0);
@@ -151,7 +142,7 @@ void ZeroOrderMatricesCalculator::constructPartOfH0S() {
         }
         continue; // jump to next atom pair
       }
-      for (int i = 0; i < parameters->getNIntegrals(); ++i)
+      for (int i = 0; i < parameters.getNIntegrals(); ++i)
         I[i] = get3Dfrom1D<O>(val.derivIntegral[i], R);
 
       /*
@@ -420,32 +411,31 @@ void ZeroOrderMatricesCalculator::constructPartOfH0S() {
 }
 
 void ZeroOrderMatricesCalculator::addDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives,
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives,
     const Eigen::MatrixXd& overlapDerivativeMultiplier) const {
-  addDerivativesImpl<Utils::derivativeType::first>(derivatives, overlapDerivativeMultiplier);
+  addDerivativesImpl<Utils::Derivative::First>(derivatives, overlapDerivativeMultiplier);
 }
 
 void ZeroOrderMatricesCalculator::addDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives,
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives,
     const Eigen::MatrixXd& overlapDerivativeMultiplier) const {
-  addDerivativesImpl<Utils::derivativeType::second_atomic>(derivatives, overlapDerivativeMultiplier);
+  addDerivativesImpl<Utils::Derivative::SecondAtomic>(derivatives, overlapDerivativeMultiplier);
 }
 
 void ZeroOrderMatricesCalculator::addDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives,
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives,
     const Eigen::MatrixXd& overlapDerivativeMultiplier) const {
-  addDerivativesImpl<Utils::derivativeType::second_full>(derivatives, overlapDerivativeMultiplier);
+  addDerivativesImpl<Utils::Derivative::SecondFull>(derivatives, overlapDerivativeMultiplier);
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void ZeroOrderMatricesCalculator::addDerivativesImpl(DerivativeContainerType<O>& derivatives,
                                                      const Eigen::MatrixXd& overlapDerivativeMultiplier) const {
-  auto nAtoms = elements_.size();
+  auto nAtoms = static_cast<int>(elements_.size());
 
   Value3DType<UnderlyingOrder<O>> der;
   DerivativeType<O> derivative;
   derivative.setZero();
-#pragma omp parallel for firstprivate(derivative) private(der)
   for (int a = 0; a < nAtoms; ++a) {
     int nAOsA = aoIndexes_.getNOrbitals(a);
     int AOindexA = aoIndexes_.getFirstOrbitalIndex(a);
@@ -464,8 +454,7 @@ void ZeroOrderMatricesCalculator::addDerivativesImpl(DerivativeContainerType<O>&
         }
       }
       derivative = getDerivativeFromValueWithDerivatives<O>(der);
-#pragma omp critical
-      { addDerivativeToContainer<O>(derivatives, a, b, derivative); }
+      addDerivativeToContainer<O>(derivatives, a, b, derivative);
     }
   }
 }

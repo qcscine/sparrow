@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -15,6 +15,8 @@ namespace Scine {
 namespace Sparrow {
 
 namespace nddo {
+
+FockMatrix::~FockMatrix() = default;
 
 FockMatrix::FockMatrix(const Utils::ElementTypeCollection& elements, const Utils::PositionCollection& positions,
                        const Utils::DensityMatrix& densityMatrix, const OneCenterIntegralContainer& oneCIntegrals,
@@ -35,7 +37,7 @@ void FockMatrix::initialize() {
   F2_.initialize();
 }
 
-void FockMatrix::calculateDensityIndependentPart(Utils::derivOrder order) {
+void FockMatrix::calculateDensityIndependentPart(Utils::DerivativeOrder order) {
   twoCenterIntegrals_.update(order);
   F1_.calculate(overlapCalculator_.getOverlap()); // NEEDS TO BE AFTER twoCenterIntegrals update!
   for (auto& contribution : densityIndependentContributions_) {
@@ -44,7 +46,7 @@ void FockMatrix::calculateDensityIndependentPart(Utils::derivOrder order) {
   }
 }
 
-void FockMatrix::calculateDensityDependentPart(Utils::derivOrder order) {
+void FockMatrix::calculateDensityDependentPart(Utils::DerivativeOrder order) {
   F2_.calculate(unrestrictedCalculationRunning_);
 
   for (auto& contribution : densityDependentContributions_) {
@@ -53,8 +55,8 @@ void FockMatrix::calculateDensityDependentPart(Utils::derivOrder order) {
   }
 }
 
-void FockMatrix::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const {
-  addDerivativesImpl<Utils::derivativeType::first>(derivatives);
+void FockMatrix::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const {
+  addDerivativesImpl<Utils::Derivative::First>(derivatives);
   for (auto& contribution : densityIndependentContributions_) {
     if (contribution->isValid())
       contribution->addDerivatives(derivatives);
@@ -65,9 +67,8 @@ void FockMatrix::addDerivatives(Utils::AutomaticDifferentiation::DerivativeConta
   }
 }
 
-void FockMatrix::addDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
-  addDerivativesImpl<Utils::derivativeType::second_atomic>(derivatives);
+void FockMatrix::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const {
+  addDerivativesImpl<Utils::Derivative::SecondAtomic>(derivatives);
   for (auto& contribution : densityIndependentContributions_) {
     if (contribution->isValid())
       contribution->addDerivatives(derivatives);
@@ -78,9 +79,8 @@ void FockMatrix::addDerivatives(
   }
 }
 
-void FockMatrix::addDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
-  addDerivativesImpl<Utils::derivativeType::second_full>(derivatives);
+void FockMatrix::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const {
+  addDerivativesImpl<Utils::Derivative::SecondFull>(derivatives);
   for (auto& contribution : densityIndependentContributions_) {
     if (contribution->isValid())
       contribution->addDerivatives(derivatives);
@@ -91,7 +91,7 @@ void FockMatrix::addDerivatives(
   }
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void FockMatrix::addDerivativesImpl(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const {
   F1_.addDerivatives<O>(derivatives, overlapCalculator_.getOverlap());
   F2_.addDerivatives<O>(derivatives);
@@ -144,7 +144,7 @@ double FockMatrix::calculateElectronicEnergy() const {
   return electronicEnergyCalculator_->calculateElectronicEnergy();
 }
 
-void FockMatrix::finalize(Utils::derivOrder order) {
+void FockMatrix::finalize(Utils::DerivativeOrder order) {
   // Recalculate the Fock matrix: make it consistent with the obtained density matrix
   calculateDensityDependentPart(order);
 }

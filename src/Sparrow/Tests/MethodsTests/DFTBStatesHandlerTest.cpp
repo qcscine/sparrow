@@ -1,12 +1,12 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
-#include "parameters_location.h"
 #include <Core/Interfaces/Calculator.h>
+#include <Core/Log.h>
 #include <Core/ModuleManager.h>
 #include <Sparrow/Implementations/Dftb/Dftb0/DFTB0.h>
 #include <Sparrow/Implementations/Dftb/Dftb3/DFTB3.h>
@@ -18,7 +18,6 @@
 #include <Utils/Settings.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <gmock/gmock.h>
-#include <boost/dll/runtime_symbol_info.hpp>
 
 using namespace testing;
 
@@ -36,25 +35,18 @@ class ADFTBStatesHandlerTest : public Test {
 
   Utils::StatesHandler statesHandlerDftb0, statesHandlerDftb3;
 
- public:
+  Core::Log log;
+
   void SetUp() override {
+    log = Core::Log::silent();
 #pragma omp critical
     {
       auto& manager = Core::ModuleManager::getInstance();
-      // Load the Sparrow module if it is not already loaded.
-      if (!manager.moduleLoaded("Sparrow")) {
-        auto programPath = boost::dll::program_location();
-        auto libPath = programPath.parent_path() / "sparrow";
-        manager.load(libPath);
-      }
-
       interfaceDFTB0_ = manager.get<Core::Calculator>("DFTB0");
+      interfaceDFTB0_->setLog(log);
       interfaceDFTB3_ = manager.get<Core::Calculator>("DFTB3");
-      auto& settingsDFTB0 = interfaceDFTB0_->settings();
-      auto& settingsDFTB3 = interfaceDFTB3_->settings();
-      settingsDFTB0.modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+      interfaceDFTB3_->setLog(log);
       interfaceDFTB0_->setRequiredProperties(Utils::Property::Energy);
-      settingsDFTB3.modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
       interfaceDFTB3_->setRequiredProperties(Utils::Property::Energy);
 
       std::stringstream ss("9\n\n"
@@ -73,8 +65,8 @@ class ADFTBStatesHandlerTest : public Test {
       interfaceDFTB3_->setStructure(ethanol_);
       underlyingDFTB0_.setAtomCollection(ethanol_);
       underlyingDFTB3_.setAtomCollection(ethanol_);
-      underlyingDFTB0_.initializeFromParameterPath(parameters_3ob_3_1);
-      underlyingDFTB3_.initializeFromParameterPath(parameters_3ob_3_1);
+      underlyingDFTB0_.initializeFromParameterPath("3ob-3-1");
+      underlyingDFTB3_.initializeFromParameterPath("3ob-3-1");
 
       statesHandlerDftb0 = Utils::StatesHandler(interfaceDFTB0_);
       statesHandlerDftb3 = Utils::StatesHandler(interfaceDFTB3_);
@@ -83,13 +75,13 @@ class ADFTBStatesHandlerTest : public Test {
 };
 
 TEST_F(ADFTBStatesHandlerTest, CanSaveStateWithDFTB0) {
-  underlyingDFTB0_.calculate(Utils::derivativeType::none);
+  underlyingDFTB0_.calculate(Utils::Derivative::None, log);
   auto results = interfaceDFTB0_->calculate("");
 
   statesHandlerDftb0.store();
   auto savedState = std::dynamic_pointer_cast<SparrowState>(statesHandlerDftb0.popNewestState());
-  auto& stateDensity = savedState->getDensityMatrix().restrictedMatrix();
-  auto& actualDensity = underlyingDFTB0_.getDensityMatrix().restrictedMatrix();
+  const auto& stateDensity = savedState->getDensityMatrix().restrictedMatrix();
+  const auto& actualDensity = underlyingDFTB0_.getDensityMatrix().restrictedMatrix();
 
   for (int i = 0; i < actualDensity.rows(); ++i) {
     for (int j = i; j < actualDensity.cols(); ++j) {
@@ -99,7 +91,7 @@ TEST_F(ADFTBStatesHandlerTest, CanSaveStateWithDFTB0) {
 }
 
 TEST_F(ADFTBStatesHandlerTest, LoadsStateCorrectlyWithDFTB0) {
-  underlyingDFTB0_.calculate(Utils::derivativeType::none);
+  underlyingDFTB0_.calculate(Utils::Derivative::None, log);
   interfaceDFTB0_->calculate("");
 
   Utils::DensityMatrix densityMatrix = underlyingDFTB0_.getDensityMatrix();
@@ -120,7 +112,7 @@ TEST_F(ADFTBStatesHandlerTest, LoadsStateCorrectlyWithDFTB0) {
 }
 
 TEST_F(ADFTBStatesHandlerTest, CanSaveStateWithDFTB3) {
-  underlyingDFTB3_.calculate(Utils::derivativeType::none);
+  underlyingDFTB3_.calculate(Utils::Derivative::None, log);
   auto results = interfaceDFTB3_->calculate("");
 
   statesHandlerDftb3.store();
@@ -136,7 +128,7 @@ TEST_F(ADFTBStatesHandlerTest, CanSaveStateWithDFTB3) {
 }
 
 TEST_F(ADFTBStatesHandlerTest, LoadsStateCorrectlyWithDFTB3) {
-  underlyingDFTB3_.calculate(Utils::derivativeType::none);
+  underlyingDFTB3_.calculate(Utils::Derivative::None, log);
 
   auto densityMatrix = underlyingDFTB3_.getDensityMatrix();
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -28,36 +28,36 @@ class AChargeSeparationParameter : public Test {
 };
 
 TEST_F(AChargeSeparationParameter, HasZeroAsDefaultValue) {
-  ASSERT_THAT(d.get(sp1), Eq(0.0));
+  ASSERT_THAT(d.get(MultipolePair::sp1), Eq(0.0));
 }
 
 TEST_F(AChargeSeparationParameter, CanBeSet) {
-  d.set(sp1, 1.0);
-  ASSERT_THAT(d.get(sp1), Eq(1.0));
+  d.set(MultipolePair::sp1, 1.0);
+  ASSERT_THAT(d.get(MultipolePair::sp1), Eq(1.0));
 }
 
 TEST_F(AChargeSeparationParameter, CanBeCalculatedFromExponentsForVanadium) {
   d.computeFromExponents(4, 4, 3, 1.974330, 1.063106, 1.394806);
 
-  ASSERT_THAT(d.get(sp1), DoubleNear(1.11908712, 1e-8));
-  ASSERT_THAT(d.get(pp2), DoubleNear(2.82191992 / SQRT2, 1e-8));
-  ASSERT_THAT(d.get(sd2), DoubleNear(1.79796529 / SQRT2, 1e-8));
-  ASSERT_THAT(d.get(pd1), DoubleNear(1.10444703, 1e-8));
-  ASSERT_THAT(d.get(dd2), DoubleNear(1.43389116 / SQRT2, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::sp1), DoubleNear(1.11908712, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::pp2), DoubleNear(2.82191992 / SQRT2, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::sd2), DoubleNear(1.79796529 / SQRT2, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::pd1), DoubleNear(1.10444703, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::dd2), DoubleNear(1.43389116 / SQRT2, 1e-8));
 }
 
 TEST_F(AChargeSeparationParameter, CanBeCalculatedFromExponentsForHelium) {
   d.computeFromExponents(1, 2, 3.31320400, 3.65713300);
 
-  ASSERT_THAT(d.get(sp1), DoubleNear(0.24758191, 1e-8));
-  ASSERT_THAT(d.get(pp2), DoubleNear(0.29953658 / SQRT2, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::sp1), DoubleNear(0.24758191, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::pp2), DoubleNear(0.29953658 / SQRT2, 1e-8));
 }
 
 TEST_F(AChargeSeparationParameter, CanBeCalculatedFromExponentsForXenon) {
   d.computeFromExponents(6, 5, 2.759787, 1.977446);
 
-  ASSERT_THAT(d.get(sp1), DoubleNear(1.15147932, 1e-8));
-  ASSERT_THAT(d.get(pp2), DoubleNear(1.83730955 / SQRT2, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::sp1), DoubleNear(1.15147932, 1e-8));
+  ASSERT_THAT(d.get(MultipolePair::pp2), DoubleNear(1.83730955 / SQRT2, 1e-8));
 }
 
 class AKlopmanParameter : public Test {
@@ -68,23 +68,23 @@ class AKlopmanParameter : public Test {
 };
 
 TEST_F(AKlopmanParameter, HasZeroAsDefaultValue) {
-  ASSERT_THAT(k.get(sp1), Eq(0.0));
+  ASSERT_THAT(k.get(MultipolePair::sp1), Eq(0.0));
 }
 
 TEST_F(AKlopmanParameter, CanBeSet) {
-  k.set(sp1, 1.0);
-  ASSERT_THAT(k.get(sp1), Eq(1.0));
+  k.set(MultipolePair::sp1, 1.0);
+  ASSERT_THAT(k.get(MultipolePair::sp1), Eq(1.0));
 }
 
 TEST_F(AKlopmanParameter, CanBeGotFromOrbitalPair) {
-  multipolePair_t type = pairType(0, 1, 1);
-  ASSERT_THAT(type, Eq(sp1));
+  MultipolePair type = pairType(0, 1, 1);
+  ASSERT_THAT(type, Eq(MultipolePair::sp1));
 }
 
 TEST_F(AKlopmanParameter, CanBeGeneratedForH) {
   double gss = 14.44868600;
   k.generateUpToS(gss * Utils::Constants::hartree_per_ev);
-  ASSERT_THAT(k.get(ss0), DoubleNear(0.94165599, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::ss0), DoubleNear(0.94165599, 1e-6));
 }
 
 TEST_F(AKlopmanParameter, CanBeGeneratedForC) {
@@ -96,10 +96,10 @@ TEST_F(AKlopmanParameter, CanBeGeneratedForC) {
   double D2pp = 1.01715357 / sqrt(2);
   k.generateUpToP(gss * Utils::Constants::hartree_per_ev, hsp * Utils::Constants::hartree_per_ev, D1sp,
                   hpp * Utils::Constants::hartree_per_ev, D2pp);
-  ASSERT_THAT(k.get(ss0), DoubleNear(1.02025963, 1e-6));
-  ASSERT_THAT(k.get(pp0), DoubleNear(1.02025963, 1e-6));
-  ASSERT_THAT(k.get(sp1), DoubleNear(1.29184422, 1e-6));
-  ASSERT_THAT(k.get(pp2), DoubleNear(0.76267645, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::ss0), DoubleNear(1.02025963, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::pp0), DoubleNear(1.02025963, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::sp1), DoubleNear(1.29184422, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::pp2), DoubleNear(0.76267645, 1e-6));
 }
 
 TEST_F(AKlopmanParameter, CannotBeGeneratedForXe) {
@@ -111,10 +111,10 @@ TEST_F(AKlopmanParameter, CannotBeGeneratedForXe) {
   double D2pp = 1.837309557 / sqrt(2);
   k.generateUpToP(gss * Utils::Constants::hartree_per_ev, hsp * Utils::Constants::hartree_per_ev, D1sp,
                   hpp * Utils::Constants::hartree_per_ev, D2pp);
-  ASSERT_THAT(k.get(ss0), DoubleNear(0.68027601, 1e-6));
-  ASSERT_THAT(k.get(pp0), DoubleNear(0.68027601, 1e-6));
-  ASSERT_THAT(k.get(sp1), DoubleNear(0.72182200, 1e-6));
-  ASSERT_TRUE(std::isnan(k.get(pp2)) || std::isinf(k.get(pp2)));
+  ASSERT_THAT(k.get(MultipolePair::ss0), DoubleNear(0.68027601, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::pp0), DoubleNear(0.68027601, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::sp1), DoubleNear(0.72182200, 1e-6));
+  ASSERT_TRUE(std::isnan(k.get(MultipolePair::pp2)) || std::isinf(k.get(MultipolePair::pp2)));
 }
 
 TEST_F(AKlopmanParameter, CanBeGeneratedForCl) {
@@ -135,14 +135,14 @@ TEST_F(AKlopmanParameter, CanBeGeneratedForCl) {
                   hpp * Utils::Constants::hartree_per_ev, D2pp, f0dd * Utils::Constants::hartree_per_ev,
                   g1pd * Utils::Constants::hartree_per_ev, D1pd, G2sd * Utils::Constants::hartree_per_ev, D2sd,
                   F2dd * Utils::Constants::hartree_per_ev, D2dd);
-  ASSERT_THAT(k.get(ss0), DoubleNear(1.22104587, 1e-6));
-  ASSERT_THAT(k.get(pp0), DoubleNear(1.22104587, 1e-6));
-  ASSERT_THAT(k.get(sp1), DoubleNear(0.57538280, 1e-6));
-  ASSERT_THAT(k.get(pp2), DoubleNear(0.78649683, 1e-6));
-  ASSERT_THAT(k.get(dd0), DoubleNear(0.30216070, 1e-6));
-  ASSERT_THAT(k.get(pd1), DoubleNear(1.03732318, 1e-6));
-  ASSERT_THAT(k.get(sd2), DoubleNear(2.34289326, 1e-6));
-  ASSERT_THAT(k.get(dd2), DoubleNear(0.72430125, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::ss0), DoubleNear(1.22104587, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::pp0), DoubleNear(1.22104587, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::sp1), DoubleNear(0.57538280, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::pp2), DoubleNear(0.78649683, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::dd0), DoubleNear(0.30216070, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::pd1), DoubleNear(1.03732318, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::sd2), DoubleNear(2.34289326, 1e-6));
+  ASSERT_THAT(k.get(MultipolePair::dd2), DoubleNear(0.72430125, 1e-6));
 }
 } // namespace Sparrow
 } // namespace Scine

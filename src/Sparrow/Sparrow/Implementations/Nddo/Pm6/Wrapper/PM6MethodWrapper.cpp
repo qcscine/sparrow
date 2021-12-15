@@ -1,15 +1,18 @@
 /**
  * @file PM6MethodWrapper.cpp
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 /* Internal Includes */
 #include "PM6MethodWrapper.h"
 #include "PM6Settings.h"
+#include <Sparrow/Implementations/Nddo/Parameters.h>
+#include <Sparrow/Implementations/Nddo/TimeDependent/LinearResponse/CISData.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Nddo/Utils/DipoleUtils/NDDODipoleMomentCalculator.h>
+#include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
 #include <Sparrow/Implementations/Nddo/Utils/OneElectronMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/TwoElectronMatrix.h>
 /* External Includes */
@@ -30,7 +33,7 @@ PM6MethodWrapper::PM6MethodWrapper() {
   this->settings_ = std::make_unique<PM6Settings>();
   requiredProperties_ = Utils::Property::Energy;
   applySettings();
-};
+}
 
 PM6MethodWrapper::PM6MethodWrapper(const PM6MethodWrapper& rhs) : PM6MethodWrapper() {
   copyInto(*this, rhs);
@@ -50,7 +53,7 @@ void PM6MethodWrapper::applySettings() {
   NDDODipoleCalculator.useNDDOApproximation(useNDDOApprox);
 
   NDDOMethodWrapper::applySettings(settings_, method_);
-};
+}
 
 std::string PM6MethodWrapper::name() const {
   return "PM6";
@@ -58,10 +61,14 @@ std::string PM6MethodWrapper::name() const {
 
 void PM6MethodWrapper::initialize() {
   try {
-    auto parameterFile = settings_->getString(Utils::SettingsNames::parameterFile);
-    auto resourceDirectory = settings_->getString(Utils::SettingsNames::parameterRootDirectory);
-    auto fullPathToParameters = Utils::NativeFilenames::combinePathSegments(resourceDirectory, parameterFile);
-    method_.readParameters(fullPathToParameters);
+    auto parameterFile = settings_->getString(Utils::SettingsNames::methodParameters);
+
+    if (parameterFile.empty()) {
+      method_.getInitializer().getRawParameters() = nddo::pm6();
+    }
+    else {
+      method_.readParameters(parameterFile);
+    }
     method_.initialize();
   }
   catch (Utils::Methods::InitializationException& e) {
@@ -77,8 +84,8 @@ Utils::LcaoMethod& PM6MethodWrapper::getLcaoMethod() {
   return method_;
 }
 
-void PM6MethodWrapper::calculateImpl(Utils::derivativeType requiredDerivative) {
-  method_.calculate(requiredDerivative);
+void PM6MethodWrapper::calculateImpl(Utils::Derivative requiredDerivative) {
+  method_.calculate(requiredDerivative, getLog());
 }
 
 Eigen::MatrixXd PM6MethodWrapper::getOneElectronMatrix() const {
@@ -87,7 +94,7 @@ Eigen::MatrixXd PM6MethodWrapper::getOneElectronMatrix() const {
 
 Utils::SpinAdaptedMatrix PM6MethodWrapper::getTwoElectronMatrix() const {
   Utils::SpinAdaptedMatrix twoElectronMatrix;
-  if (method_.unrestrictedCalculationRunning()) {
+  if (!method_.unrestrictedCalculationRunning()) {
     twoElectronMatrix = Utils::SpinAdaptedMatrix::createRestricted(method_.getTwoElectronMatrix().getMatrix());
   }
   else {
@@ -99,6 +106,14 @@ Utils::SpinAdaptedMatrix PM6MethodWrapper::getTwoElectronMatrix() const {
 
 Utils::DensityMatrix PM6MethodWrapper::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+CISData PM6MethodWrapper::getCISDataImpl() const {
+  return CISData::constructCISDataFromNDDOMethod(method_);
+}
+
+void PM6MethodWrapper::addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) {
+  method_.addElectronicContribution(std::move(contribution));
 }
 
 bool PM6MethodWrapper::successfulCalculation() const {

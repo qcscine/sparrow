@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -17,7 +17,7 @@ namespace Sparrow {
 
 namespace nddo {
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 class OrbitalRotation {
  public:
   OrbitalRotation(int l1, int l2);
@@ -31,7 +31,6 @@ class OrbitalRotation {
 
  private:
   double setUpOrderDependentValues(const Eigen::Vector3d& Rab);
-  bool onlyZComponent() const;
   void fillRotVector();
 
   Utils::AutomaticDifferentiation::Value3DType<O> rotVector[35];

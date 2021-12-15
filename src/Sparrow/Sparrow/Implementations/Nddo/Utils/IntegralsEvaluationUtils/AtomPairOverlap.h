@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -28,7 +28,7 @@ namespace nddo {
  * identified and scheduled for calculation.
  */
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 class AtomPairOverlap {
  public:
   using Value3D = Utils::AutomaticDifferentiation::Value3DType<O>;

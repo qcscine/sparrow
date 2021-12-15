@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_AM1TYPEMETHODWRAPPER_H
@@ -42,6 +42,11 @@ class AM1TypeMethodWrapper
    * @brief Function to apply the settings to the underlying method
    */
   void applySettings() final;
+  /**
+   * @brief Function to add a contribution to the electronic AM1 Hamiltonian.
+   * @param contribution An Utils::AdditiveElectronicContribution polymorphic class.
+   */
+  void addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
 
  protected:
   bool successfulCalculation() const final;
@@ -49,17 +54,18 @@ class AM1TypeMethodWrapper
   Utils::SpinAdaptedMatrix getTwoElectronMatrix() const final;
 
   Utils::DensityMatrix getDensityMatrixGuess() const final;
+  CISData getCISDataImpl() const final;
   //! Initializes a method with the parameter file present in the settings.
   void initialize() override;
   Utils::LcaoMethod& getLcaoMethod() final;
   const Utils::LcaoMethod& getLcaoMethod() const final;
 
-  void calculateImpl(Utils::derivativeType requiredDerivative) final;
+  void calculateImpl(Utils::Derivative requiredDerivative) final;
 
   nddo::AM1Method method_;
 };
 
-class AM1MethodWrapper : public Utils::CloneInterface<AM1MethodWrapper, AM1TypeMethodWrapper<AM1MethodWrapper>> {
+class AM1MethodWrapper final : public Utils::CloneInterface<AM1MethodWrapper, AM1TypeMethodWrapper<AM1MethodWrapper>> {
  public:
   static constexpr const char* model = "AM1";
   AM1MethodWrapper();
@@ -72,7 +78,7 @@ class AM1MethodWrapper : public Utils::CloneInterface<AM1MethodWrapper, AM1TypeM
   ~AM1MethodWrapper() final;
 };
 
-class RM1MethodWrapper : public Utils::CloneInterface<RM1MethodWrapper, AM1TypeMethodWrapper<RM1MethodWrapper>> {
+class RM1MethodWrapper final : public Utils::CloneInterface<RM1MethodWrapper, AM1TypeMethodWrapper<RM1MethodWrapper>> {
  public:
   static constexpr const char* model = "RM1";
   RM1MethodWrapper();
@@ -85,7 +91,7 @@ class RM1MethodWrapper : public Utils::CloneInterface<RM1MethodWrapper, AM1TypeM
   ~RM1MethodWrapper() final;
 };
 
-class PM3MethodWrapper : public Utils::CloneInterface<PM3MethodWrapper, AM1TypeMethodWrapper<PM3MethodWrapper>> {
+class PM3MethodWrapper final : public Utils::CloneInterface<PM3MethodWrapper, AM1TypeMethodWrapper<PM3MethodWrapper>> {
  public:
   static constexpr const char* model = "PM3";
   PM3MethodWrapper();

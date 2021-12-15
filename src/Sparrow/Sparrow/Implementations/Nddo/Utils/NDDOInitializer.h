@@ -1,17 +1,17 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #ifndef SPARROW_NDDOINITIALIZER_H
 #define SPARROW_NDDOINITIALIZER_H
 
+#include <Sparrow/Implementations/Nddo/Parameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/oneCenterIntegralContainer.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementPairParameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/ElementParameters.h>
-#include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/RawParametersContainer.h>
 #include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
 #include <Utils/Scf/MethodInterfaces/StructureDependentInitializer.h>
 #include <string>
@@ -56,9 +56,9 @@ class NDDOInitializer : public Utils::StructureDependentInitializer {
   bool unrestrictedCalculationPossible() const override;
 
   /*! Get reference to the class for raw NDDO parameters. */
-  RawParametersContainer& getRawParameters();
+  Parameters& getRawParameters();
   /*! Get const reference to the class for raw NDDO parameters. */
-  const RawParametersContainer& getRawParameters() const;
+  const Parameters& getRawParameters() const;
 
   const ElementParameters& getElementParameters();
   const ElementPairParameters& getElementPairParameters();
@@ -70,7 +70,7 @@ class NDDOInitializer : public Utils::StructureDependentInitializer {
   ElementParameters elementParameters_;
   ElementPairParameters elementPairParameters_;
   OneCenterIntegralContainer oneCenterIntegrals_;
-  RawParametersContainer rawParameters_;
+  Parameters rawParameters_;
 
   unsigned int nElectronsForUnchargedSpecies_ = 0;
   std::vector<double> coreCharges_;

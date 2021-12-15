@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -17,7 +17,7 @@
 namespace Scine {
 
 namespace Utils {
-enum class derivOrder;
+enum class DerivativeOrder;
 }
 
 namespace Sparrow {
@@ -45,22 +45,21 @@ class PM6RepulsionEnergy : public Utils::RepulsionCalculator {
   void initialize() override;
 
   //! @brief Starts the calculation of the core-core repulsion up to the \param order derivative order.
-  void calculateRepulsion(Utils::derivOrder order) override;
+  void calculateRepulsion(Utils::DerivativeOrder order) override;
   //! @brief Sums up all the single core-core contributions to return the overall core-core repulsion energy.
   double getRepulsionEnergy() const override;
   //! Functions calculating the core-core derivative contributions up to the corresponding derivative order.
+  void addRepulsionDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const override;
   void addRepulsionDerivatives(
-      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
+      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const override;
   void addRepulsionDerivatives(
-      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
-  void addRepulsionDerivatives(
-      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const override;
 
  private:
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addRepulsionDerivativesImpl(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const;
 
-  void calculatePairRepulsion(int i, int j, Utils::derivOrder order);
+  void calculatePairRepulsion(int i, int j, Utils::DerivativeOrder order);
   void initializePair(int i, int j);
 
   const ElementParameters& elementParameters_;

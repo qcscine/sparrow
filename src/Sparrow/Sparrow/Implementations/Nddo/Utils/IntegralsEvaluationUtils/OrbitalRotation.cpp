@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -19,7 +19,7 @@ using namespace GeneralTypes;
 
 using std::sqrt;
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 OrbitalRotation<O>::OrbitalRotation(int l1, int l2)
   : needsP(l1 > 0 || l2 > 0),
     needsD(l1 > 1 || l2 > 1),
@@ -29,7 +29,7 @@ OrbitalRotation<O>::OrbitalRotation(int l1, int l2)
 }
 
 template<>
-double OrbitalRotation<Utils::derivOrder::zero>::setUpOrderDependentValues(const Eigen::Vector3d& Rab) {
+double OrbitalRotation<Utils::DerivativeOrder::Zero>::setUpOrderDependentValues(const Eigen::Vector3d& Rab) {
   X = Rab(0);
   Y = Rab(1);
   Z = Rab(2);
@@ -38,7 +38,7 @@ double OrbitalRotation<Utils::derivOrder::zero>::setUpOrderDependentValues(const
 }
 
 template<>
-double OrbitalRotation<Utils::derivOrder::one>::setUpOrderDependentValues(const Eigen::Vector3d& Rab) {
+double OrbitalRotation<Utils::DerivativeOrder::One>::setUpOrderDependentValues(const Eigen::Vector3d& Rab) {
   X = First3D(Rab(0), 1, 0, 0);
   Y = First3D(Rab(1), 0, 1, 0);
   Z = First3D(Rab(2), 0, 0, 1);
@@ -46,7 +46,7 @@ double OrbitalRotation<Utils::derivOrder::one>::setUpOrderDependentValues(const 
   return R.value();
 }
 template<>
-double OrbitalRotation<Utils::derivOrder::two>::setUpOrderDependentValues(const Eigen::Vector3d& Rab) {
+double OrbitalRotation<Utils::DerivativeOrder::Two>::setUpOrderDependentValues(const Eigen::Vector3d& Rab) {
   X = Second3D(Rab(0), 1, 0, 0, 0, 0, 0, 0, 0, 0);
   Y = Second3D(Rab(1), 0, 1, 0, 0, 0, 0, 0, 0, 0);
   Z = Second3D(Rab(2), 0, 0, 1, 0, 0, 0, 0, 0, 0);
@@ -54,38 +54,46 @@ double OrbitalRotation<Utils::derivOrder::two>::setUpOrderDependentValues(const 
   return R.value();
 }
 
-template<>
-bool OrbitalRotation<Utils::derivOrder::zero>::onlyZComponent() const {
-  return planeProj == 0;
+template<Utils::DerivativeOrder O>
+inline bool isOnlyZComponent(const Utils::AutomaticDifferentiation::Value3DType<O>& planeProjection) {
+  return planeProjection == 0;
 }
 template<>
-bool OrbitalRotation<Utils::derivOrder::one>::onlyZComponent() const {
-  return planeProj.value() == 0;
+inline bool isOnlyZComponent<Utils::DerivativeOrder::Zero>(
+    const Utils::AutomaticDifferentiation::Value3DType<Utils::DerivativeOrder::Zero>& planeProjection) {
+  return planeProjection == 0;
 }
 template<>
-bool OrbitalRotation<Utils::derivOrder::two>::onlyZComponent() const {
-  return planeProj.value() == 0;
+inline bool isOnlyZComponent<Utils::DerivativeOrder::One>(
+    const Utils::AutomaticDifferentiation::Value3DType<Utils::DerivativeOrder::One>& planeProjection) {
+  return planeProjection.value() == 0;
+}
+template<>
+inline bool isOnlyZComponent<Utils::DerivativeOrder::Two>(
+    const Utils::AutomaticDifferentiation::Value3DType<Utils::DerivativeOrder::Two>& planeProjection) {
+  return planeProjection.value() == 0;
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 double OrbitalRotation<O>::setVector(const Eigen::Vector3d& Rab) {
   double Rabs = setUpOrderDependentValues(Rab);
+  Utils::AutomaticDifferentiation::Value3DType<O> planeProjection;
 
   if (needsP) {
-    planeProj = nullDeriv;
-    if (Rab(0) * Rab(0) + Rab(1) * Rab(1) != 0)
-      planeProj = sqrt(X * X + Y * Y);
-
-    if (!onlyZComponent()) {
-      cosa = (X) / planeProj;
-      sina = (Y) / planeProj;
+    planeProjection = nullDeriv;
+    if (Rab.head(2).norm() != 0) {
+      planeProjection = sqrt(X * X + Y * Y);
+    }
+    if (!isOnlyZComponent<O>(planeProjection)) {
+      cosa = (X) / planeProjection;
+      sina = (Y) / planeProjection;
     }
     else {
       cosa = oneDeriv;
       sina = nullDeriv;
     }
     cosb = (Z / R);
-    sinb = planeProj / R;
+    sinb = planeProjection / R;
 
     if (needsD) {
       sin2b = sinb * sinb;
@@ -100,7 +108,7 @@ double OrbitalRotation<O>::setVector(const Eigen::Vector3d& Rab) {
 
   return Rabs;
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void OrbitalRotation<O>::fillRotVector() {
   rotVector[static_cast<int>(rotationOrbitalPair::s_s)] = oneDeriv;
 
@@ -145,9 +153,9 @@ void OrbitalRotation<O>::fillRotVector() {
   }
 }
 
-template class OrbitalRotation<Utils::derivOrder::zero>;
-template class OrbitalRotation<Utils::derivOrder::one>;
-template class OrbitalRotation<Utils::derivOrder::two>;
+template class OrbitalRotation<Utils::DerivativeOrder::Zero>;
+template class OrbitalRotation<Utils::DerivativeOrder::One>;
+template class OrbitalRotation<Utils::DerivativeOrder::Two>;
 
 } // namespace nddo
 } // namespace Sparrow

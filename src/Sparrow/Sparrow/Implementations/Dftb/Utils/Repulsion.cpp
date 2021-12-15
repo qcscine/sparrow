@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -43,12 +43,12 @@ void Repulsion::initializePair(int i, int j) {
   Utils::ElementType e1 = elements_[i];
   Utils::ElementType e2 = elements_[j];
 
-  SKPair* parameters = diatomicParameters_[Utils::ElementInfo::Z(e1)][Utils::ElementInfo::Z(e2)].get();
+  const SKPair& parameters = diatomicParameters_.at(std::make_pair(Utils::ElementInfo::Z(e1), Utils::ElementInfo::Z(e2)));
 
-  pairRepulsions_[i][j] = std::make_unique<dftb::PairwiseRepulsion>(parameters->getRepulsionParameters());
+  pairRepulsions_[i][j] = std::make_unique<dftb::PairwiseRepulsion>(parameters.getRepulsionParameters());
 }
 
-void Repulsion::calculateRepulsion(Utils::derivOrder order) {
+void Repulsion::calculateRepulsion(Utils::DerivativeOrder order) {
   for (int i = 0; i < nAtoms_; i++) {
     for (int j = i + 1; j < nAtoms_; j++) {
       calculatePairRepulsion(i, j, order);
@@ -56,7 +56,7 @@ void Repulsion::calculateRepulsion(Utils::derivOrder order) {
   }
 }
 
-void Repulsion::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
+void Repulsion::calculatePairRepulsion(int i, int j, Utils::DerivativeOrder order) {
   const auto& pA = positions_.row(i);
   const auto& pB = positions_.row(j);
   Eigen::Vector3d Rab = pB - pA;
@@ -79,21 +79,21 @@ double Repulsion::getRepulsionEnergy() const {
 }
 
 void Repulsion::addRepulsionDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::first>(derivatives);
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::First>(derivatives);
 }
 
 void Repulsion::addRepulsionDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::second_atomic>(derivatives);
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::SecondAtomic>(derivatives);
 }
 
 void Repulsion::addRepulsionDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::second_full>(derivatives);
+    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::SecondFull>(derivatives);
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void Repulsion::addRepulsionDerivativesImpl(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const {
 #pragma omp parallel for
   for (int a = 0; a < nAtoms_; ++a) {

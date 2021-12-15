@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_NDDODIPOLEMOMENTCALCULATOR_H
@@ -23,7 +23,7 @@ class DipoleMatrixCalculator;
  *         getInitializer must return a valid NDDOInitializer instance.
  */
 template<class NDDOMethod>
-class NDDODipoleMomentCalculator : public DipoleMomentCalculator {
+class NDDODipoleMomentCalculator final : public DipoleMomentCalculator {
  public:
   /**
    * @brief Factory method for the NDDODipoleMomentCalculator class.
@@ -59,7 +59,7 @@ class NDDODipoleMomentCalculator : public DipoleMomentCalculator {
                                                Eigen::RowVector3d dipoleEvaluationCoordinate) const;
   // Private constructor.
   NDDODipoleMomentCalculator(NDDOMethod& method, DipoleMatrixCalculator& dipoleMatrixCalculator);
-  ;
+
   NDDOMethod& method_;
   DipoleMatrixCalculator& dipoleMatrixCalculator_;
 

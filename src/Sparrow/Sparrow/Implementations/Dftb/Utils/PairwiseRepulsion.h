@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -14,7 +14,7 @@
 namespace Scine {
 
 namespace {
-enum class derivOrder;
+enum class DerivativeOrder;
 }
 
 namespace Sparrow {
@@ -26,14 +26,14 @@ class PairwiseRepulsion {
  public:
   explicit PairwiseRepulsion(const RepulsionParameters& repulsionPars);
 
-  void calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order);
+  void calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::DerivativeOrder order);
 
   double getRepulsionEnergy() const;
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   Utils::AutomaticDifferentiation::DerivativeType<O> getDerivative() const;
 
  private:
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value1DType<O> calculateRepulsion(double r) const;
 
   const RepulsionParameters& repulsionPars_;
@@ -47,18 +47,18 @@ inline double PairwiseRepulsion::getRepulsionEnergy() const {
 }
 
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::first>
-PairwiseRepulsion::getDerivative<Utils::derivativeType::first>() const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::First>
+PairwiseRepulsion::getDerivative<Utils::Derivative::First>() const {
   return repulsionGradient_;
 }
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::second_atomic>
-PairwiseRepulsion::getDerivative<Utils::derivativeType::second_atomic>() const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::SecondAtomic>
+PairwiseRepulsion::getDerivative<Utils::Derivative::SecondAtomic>() const {
   return repulsionHessian_;
 }
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::second_full>
-PairwiseRepulsion::getDerivative<Utils::derivativeType::second_full>() const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::SecondFull>
+PairwiseRepulsion::getDerivative<Utils::Derivative::SecondFull>() const {
   return repulsionHessian_;
 }
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -10,6 +10,8 @@
 #include "DipoleMatrixCalculator.h"
 #include "DipoleMomentCalculator.h"
 #include "MoldenFileGenerator.h"
+#include "Sto6gParameters.h"
+#include "Utils/Scf/LcaoUtils/SpinMode.h"
 #include <Utils/CalculatorBasics/PropertyList.h>
 /* External Includes */
 #include <Core/Exceptions.h>
@@ -17,6 +19,7 @@
 #include <Utils/CalculatorBasics.h>
 #include <Utils/GeometricDerivatives/NumericalHessianCalculator.h>
 #include <Utils/Geometry/AtomCollection.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/IO/NativeFilenames.h>
 #include <Utils/Scf/MethodExceptions.h>
 #include <Utils/Scf/MethodInterfaces/LcaoMethod.h>
@@ -88,11 +91,12 @@ const Utils::Results& GenericMethodWrapper::calculate(std::string description) {
   assembleResults(description);
 
   return results_;
-};
+}
 
 void GenericMethodWrapper::setStructure(const Utils::AtomCollection& structure) {
+  results_ = {};
   getLcaoMethod().setAtomCollection(structure);
-  // applySettings() is here to prevent logging wrong settings due to the call to initialize.
+  // Apply the settings used in intialization, as molecular charge
   applySettings();
   initialize();
 }
@@ -102,7 +106,8 @@ std::unique_ptr<Utils::AtomCollection> GenericMethodWrapper::getStructure() cons
 }
 
 void GenericMethodWrapper::modifyPositions(Utils::PositionCollection newPositions) {
-  if (getLcaoMethod().getElementTypes().size() != newPositions.rows()) {
+  results_ = {};
+  if (int(getLcaoMethod().getElementTypes().size()) != int(newPositions.rows())) {
     throw std::runtime_error("Position/ElementTypeCollection dimensionality mismatch.");
   }
   getLcaoMethod().setPositions(std::move(newPositions));
@@ -122,23 +127,27 @@ Utils::PropertyList GenericMethodWrapper::getRequiredProperties() const {
 
 Utils::PropertyList GenericMethodWrapper::possibleProperties() const {
   return Utils::Property::Energy | Utils::Property::Gradients | Utils::Property::Hessian |
-         Utils::Property::BondOrderMatrix | Utils::Property::DensityMatrix | Utils::Property::AtomicCharges |
-         Utils::Property::OverlapMatrix | Utils::Property::OrbitalEnergies | Utils::Property::CoefficientMatrix |
-         Utils::Property::ElectronicOccupation | Utils::Property::Thermochemistry | Utils::Property::Description |
-         Utils::Property::Dipole | Utils::Property::SuccessfulCalculation;
+         Utils::Property::AtomicHessians | Utils::Property::BondOrderMatrix | Utils::Property::DensityMatrix |
+         Utils::Property::AtomicCharges | Utils::Property::OverlapMatrix | Utils::Property::OrbitalEnergies |
+         Utils::Property::CoefficientMatrix | Utils::Property::ElectronicOccupation | Utils::Property::Thermochemistry |
+         Utils::Property::Description | Utils::Property::Dipole | Utils::Property::SuccessfulCalculation;
 }
 
-Utils::derivativeType GenericMethodWrapper::highestDerivativeRequired() const {
+Utils::Derivative GenericMethodWrapper::highestDerivativeRequired() const {
   // If gradient or hessian is contained in the requiredProperties_, then calculate the corresponding derivative.
   bool gradientsRequired = requiredProperties_.containsSubSet(Utils::Property::Gradients);
   bool hessianRequired = requiredProperties_.containsSubSet(Utils::Property::Hessian) ||
                          requiredProperties_.containsSubSet(Utils::Property::Thermochemistry);
-  Utils::derivativeType requiredDerivative = Utils::derivativeType::none;
+  bool atomicHessiansRequired = requiredProperties_.containsSubSet(Utils::Property::AtomicHessians);
+  Utils::Derivative requiredDerivative = Utils::Derivative::None;
   if (gradientsRequired && possibleProperties().containsSubSet(Utils::Property::Gradients)) {
-    requiredDerivative = Utils::derivativeType::first;
+    requiredDerivative = Utils::Derivative::First;
   }
   if (hessianRequired && canCalculateAnalyticalHessian()) {
-    requiredDerivative = Utils::derivativeType::second_full;
+    requiredDerivative = Utils::Derivative::SecondFull;
+  }
+  if (atomicHessiansRequired) {
+    requiredDerivative = Utils::Derivative::SecondAtomic;
   }
   return requiredDerivative;
 }
@@ -148,11 +157,28 @@ void GenericMethodWrapper::assembleResults(const std::string& description) {
   results_.set<Utils::Property::Energy>(getLcaoMethod().getEnergy());
 
   if (requiredProperties_.containsSubSet(Utils::Property::Gradients)) {
-    results_.set<Utils::Property::Gradients>(getLcaoMethod().getGradients());
+    Utils::GradientCollection grad(getPositions().rows(), 3);
+    if (highestDerivativeRequired() == Utils::Derivative::First) {
+      grad = getLcaoMethod().getGradients();
+    }
+    else if (highestDerivativeRequired() == Utils::Derivative::SecondAtomic) {
+      int index = 0;
+      for (const auto& sd : getLcaoMethod().getAtomicSecondDerivatives()) {
+        grad.row(index++) = sd.deriv().transpose();
+      }
+    }
+    else if (highestDerivativeRequired() == Utils::Derivative::SecondFull) {
+      grad = getLcaoMethod().getFullSecondDerivatives().getReferenceGradients();
+    }
+    results_.set<Utils::Property::Gradients>(std::move(grad));
   }
 
-  if (highestDerivativeRequired() >= Utils::derivativeType::second_full) {
+  if (highestDerivativeRequired() >= Utils::Derivative::SecondFull) {
     results_.set<Utils::Property::Hessian>(getLcaoMethod().getFullSecondDerivatives().getHessianMatrix());
+  }
+
+  if (requiredProperties_.containsSubSet(Utils::Property::AtomicHessians)) {
+    results_.set<Utils::Property::AtomicHessians>(getLcaoMethod().getAtomicSecondDerivatives());
   }
 
   if (requiredProperties_.containsSubSet(Utils::Property::BondOrderMatrix)) {
@@ -168,7 +194,7 @@ void GenericMethodWrapper::assembleResults(const std::string& description) {
   }
 
   if (requiredProperties_.containsSubSet(Utils::Property::OverlapMatrix)) {
-    results_.set<Utils::Property::OverlapMatrix>(getLcaoMethod().getOverlapMatrix());
+    results_.set<Utils::Property::OverlapMatrix>(getLcaoMethod().getOverlapMatrix().selfadjointView<Eigen::Lower>());
   }
 
   if (requiredProperties_.containsSubSet(Utils::Property::OrbitalEnergies)) {
@@ -185,6 +211,14 @@ void GenericMethodWrapper::assembleResults(const std::string& description) {
     results_.set<Utils::Property::ElectronicOccupation>(getLcaoMethod().getElectronicOccupation());
   }
 
+  if (requiredProperties_.containsSubSet(Utils::Property::AOtoAtomMapping)) {
+    results_.set<Utils::Property::AOtoAtomMapping>(getLcaoMethod().getAtomsOrbitalsIndexesHolder());
+  }
+
+  if (requiredProperties_.containsSubSet(Utils::Property::AtomicGtos)) {
+    results_.set<Utils::Property::AtomicGtos>(getAtomicGtosMap());
+  }
+
   Utils::ResultsAutoCompleter resultsAutoCompleter(*getStructure());
   resultsAutoCompleter.setCoreCharges(getLcaoMethod().getAtomicCharges());
   auto zpveInclusion = getZPVEInclusion() ? Utils::ZPVEInclusion::alreadyIncluded : Utils::ZPVEInclusion::notIncluded;
@@ -193,9 +227,17 @@ void GenericMethodWrapper::assembleResults(const std::string& description) {
   if (requiredProperties_.containsSubSet(Utils::Property::Thermochemistry)) {
     resultsAutoCompleter.addOneWantedProperty(Utils::Property::Thermochemistry);
     resultsAutoCompleter.setTemperature(settings().getDouble(Utils::SettingsNames::temperature));
+    resultsAutoCompleter.setMolecularSymmetryNumber(settings().getInt(Utils::SettingsNames::symmetryNumber));
   }
 
   resultsAutoCompleter.generateProperties(results_, *getStructure());
+
+  // update spin_mode
+  if (settings_->valueExists(Utils::SettingsNames::spinMode)) {
+    Utils::SpinMode spinmode =
+        getLcaoMethod().unrestrictedCalculationRunning() ? Utils::SpinMode::Unrestricted : Utils::SpinMode::Restricted;
+    settings_->modifyString(Utils::SettingsNames::spinMode, Utils::SpinModeInterpreter::getStringFromSpinMode(spinmode));
+  }
 }
 
 bool GenericMethodWrapper::supportsMethodFamily(const std::string& methodFamily) const {
@@ -206,10 +248,12 @@ void GenericMethodWrapper::loadState(std::shared_ptr<Core::State> state) {
   auto sparrowState = std::dynamic_pointer_cast<SparrowState>(state);
   if (!sparrowState)
     throw Core::StateCastingException();
-  if (getLcaoMethod().getNumberElectrons() != sparrowState->getDensityMatrix().numberElectrons()) {
-    throw IncompatibleStateException();
+  if (sparrowState->getDensityMatrix().numberElectrons() != 0) {
+    if (getLcaoMethod().getNumberElectrons() != sparrowState->getDensityMatrix().numberElectrons()) {
+      throw IncompatibleStateException();
+    }
+    getLcaoMethod().setDensityMatrix(sparrowState->getDensityMatrix());
   }
-  getLcaoMethod().setDensityMatrix(sparrowState->getDensityMatrix());
 }
 
 std::shared_ptr<Core::State> GenericMethodWrapper::getState() const {
@@ -217,16 +261,58 @@ std::shared_ptr<Core::State> GenericMethodWrapper::getState() const {
 }
 
 std::string GenericMethodWrapper::getStoNGExpansionPath() const {
-  auto path = Utils::NativeFilenames::combinePathSegments(settings().getString(Utils::SettingsNames::parameterRootDirectory),
-                                                          settings().getString(Utils::SettingsNames::parameterFile));
-  boost::filesystem::path methodRoot(path);
+  boost::filesystem::path methodRoot(settings().getString(Utils::SettingsNames::methodParameters));
   auto pathToBasis = methodRoot.parent_path();
 
-  if (name() == "DFTB0" || name() == "DFTB2" || name() == "DFTB3")
+  if (name() == "DFTB0" || name() == "DFTB2" || name() == "DFTB3") {
     pathToBasis = pathToBasis.parent_path();
-
-  pathToBasis = pathToBasis / "STO-6G.basis";
+    pathToBasis = pathToBasis / "STO-6G.basis";
+  }
+  else {
+    std::string fileName = name() + "-STO-6G.basis";
+    pathToBasis = pathToBasis / fileName;
+  }
   return pathToBasis.string();
+}
+
+std::unordered_map<int, Utils::AtomicGtos> GenericMethodWrapper::getAtomicGtosMap() const {
+  std::unordered_map<int, Utils::AtomicGtos> expansionMap;
+  if (name() == "MNDO") {
+    expansionMap = Sto6g::mndo();
+  }
+  else if (name() == "AM1") {
+    expansionMap = Sto6g::am1();
+  }
+  else if (name() == "RM1") {
+    expansionMap = Sto6g::rm1();
+  }
+  else if (name() == "PM3") {
+    expansionMap = Sto6g::pm3();
+  }
+  else if (name() == "PM6") {
+    expansionMap = Sto6g::pm6();
+  }
+  else if (name().find("DFTB") != std::string::npos) {
+    expansionMap = Sto6g::dftb();
+  }
+  else {
+    throw std::runtime_error("Atomic GTO Property is not possible for method " + name() + ".");
+  }
+  /* expansionMap includes STO for all elements, now give out only for exisiting elements in calc */
+  std::unordered_map<int, Utils::AtomicGtos> necessaryExpansionMap;
+  Utils::ElementTypeCollection elements = getLcaoMethod().getElementTypes();
+  /* remove duplicate elements */
+  auto last = std::unique(elements.begin(), elements.end());
+  elements.erase(last, elements.end());
+  /* find elements and save STOs in map */
+  for (const auto& ele : elements) {
+    auto it = expansionMap.find(Utils::ElementInfo::Z(ele));
+    if (it == expansionMap.end()) {
+      throw std::runtime_error("Could not find GTO for element " + Utils::ElementInfo::symbol(ele) + ".");
+    }
+    necessaryExpansionMap.insert(*it);
+  }
+  return necessaryExpansionMap;
 }
 
 bool GenericMethodWrapper::canCalculateAnalyticalHessian() const {
@@ -241,7 +327,9 @@ void GenericMethodWrapper::generateWavefunctionInformation(const std::string& fi
 }
 
 void GenericMethodWrapper::generateWavefunctionInformation(std::ostream& out) {
-  getLcaoMethod().calculate(Utils::derivativeType::none);
+  if (!results().has<Utils::Property::SuccessfulCalculation>() || !results().get<Utils::Property::SuccessfulCalculation>()) {
+    getLcaoMethod().calculate(Utils::Derivative::None, getLog());
+  }
   MoldenFileGenerator sparrow2molden(*this);
   sparrow2molden.generateWavefunctionInformation(out);
 }

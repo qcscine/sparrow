@@ -1,0 +1,28 @@
+file: example_trajectory.xyz
+method_name: DFTB3
+single_point_settings:
+  self_consistence_criterion: 1e-9
+  max_scf_iterations: 1000
+  scf_mixer: diis
+  molecular_charge: 0
+  spin_multiplicity: 1
+settings_ir:
+  gradient_threshold: 0.0
+  partial_hessian: false
+  partial_hessian_RMSD_deviation: 0.25
+  optimization_profile: very_tight
+  method: DFTB3
+  max_scf_iterations: 1000
+  scf_mixer: diis
+uv_vis_frequency: 1
+settings_uv_vis:
+  method: DFTB3
+  uv_vis_diis_max_dimension: 0
+  number_eigenstates: 30
+  initial_subspace_dimension: 120
+  max_scf_iterations: 1000
+  gep_algo: simultaneous_diag
+  prune_basis: none
+  energy_threshold: 0.0
+  pt_threshold: 0.0001
+  tda: false

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -15,7 +15,7 @@ namespace Sparrow {
 namespace dftb {
 
 DensityGuess::DensityGuess(const Utils::AtomsOrbitalsIndexes& aoIndexes, const std::vector<double>& coreCharges,
-                           const unsigned& nElectrons)
+                           const int& nElectrons)
   : aoIndexes_(aoIndexes), coreCharges_(coreCharges), nElectrons_(nElectrons) {
 }
 
@@ -36,10 +36,6 @@ Utils::DensityMatrix DensityGuess::calculateGuess() const {
   Utils::DensityMatrix d;
   d.setDensity(std::move(P), nElectrons_);
   return d;
-}
-
-void DensityGuess::setNElectrons(int nElectrons) {
-  nElectrons_ = nElectrons;
 }
 
 } // namespace dftb

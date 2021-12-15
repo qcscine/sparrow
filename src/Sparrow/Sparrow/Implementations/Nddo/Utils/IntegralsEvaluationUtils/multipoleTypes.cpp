@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -91,46 +91,46 @@ rotationOrbitalPair getRotPairType(orb_t o1, orb_t o2) {
   throw InvalidOrbitalPairException();
 }
 
-int MQuantumNumber(multipole_t m) {
+int MQuantumNumber(Multipole m) {
   int n;
   switch (m) {
-    case M00:
+    case Multipole::M00:
       n = 0;
       break;
-    case Qxx:
+    case Multipole::Qxx:
       n = 0;
       break;
-    case Qyy:
+    case Multipole::Qyy:
       n = 0;
       break;
-    case Qzz:
+    case Multipole::Qzz:
       n = 0;
       break;
-    case M1m1:
+    case Multipole::M1m1:
       n = -1;
       break;
-    case M10:
+    case Multipole::M10:
       n = 0;
       break;
-    case M11:
+    case Multipole::M11:
       n = 1;
       break;
-    case M2m2:
+    case Multipole::M2m2:
       n = -2;
       break;
-    case M2m1:
+    case Multipole::M2m1:
       n = -1;
       break;
-    case M20:
+    case Multipole::M20:
       n = 0;
       break;
-    case M21:
+    case Multipole::M21:
       n = 1;
       break;
-    case M22:
+    case Multipole::M22:
       n = 2;
       break;
-    case Qzx:
+    case Multipole::Qzx:
       n = 2;
       break;
     default:
@@ -138,46 +138,46 @@ int MQuantumNumber(multipole_t m) {
   }
   return n;
 }
-int LQuantumNumber(multipole_t m) {
+int LQuantumNumber(Multipole m) {
   int n;
   switch (m) {
-    case M00:
+    case Multipole::M00:
       n = 0;
       break;
-    case Qxx:
+    case Multipole::Qxx:
       n = 2;
       break;
-    case Qyy:
+    case Multipole::Qyy:
       n = 2;
       break;
-    case Qzz:
+    case Multipole::Qzz:
       n = 2;
       break;
-    case M1m1:
+    case Multipole::M1m1:
       n = 1;
       break;
-    case M10:
+    case Multipole::M10:
       n = 1;
       break;
-    case M11:
+    case Multipole::M11:
       n = 1;
       break;
-    case M2m2:
+    case Multipole::M2m2:
       n = 2;
       break;
-    case M2m1:
+    case Multipole::M2m1:
       n = 2;
       break;
-    case M20:
+    case Multipole::M20:
       n = 2;
       break;
-    case M21:
+    case Multipole::M21:
       n = 2;
       break;
-    case M22:
+    case Multipole::M22:
       n = 2;
       break;
-    case Qzx:
+    case Multipole::Qzx:
       n = 2;
       break;
     default:
@@ -186,23 +186,23 @@ int LQuantumNumber(multipole_t m) {
   return n;
 }
 
-multipolePair_t pairType(int l1, int l2, int l) {
+MultipolePair pairType(int l1, int l2, int l) {
   if (l1 == 0 && l2 == 1 && l == 1)
-    return sp1;
+    return MultipolePair::sp1;
   if (l1 == 1 && l2 == 2 && l == 1)
-    return pd1;
+    return MultipolePair::pd1;
   if (l1 == 1 && l2 == 1 && l == 2)
-    return pp2;
+    return MultipolePair::pp2;
   if (l1 == 0 && l2 == 2 && l == 2)
-    return sd2;
+    return MultipolePair::sd2;
   if (l1 == 2 && l2 == 2 && l == 2)
-    return dd2;
+    return MultipolePair::dd2;
   if (l1 == 0 && l2 == 0 && l == 0)
-    return ss0;
+    return MultipolePair::ss0;
   if (l1 == 1 && l2 == 1 && l == 0)
-    return pp0;
+    return MultipolePair::pp0;
   if (l1 == 2 && l2 == 2 && l == 0)
-    return dd0;
+    return MultipolePair::dd0;
 
   throw InvalidQuantumNumbersException();
 }

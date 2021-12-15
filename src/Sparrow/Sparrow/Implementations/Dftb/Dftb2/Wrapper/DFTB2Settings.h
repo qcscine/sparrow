@@ -1,14 +1,13 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #ifndef SPARROW_DFTB2SETTINGS_H
 #define SPARROW_DFTB2SETTINGS_H
 
-#include <Sparrow/ParametersHeader.h>
 #include <Utils/Settings.h>
 #include <Utils/UniversalSettings/SettingPopulator.h>
 
@@ -24,10 +23,9 @@ class DFTB2Settings : public Scine::Utils::Settings {
   DFTB2Settings() : Settings("DFTB2Settings") {
     Utils::UniversalSettings::SettingPopulator::populateLcaoSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
-    Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "Dftb/mio-1-1/");
+    Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "mio-1-1");
 
     resetToDefaults();
-    modifyString(Utils::SettingsNames::parameterRootDirectory, std::string(parametersRootDir));
   };
 };
 

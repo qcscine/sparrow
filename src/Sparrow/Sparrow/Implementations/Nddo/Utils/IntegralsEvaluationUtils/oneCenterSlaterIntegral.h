@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -9,6 +9,7 @@
 #define SPARROW_ONECENTERSLATERINTEGRAL_H
 
 #include <array>
+#include <boost/math/special_functions/factorials.hpp>
 
 namespace Scine {
 namespace Sparrow {
@@ -18,6 +19,7 @@ namespace nddo {
 /*!
  * Calculation of the one-centre integrals (related to Slater-Condon parameters)
  * according to Kumar, Mishra, J. Phys., 1987, 29, 385-390.
+ * https://doi.org/10.1007/BF02845776
  * The calculation is not optimized for performance as it does not
  * need to be fast. NB: this returns
  * U^l(a,b,c,d) = R^k(a,c,b,d) as defined in other papers.
@@ -41,9 +43,6 @@ class OneCenterSlaterIntegral {
   double calculateThirdTerm();
   double calculateSecondSumTerm(int ll);
   double calculateThirdSumTerm(int ll);
-  /*! Factorial, works up to n = 20. */
-  long long int factorial(int n);
-  static std::array<long long int, 20> createFactorialArrayUpTo20();
 
   int l_;
   int na_, nb_, nc_, nd_;

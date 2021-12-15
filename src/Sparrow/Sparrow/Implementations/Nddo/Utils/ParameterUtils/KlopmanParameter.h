@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -9,12 +9,11 @@
 #define SPARROW_KLOPMANPARAMETER_H
 
 #include "Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/multipoleTypes.h"
+#include <array>
 
 namespace Scine {
 namespace Sparrow {
-
 namespace nddo {
-
 namespace multipole {
 
 /*!
@@ -38,14 +37,14 @@ class KlopmanParameter {
   void reset();
 
   /** @brief stores the value of the Klopman--Ohno parameter for a multipole type
-   *         at the index given by the cast multipolePair_t. */
-  void set(multipolePair_t type, double value) {
-    K_[type] = value;
+   *         at the index given by the cast MultipolePair. */
+  void set(MultipolePair type, double value) {
+    K_.at(static_cast<unsigned>(type)) = value;
   }
 
-  /** @brief returns the value correspoding to the multipolePair_t typed multipole */
-  double get(multipolePair_t type) const {
-    return K_[type];
+  /** @brief returns the value correspoding to the MultipolePair typed multipole */
+  double get(MultipolePair type) const {
+    return K_.at(static_cast<unsigned>(type));
   }
 
   /**
@@ -117,13 +116,14 @@ class KlopmanParameter {
    * sqrt(2). */
   double findRootVar2Wrong(double D, double shift);
 
-  double K_[8];
+  static_assert(static_cast<std::underlying_type<MultipolePair>::type>(MultipolePair::dd0) == 7,
+                "Multipole pair type enum has changed value layout");
+  std::array<double, 8> K_;
 };
 
 } // namespace multipole
-
 } // namespace nddo
-
 } // namespace Sparrow
 } // namespace Scine
+
 #endif // SPARROW_KLOPMANPARAMETER_H

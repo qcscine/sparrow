@@ -3,14 +3,16 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #include "GenericMethodWrapper.h"
 #include "MoldenFileGenerator.h"
 #include <Sparrow/Implementations/Nddo/Pm6/Wrapper/PM6MethodWrapper.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDOInitializer.h>
+#include <Sparrow/Implementations/Sto6gParameters.h>
 #include <Utils/IO/NativeFilenames.h>
+#include <Utils/IO/TurbomoleMinimalBasisfile.h>
 #include <Utils/Scf/MethodInterfaces/LcaoMethod.h>
 #include <Eigen/Eigenvalues>
 #include <fstream>
@@ -47,76 +49,6 @@ void MoldenFileGenerator::generateWavefunctionInformation(std::ostream& out) con
   generateMolecularOrbitalsBlock(out);
 }
 
-std::vector<Utils::AtomicGtos> MoldenFileGenerator::getStoNGExpansion() const {
-  auto filename = calculator_.getStoNGExpansionPath();
-  auto elements = calculator_.getStructure()->getElements();
-  std::vector<Utils::AtomicGtos> atomicGtosVector;
-
-  for (Utils::ElementType el : elements) {
-    std::ifstream basisFile(filename);
-    if (!basisFile.is_open()) {
-      throw std::runtime_error("Not able to open basis set file '" + filename + "'.");
-    }
-    // TODO: parse basis set file and give it back as is.
-    std::string line;
-    while (std::getline(basisFile, line)) {
-      std::string symbol = Utils::ElementInfo::symbol(el);
-      std::transform(line.begin(), line.end(), line.begin(), ::tolower);
-      std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
-      if (line.substr(0, symbol.size() + 1) == symbol + " ") {
-        Utils::AtomicGtos atomicGtos;
-        // found element
-        std::string gtoLine;
-        std::stringstream gtoStream;
-        // skip asterisk
-        std::getline(basisFile, gtoLine);
-
-        while (std::getline(basisFile, gtoLine)) {
-          if (gtoLine.find('*') != std::string::npos)
-            break;
-          // get first line
-          int numberOfPrimitives = 0;
-          std::string label;
-          // read GTO contraction infos
-          gtoStream = std::stringstream(gtoLine);
-          gtoStream >> numberOfPrimitives >> label;
-
-          int angularMomentum;
-          if (label == "s")
-            angularMomentum = 0;
-          else if (label == "p")
-            angularMomentum = 1;
-          else if (label == "d")
-            angularMomentum = 2;
-          else
-            throw std::runtime_error("Angular momentum not available in semiempirical methods.");
-          Utils::GtoExpansion gto(numberOfPrimitives);
-          gto.setAngularMomentum(angularMomentum);
-          for (int primitive = 0; primitive < numberOfPrimitives; ++primitive) {
-            double coefficient = 0.0, exponent = 0.0;
-            std::getline(basisFile, gtoLine);
-            gtoStream = std::stringstream(gtoLine);
-            gtoStream >> exponent >> coefficient;
-            gto.setGTF(primitive, exponent, coefficient);
-          }
-          if (angularMomentum == 0) {
-            atomicGtos.setS(std::move(gto));
-          }
-          else if (angularMomentum == 1) {
-            atomicGtos.setP(std::move(gto));
-          }
-          else {
-            atomicGtos.setD(std::move(gto));
-          }
-        }
-        atomicGtosVector.emplace_back(std::move(atomicGtos));
-      }
-    }
-  }
-
-  return atomicGtosVector;
-}
-
 void MoldenFileGenerator::generateAtomBlock(std::ostream& out) const {
   auto structure = *calculator_.getStructure();
   const auto& elements = structure.getElements();
@@ -132,34 +64,57 @@ void MoldenFileGenerator::generateAtomBlock(std::ostream& out) const {
 }
 
 void MoldenFileGenerator::generateGTOBlock(std::ostream& out) const {
-  const auto& gtoExpansion = getStoNGExpansion();
-  auto smallBasisMethod = calculator_.name() == "MNDO" || calculator_.name() == "AM1" || calculator_.name() == "PM3" ||
+  std::unordered_map<int, Utils::AtomicGtos> expansionMap;
+  if (calculator_.name() == "MNDO") {
+    expansionMap = Sto6g::mndo();
+  }
+  else if (calculator_.name() == "AM1") {
+    expansionMap = Sto6g::am1();
+  }
+  else if (calculator_.name() == "RM1") {
+    expansionMap = Sto6g::rm1();
+  }
+  else if (calculator_.name() == "PM3") {
+    expansionMap = Sto6g::pm3();
+  }
+  else if (calculator_.name() == "PM6") {
+    expansionMap = Sto6g::pm6();
+  }
+  else if (calculator_.name().find("DFTB") != std::string::npos) {
+    expansionMap = Sto6g::dftb();
+  }
+  else {
+    auto turbomoleBasisfile = calculator_.getStoNGExpansionPath();
+    expansionMap = Utils::readTurbomoleBasisfile(turbomoleBasisfile);
+  }
+
+  bool smallBasisMethod = calculator_.name() == "MNDO" || calculator_.name() == "AM1" || calculator_.name() == "PM3" ||
                           calculator_.name() == "RM1";
   out << std::right << "[GTO]" << std::endl;
-  for (int atom = 0; atom < calculator_.getStructure()->size(); ++atom) {
+  const auto& structurePtr = calculator_.getStructure();
+  const int N = structurePtr->size();
+  for (int atom = 0; atom < N; ++atom) {
     out << std::left << atom + 1 << " " << 0 << std::endl;
-    if (gtoExpansion[atom].hasS()) {
-      const auto& s = gtoExpansion[atom].s();
-      out << std::left << std::setw(5) << "s" << std::setw(5) << s.size() << std::setw(5) << "1.00" << std::endl;
-      for (int primitive = 0; primitive < s.size(); ++primitive) {
-        out << std::right << std::setw(18) << s.getExponent(primitive) << " " << std::setw(18)
-            << s.getCoefficient(primitive) << std::endl;
+    const auto& expansion = expansionMap.at(Utils::ElementInfo::Z(structurePtr->getElement(atom)));
+    if (expansion.s) {
+      const auto& s = expansion.s.value();
+      out << std::left << std::setw(5) << "s" << std::setw(5) << s.gtfs.size() << std::setw(5) << "1.00" << std::endl;
+      for (const auto& primitive : s.gtfs) {
+        out << std::right << std::setw(18) << primitive.exponent << " " << std::setw(18) << primitive.coefficient << std::endl;
       }
     }
-    if (gtoExpansion[atom].hasP()) {
-      const auto& p = gtoExpansion[atom].p();
-      out << std::left << std::setw(5) << "p" << std::setw(5) << p.size() << std::setw(5) << "1.00" << std::endl;
-      for (int primitive = 0; primitive < p.size(); ++primitive) {
-        out << std::right << std::setw(18) << p.getExponent(primitive) << " " << std::setw(18)
-            << p.getCoefficient(primitive) << std::endl;
+    if (expansion.p) {
+      const auto& p = expansion.p.value();
+      out << std::left << std::setw(5) << "p" << std::setw(5) << p.gtfs.size() << std::setw(5) << "1.00" << std::endl;
+      for (const auto& primitive : p.gtfs) {
+        out << std::right << std::setw(18) << primitive.exponent << " " << std::setw(18) << primitive.coefficient << std::endl;
       }
     }
-    if (gtoExpansion[atom].hasD() && !smallBasisMethod) {
-      const auto& d = gtoExpansion[atom].d();
-      out << std::left << std::setw(5) << "d" << std::setw(5) << d.size() << std::setw(5) << "1.00" << std::endl;
-      for (int primitive = 0; primitive < d.size(); ++primitive) {
-        out << std::right << std::setw(18) << d.getExponent(primitive) << " " << std::setw(18)
-            << d.getCoefficient(primitive) << std::endl;
+    if (expansion.d && !smallBasisMethod) {
+      const auto& d = expansion.d.value();
+      out << std::left << std::setw(5) << "d" << std::setw(5) << d.gtfs.size() << std::setw(5) << "1.00" << std::endl;
+      for (const auto& primitive : d.gtfs) {
+        out << std::right << std::setw(18) << primitive.exponent << " " << std::setw(18) << primitive.coefficient << std::endl;
       }
     }
     out << std::endl;

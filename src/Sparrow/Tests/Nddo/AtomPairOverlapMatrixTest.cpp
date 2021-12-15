@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -21,7 +21,7 @@ using namespace nddo;
 
 class AAtomPairOverlapMatrix : public Test {
  public:
-  AtomPairOverlap<Utils::derivOrder::zero> pairOverlap;
+  AtomPairOverlap<Utils::DerivativeOrder::Zero> pairOverlap;
   Utils::GtoExpansion gs1, gs2, gp1, gp2, gd1, gd2;
   Utils::AtomicGtos aS1, aS2, aP1, aP2, aD1, aD2;
   Eigen::Vector3d arbitraryVector;
@@ -35,16 +35,16 @@ class AAtomPairOverlapMatrix : public Test {
     gd1 = Utils::SlaterToGaussian::getGTOExpansion(6, 5, 2, 0.92);
     gd2 = Utils::SlaterToGaussian::getGTOExpansion(6, 4, 2);
 
-    aS1.setS(gs1);
-    aS2.setS(gs2);
+    aS1.s = gs1;
+    aS2.s = gs2;
     aP1 = aS1;
-    aP1.setP(gp1);
+    aP1.p = gp1;
     aP2 = aS2;
-    aP2.setP(gp2);
+    aP2.p = gp2;
     aD1 = aP1;
-    aD1.setD(gd1);
+    aD1.d = gd1;
     aD2 = aP2;
-    aD2.setD(gd2);
+    aD2.d = gd2;
   }
 };
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -41,7 +41,7 @@ Utils::DensityMatrix NDDODensityGuess::calculateGuess() const {
   // use overlap matrix times factor for first guess of density matrix.
   // Division by two found by testing, seems to work better with it than without
   if (nAOs_ != 0) {
-    overlapCalculator_.calculateOverlap(Utils::derivOrder::zero);
+    overlapCalculator_.calculateOverlap(Utils::DerivativeOrder::Zero);
     P = overlapCalculator_.getOverlap().getMatrixXd() * nElectrons_ / (2 * nAOs_);
   }
 
@@ -63,10 +63,6 @@ Utils::DensityMatrix NDDODensityGuess::calculateGuess() const {
   Utils::DensityMatrix d;
   d.setDensity(std::move(P), nElectrons_);
   return d;
-}
-
-void NDDODensityGuess::setNElectrons(int nElectrons) {
-  nElectrons_ = nElectrons;
 }
 
 } // namespace nddo

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Parameters of the NDDO-CIS PM6 method
+	============================
+
+	File created by S. Polonius on Feb 4, 2020,
+	based on work by Gadaczek et al.
+        (Gadaczek, I., Krause, K., Hintze, K. J., & Bredow, T., J. Chem. Theroy Comput. 2011, 7, 3675-3685.)
+
+	Description of the parameters, with, in parenthesis,
+	corresponding name in above cited work
+
+	- uss (USS) one-center energy for s orbital (eV)
+	- c1 scaling parameter for coulomb type integrals
+        - c2 scaling parameter for exchange type integrals
+        - d  scaling parameter for orbital energy differences
+ -->
+<cereal>
+	<value0>
+		<key>S</key>
+		<value>
+			<c1>1.</c1>
+			<c2>1.</c2>
+			<d>1.</d>
+		</value>
+	</value0>
+	<value1>
+		<key>T</key>
+		<value>
+			<c1>1.</c1>
+			<c2>1.</c2>
+			<d>1.</d>
+		</value>
+	</value1>
+	<value2>
+		<key>U</key>
+		<value>
+			<c1>1.</c1>
+			<c2>1.</c2>
+			<d>1.</d>
+		</value>
+	</value2>
+</cereal>
+

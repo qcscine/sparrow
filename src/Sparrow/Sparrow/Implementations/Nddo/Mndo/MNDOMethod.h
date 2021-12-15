@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -12,14 +12,14 @@
 
 namespace Scine {
 namespace Utils {
-enum class derivOrder;
+enum class DerivativeOrder;
 }
 namespace Sparrow {
 
 namespace nddo {
 class FockMatrix;
 class NDDOInitializer;
-class RawParametersContainer;
+struct Parameters;
 class OneElectronMatrix;
 class TwoElectronMatrix;
 
@@ -29,7 +29,7 @@ class MNDOMethod : public Utils::ScfMethod {
   ~MNDOMethod() override;
 
   /*! Deprecated! Initialize the method from a structure and a parameter file. */
-  void setStructure(const Utils::AtomCollection& atoms, std::string parameterPath);
+  void setStructure(const Utils::AtomCollection& atoms, std::string parameterPath = "");
   /*! Load the parameters from a file. */
   void readParameters(const std::string& parameterPath);
   /*! Save the parameters to a file. */
@@ -43,9 +43,9 @@ class MNDOMethod : public Utils::ScfMethod {
   }
 
   /*! Get reference to the class for raw MNDO parameters. */
-  RawParametersContainer& getRawParameters();
+  Parameters& getRawParameters();
   /*! Get const reference to the class for raw MNDO parameters. */
-  const RawParametersContainer& getRawParameters() const;
+  const Parameters& getRawParameters() const;
 
   const nddo::OneElectronMatrix& getOneElectronMatrix() const;
   const nddo::TwoElectronMatrix& getTwoElectronMatrix() const;

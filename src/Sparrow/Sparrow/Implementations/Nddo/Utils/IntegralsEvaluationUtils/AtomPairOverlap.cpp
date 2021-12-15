@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -14,60 +14,60 @@ namespace Sparrow {
 
 namespace nddo {
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Eigen::Matrix<typename AtomPairOverlap<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
 AtomPairOverlap<O>::getMatrixBlock(const Utils::AtomicGtos& pA, const Utils::AtomicGtos& pB, Eigen::Vector3d Rab) const {
   auto localBlock = getInitialBlock(pA, pB);
   GTOOverlapMatrixBlock<O> block;
 
-  if (pA.hasS()) {
-    if (pB.hasS()) {
-      localBlock.block(0, 0, 1, 1) = block.getMatrixBlock(pA.s(), pB.s(), Rab);
+  if (pA.s) {
+    if (pB.s) {
+      localBlock.block(0, 0, 1, 1) = block.getMatrixBlock(pA.s.value(), pB.s.value(), Rab);
     }
-    if (pB.hasP()) {
-      localBlock.block(0, 1, 1, 3) = block.getMatrixBlock(pA.s(), pB.p(), Rab);
+    if (pB.p) {
+      localBlock.block(0, 1, 1, 3) = block.getMatrixBlock(pA.s.value(), pB.p.value(), Rab);
     }
-    if (pB.hasD()) {
-      localBlock.block(0, 4, 1, 5) = block.getMatrixBlock(pA.s(), pB.d(), Rab);
-    }
-  }
-  if (pA.hasP()) {
-    if (pB.hasS()) {
-      localBlock.block(1, 0, 3, 1) = block.getMatrixBlock(pA.p(), pB.s(), Rab);
-    }
-    if (pB.hasP()) {
-      localBlock.block(1, 1, 3, 3) = block.getMatrixBlock(pA.p(), pB.p(), Rab);
-    }
-    if (pB.hasD()) {
-      localBlock.block(1, 4, 3, 5) = block.getMatrixBlock(pA.p(), pB.d(), Rab);
+    if (pB.d) {
+      localBlock.block(0, 4, 1, 5) = block.getMatrixBlock(pA.s.value(), pB.d.value(), Rab);
     }
   }
-  if (pA.hasD()) {
-    if (pB.hasS()) {
-      localBlock.block(4, 0, 5, 1) = block.getMatrixBlock(pA.d(), pB.s(), Rab);
+  if (pA.p) {
+    if (pB.s) {
+      localBlock.block(1, 0, 3, 1) = block.getMatrixBlock(pA.p.value(), pB.s.value(), Rab);
     }
-    if (pB.hasP()) {
-      localBlock.block(4, 1, 5, 3) = block.getMatrixBlock(pA.d(), pB.p(), Rab);
+    if (pB.p) {
+      localBlock.block(1, 1, 3, 3) = block.getMatrixBlock(pA.p.value(), pB.p.value(), Rab);
     }
-    if (pB.hasD()) {
-      localBlock.block(4, 4, 5, 5) = block.getMatrixBlock(pA.d(), pB.d(), Rab);
+    if (pB.d) {
+      localBlock.block(1, 4, 3, 5) = block.getMatrixBlock(pA.p.value(), pB.d.value(), Rab);
+    }
+  }
+  if (pA.d) {
+    if (pB.s) {
+      localBlock.block(4, 0, 5, 1) = block.getMatrixBlock(pA.d.value(), pB.s.value(), Rab);
+    }
+    if (pB.p) {
+      localBlock.block(4, 1, 5, 3) = block.getMatrixBlock(pA.d.value(), pB.p.value(), Rab);
+    }
+    if (pB.d) {
+      localBlock.block(4, 4, 5, 5) = block.getMatrixBlock(pA.d.value(), pB.d.value(), Rab);
     }
   }
 
   return localBlock;
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Eigen::Matrix<typename AtomPairOverlap<O>::Value3D, Eigen::Dynamic, Eigen::Dynamic>
 AtomPairOverlap<O>::getInitialBlock(const Utils::AtomicGtos& pA, const Utils::AtomicGtos& pB) const {
-  int dimA = (pA.hasS() ? 1 : 0) + (pA.hasP() ? 3 : 0) + (pA.hasD() ? 5 : 0);
-  int dimB = (pB.hasS() ? 1 : 0) + (pB.hasP() ? 3 : 0) + (pB.hasD() ? 5 : 0);
+  int dimA = (pA.s ? 1 : 0) + (pA.p ? 3 : 0) + (pA.d ? 5 : 0);
+  int dimB = (pB.s ? 1 : 0) + (pB.p ? 3 : 0) + (pB.d ? 5 : 0);
   Eigen::Matrix<Value3D, Eigen::Dynamic, Eigen::Dynamic> initialBlock(dimA, dimB);
   return initialBlock;
 }
-template class AtomPairOverlap<Utils::derivOrder::one>;
-template class AtomPairOverlap<Utils::derivOrder::two>;
-template class AtomPairOverlap<Utils::derivOrder::zero>;
+template class AtomPairOverlap<Utils::DerivativeOrder::One>;
+template class AtomPairOverlap<Utils::DerivativeOrder::Two>;
+template class AtomPairOverlap<Utils::DerivativeOrder::Zero>;
 
 } // namespace nddo
 } // namespace Sparrow

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -16,7 +16,7 @@ using namespace GeneralTypes;
 
 namespace multipole {
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Local2c2eMatrix<O>::Local2c2eMatrix(int l1, int l2, const ChargeSeparationParameter& D1, const ChargeSeparationParameter& D2,
                                     const KlopmanParameter& r1, const KlopmanParameter& r2)
   : l1_(l1), l2_(l2), dist1(D1), dist2(D2), rho1(r1), rho2(r2) {
@@ -27,7 +27,7 @@ Local2c2eMatrix<O>::Local2c2eMatrix(int l1, int l2, const ChargeSeparationParame
       d1, d2, Utils::AutomaticDifferentiation::constant1D<O>(0.0));
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::calculate(double R) {
   if (sameElement_)
     calculateSym(R);
@@ -35,7 +35,7 @@ void Local2c2eMatrix<O>::calculate(double R) {
     calculateAsym(R);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::calculateSym(double R) {
   // ss
   buildSSMatrix(R);
@@ -56,7 +56,7 @@ void Local2c2eMatrix<O>::calculateSym(double R) {
     buildDPMatrixSym(R);
   }
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::calculateAsym(double R) {
   // ss
   buildSSMatrix(R);
@@ -87,12 +87,12 @@ void Local2c2eMatrix<O>::calculateAsym(double R) {
   }
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildSSMatrix(double R) {
   mat(0, 0) = calculator_.getIntegral<O>(0, 0, R, dist1, dist2, rho1, rho2);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildSPMatrix(double R) {
   mat(0, 2) = calculator_.getIntegral<O>(0, 2, R, dist1, dist2, rho1, rho2);
   mat(0, 5) = mat(0, 2);
@@ -100,14 +100,14 @@ void Local2c2eMatrix<O>::buildSPMatrix(double R) {
   mat(0, 9) = calculator_.getIntegral<O>(0, 9, R, dist1, dist2, rho1, rho2);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildPSMatrix(double R) {
   mat(2, 0) = calculator_.getIntegral<O>(2, 0, R, dist1, dist2, rho1, rho2);
   mat(5, 0) = mat(2, 0);
   mat(6, 0) = calculator_.getIntegral<O>(6, 0, R, dist1, dist2, rho1, rho2);
   mat(9, 0) = calculator_.getIntegral<O>(9, 0, R, dist1, dist2, rho1, rho2);
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildPSMatrixSym(double /*R*/) {
   mat(2, 0) = mat(0, 2);
   mat(5, 0) = mat(0, 5);
@@ -115,7 +115,7 @@ void Local2c2eMatrix<O>::buildPSMatrixSym(double /*R*/) {
   mat(9, 0) = mat(0, 9);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildPPMatrix(double R) {
   mat(1, 1) = calculator_.getIntegral<O>(1, 1, R, dist1, dist2, rho1, rho2);
   mat(1, 7) = calculator_.getIntegral<O>(1, 7, R, dist1, dist2, rho1, rho2);
@@ -147,7 +147,7 @@ void Local2c2eMatrix<O>::buildPPMatrix(double R) {
       0.5 * (mat(static_cast<int>(twoElIntegral_t::x_x), static_cast<int>(twoElIntegral_t::x_x)) -
              mat(static_cast<int>(twoElIntegral_t::x_x), static_cast<int>(twoElIntegral_t::y_y)));
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildPPMatrixSym(double R) {
   mat(1, 1) = calculator_.getIntegral<O>(1, 1, R, dist1, dist2, rho1, rho2);
   mat(1, 7) = calculator_.getIntegral<O>(1, 7, R, dist1, dist2, rho1, rho2);
@@ -178,7 +178,7 @@ void Local2c2eMatrix<O>::buildPPMatrixSym(double R) {
       0.5 * (mat(static_cast<int>(twoElIntegral_t::x_x), static_cast<int>(twoElIntegral_t::x_x)) -
              mat(static_cast<int>(twoElIntegral_t::x_x), static_cast<int>(twoElIntegral_t::y_y)));
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildDDMatrixSym(double R) {
   mat(10, 10) = calculator_.getIntegral<O>(10, 10, R, dist1, dist2, rho1, rho2);
   mat(10, 16) = calculator_.getIntegral<O>(10, 16, R, dist1, dist2, rho1, rho2);
@@ -412,7 +412,7 @@ void Local2c2eMatrix<O>::buildDDMatrixSym(double R) {
   mat(39, 39) = mat(38, 38);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildSDMatrix(double R) {
   mat(0, 10) = calculator_.getIntegral<O>(0, 10, R, dist1, dist2, rho1, rho2);
   mat(0, 16) = calculator_.getIntegral<O>(0, 16, R, dist1, dist2, rho1, rho2);
@@ -425,7 +425,7 @@ void Local2c2eMatrix<O>::buildSDMatrix(double R) {
   mat(0, 39) = mat(0, 38);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildDSMatrix(double R) {
   mat(10, 0) = calculator_.getIntegral<O>(10, 0, R, dist1, dist2, rho1, rho2);
   mat(16, 0) = calculator_.getIntegral<O>(16, 0, R, dist1, dist2, rho1, rho2);
@@ -437,7 +437,7 @@ void Local2c2eMatrix<O>::buildDSMatrix(double R) {
   mat(38, 0) = calculator_.getIntegral<O>(38, 0, R, dist1, dist2, rho1, rho2);
   mat(39, 0) = mat(38, 0);
 }
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildDSMatrixSym(double /*R*/) {
   mat(10, 0) = mat(0, 10);
   mat(16, 0) = -mat(0, 16);
@@ -450,7 +450,7 @@ void Local2c2eMatrix<O>::buildDSMatrixSym(double /*R*/) {
   mat(39, 0) = mat(0, 39);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildPDMatrix(double R) {
   mat(1, 11) = calculator_.getIntegral<O>(1, 11, R, dist1, dist2, rho1, rho2);
   mat(1, 15) = calculator_.getIntegral<O>(1, 15, R, dist1, dist2, rho1, rho2);
@@ -529,7 +529,7 @@ void Local2c2eMatrix<O>::buildPDMatrix(double R) {
   mat(9, 39) = mat(9, 38);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildDPMatrix(double R) {
   mat(10, 2) = calculator_.getIntegral<O>(10, 2, R, dist1, dist2, rho1, rho2);
   mat(10, 5) = mat(10, 2);
@@ -608,7 +608,7 @@ void Local2c2eMatrix<O>::buildDPMatrix(double R) {
   mat(39, 9) = mat(38, 9);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildDPMatrixSym(double /*R*/) {
   mat(10, 2) = mat(2, 10);
   mat(10, 5) = mat(5, 10);
@@ -687,7 +687,7 @@ void Local2c2eMatrix<O>::buildDPMatrixSym(double /*R*/) {
   mat(39, 9) = mat(9, 39);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 void Local2c2eMatrix<O>::buildDDMatrix(double R) {
   mat(10, 10) = calculator_.getIntegral<O>(10, 10, R, dist1, dist2, rho1, rho2);
   mat(10, 16) = calculator_.getIntegral<O>(10, 16, R, dist1, dist2, rho1, rho2);
@@ -921,9 +921,9 @@ void Local2c2eMatrix<O>::buildDDMatrix(double R) {
   mat(39, 39) = mat(38, 38);
 }
 
-template class Local2c2eMatrix<Utils::derivOrder::zero>;
-template class Local2c2eMatrix<Utils::derivOrder::one>;
-template class Local2c2eMatrix<Utils::derivOrder::two>;
+template class Local2c2eMatrix<Utils::DerivativeOrder::Zero>;
+template class Local2c2eMatrix<Utils::DerivativeOrder::One>;
+template class Local2c2eMatrix<Utils::DerivativeOrder::Two>;
 
 } // namespace multipole
 

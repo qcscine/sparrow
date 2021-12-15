@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -16,7 +16,7 @@ namespace Sparrow {
 namespace nddo {
 class FockMatrix;
 class NDDOInitializer;
-class RawParametersContainer;
+class Parameters;
 class OneElectronMatrix;
 class TwoElectronMatrix;
 
@@ -26,7 +26,7 @@ class PM6Method : public Utils::ScfMethod {
   ~PM6Method() override;
 
   /*! Deprecated! Initialize the method from a structure and a parameter file. */
-  void setStructure(const Utils::AtomCollection& atoms, std::string parameterPath);
+  void setStructure(const Utils::AtomCollection& atoms, std::string parameterPath = "");
   /*! Load the parameters from a file. */
   void readParameters(const std::string& parameterPath);
   /*! Save the parameters to a file. */
@@ -43,9 +43,9 @@ class PM6Method : public Utils::ScfMethod {
   }
 
   /*! Get reference to the class for raw PM6 parameters. */
-  RawParametersContainer& getRawParameters();
+  Parameters& getRawParameters();
   /*! Get const reference to the class for raw PM6 parameters. */
-  const RawParametersContainer& getRawParameters() const;
+  const Parameters& getRawParameters() const;
 
  private:
   std::shared_ptr<NDDOInitializer> pm6Settings_;

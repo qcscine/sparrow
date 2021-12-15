@@ -1,14 +1,14 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_CALCULATIONHANDLER_H
 #define SPARROW_CALCULATIONHANDLER_H
 
+#include <Core/Interfaces/CalculatorWithReference.h>
 #include <Utils/CalculatorBasics/Results.h>
-#include <chrono>
 #include <exception>
 #include <memory>
 #include <ostream>
@@ -23,7 +23,6 @@ class Calculator;
 } // namespace Core
 namespace Sparrow {
 
-class SparrowInitializer;
 class CommandLineOptions;
 
 /**
@@ -55,7 +54,7 @@ struct FileInaccessibleException final : public std::exception {
  private:
   std::string description_;
 };
-/*
+/**
  * @class CalculationHandler @file CalculationHandler.h
  * @brief Class handling the main calculation routines.
  */
@@ -67,27 +66,33 @@ class CalculationHandler {
    * @brief This constructor initializes the desired method with the settings
    *         read from the command line.
    */
-  CalculationHandler(CommandLineOptions& options, SparrowInitializer& initializer);
+  CalculationHandler(CommandLineOptions& options);
   /**
    * @brief start a calculation with the options and description read by the command line.
    */
   void calculate(std::ostream& out);
 
  private:
+  bool isNDDO() const;
+  bool isDFTB() const;
   void assignPropertiesToCalculate();
   void assignSettings();
-  void printSettings(std::ostream& out, const Utils::Settings& settings, std::string commentChar = "") const;
-  void printHeader(std::ostream& out, std::string commenChar = "") const;
+  void printCalculationConverged(std::ostream& out);
+  void printSettings(std::ostream& out, const Utils::Settings& settings, const std::string& commentChar = "") const;
+  void printHeader(std::ostream& out, const std::string& commenChar = "") const;
   void printFooter(std::ostream& out) const;
   void printTime(std::ostream& out) const;
   void printResultsToFile() const;
   void printPrettyResults(std::ostream& out) const;
   void printFrequencyAnalysis(std::ostream& out, const Utils::HessianMatrix& matrix) const;
+  void printExcitedStates(std::ostream& out, const Utils::SpinAdaptedElectronicTransitionResult& matrix) const;
   void printWavefunction() const;
   CommandLineOptions& commandLineOptions_;
   std::shared_ptr<Core::Calculator> methodWrapper_;
-  Utils::Results results_;
-  std::chrono::time_point<std::chrono::system_clock> start_, end_;
+  std::shared_ptr<Core::CalculatorWithReference> excitedStatesCalculator_;
+  std::shared_ptr<Core::CalculatorWithReference> orbitalSteerer_;
+  Utils::Results results_, excitedStatesResults_;
+  mutable double groundStateTime_{0.}, hessianDiagTime_{0.}, excitedStateTime_{0.};
 };
 
 } // namespace Sparrow

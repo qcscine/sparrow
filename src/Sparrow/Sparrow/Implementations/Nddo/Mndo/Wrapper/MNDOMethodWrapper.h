@@ -1,7 +1,7 @@
 /**
  * @file MNDOMethodWrapper.h
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_MNDOMETHODWRAPPER_H
@@ -22,7 +22,7 @@ namespace Sparrow {
  * @class MNDOMethodWrapper MNDOMethodWrapper.h
  * @brief A method wrapper handling MNDO calculations.
  */
-class MNDOMethodWrapper : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMethodWrapper> {
+class MNDOMethodWrapper final : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMethodWrapper> {
  public:
   static constexpr const char* model = "MNDO";
 
@@ -44,6 +44,11 @@ class MNDOMethodWrapper : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMe
    * @brief Function to apply the settings to the underlying method.
    */
   void applySettings() final;
+  /**
+   * @brief Function to add a contribution to the electronic MNDO Hamiltonian.
+   * @param contribution An Utils::AdditiveElectronicContribution polymorphic class.
+   */
+  void addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
 
  private:
   bool successfulCalculation() const final;
@@ -51,6 +56,7 @@ class MNDOMethodWrapper : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMe
   Utils::SpinAdaptedMatrix getTwoElectronMatrix() const final;
 
   Utils::DensityMatrix getDensityMatrixGuess() const final;
+  CISData getCISDataImpl() const final;
 
   //! Initializes a method with the parameter file present in the settings.
   void initialize() final;
@@ -58,7 +64,7 @@ class MNDOMethodWrapper : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMe
   Utils::LcaoMethod& getLcaoMethod() final;
   const Utils::LcaoMethod& getLcaoMethod() const final;
 
-  void calculateImpl(Utils::derivativeType requiredDerivative) final;
+  void calculateImpl(Utils::Derivative requiredDerivative) final;
 
   nddo::MNDOMethod method_;
 };

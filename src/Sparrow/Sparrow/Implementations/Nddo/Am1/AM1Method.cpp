@@ -1,12 +1,13 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #include "AM1Method.h"
 #include "AM1RepulsionEnergy.h"
+#include <Sparrow/Implementations/Nddo/Parameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/FockMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/OverlapMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDODensityGuess.h>
@@ -23,7 +24,7 @@ using namespace Utils::AutomaticDifferentiation;
 
 namespace nddo {
 
-AM1Method::AM1Method() : ScfMethod(true, Utils::derivOrder::two, true) {
+AM1Method::AM1Method() : ScfMethod(true, Utils::DerivativeOrder::Two, true) {
   am1Settings_ = std::make_unique<NDDOInitializer>(BasisFunctions::sp, false);
   overlapCalculator_ =
       std::make_unique<OverlapMatrix>(elementTypes_, positions_, aoIndexes_, am1Settings_->getElementParameters());
@@ -41,7 +42,12 @@ AM1Method::AM1Method() : ScfMethod(true, Utils::derivOrder::two, true) {
 AM1Method::~AM1Method() = default;
 
 void AM1Method::setStructure(const Utils::AtomCollection& atoms, std::string parameterPath) {
-  readParameters(std::move(parameterPath));
+  if (parameterPath.empty()) {
+    am1Settings_->getRawParameters() = nddo::am1();
+  }
+  else {
+    readParameters(parameterPath);
+  }
   setAtomCollection(atoms);
   initialize();
 }
@@ -54,11 +60,11 @@ void AM1Method::saveParameters(const std::string& fileName) {
   am1Settings_->saveParameters(fileName);
 }
 
-RawParametersContainer& AM1Method::getRawParameters() {
+Parameters& AM1Method::getRawParameters() {
   return am1Settings_->getRawParameters();
 }
 
-const RawParametersContainer& AM1Method::getRawParameters() const {
+const Parameters& AM1Method::getRawParameters() const {
   return am1Settings_->getRawParameters();
 }
 

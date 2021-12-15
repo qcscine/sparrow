@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -33,7 +33,7 @@ class VuvB {
 
   explicit VuvB(int l1) : g_(l1, 0, dist1_, dist2_, rho1_, rho2_) {
   }
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void calculate(const Eigen::Vector3d& Rab, const ChargeSeparationParameter& D1, const KlopmanParameter& rho1,
                  double pcore, double ZB);
   double get(orb_index_t o1, orb_index_t o2) const {
@@ -42,7 +42,7 @@ class VuvB {
   double get(orbPair_index_t op1) const {
     return -z_ * g_.get(op1, static_cast<int>(GeneralTypes::twoElIntegral_t::s_s));
   }
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   Utils::AutomaticDifferentiation::DerivativeType<O> getDerivative(orb_index_t o1, orb_index_t o2) const {
     return -z_ * g_.getDerivative<O>(o1, o2, static_cast<int>(GeneralTypes::orb_t::s),
                                      static_cast<int>(GeneralTypes::orb_t::s));

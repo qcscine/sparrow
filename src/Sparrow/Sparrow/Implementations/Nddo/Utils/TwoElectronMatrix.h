@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -18,7 +18,7 @@ namespace Utils {
 enum class ElementType : unsigned;
 class DensityMatrix;
 class AtomsOrbitalsIndexes;
-enum class derivativeType;
+enum class Derivative;
 } // namespace Utils
 
 namespace Sparrow {
@@ -52,7 +52,7 @@ class TwoElectronMatrix {
                               Eigen::MatrixXd& GAlpha, Eigen::MatrixXd& GBeta);
   void calculateDifferentAtomsBlock(int startA, int startB, int nAOsA, int nAOsB, const multipole::Global2c2eMatrix& m,
                                     Eigen::MatrixXd& G, Eigen::MatrixXd& GAlpha, Eigen::MatrixXd& GBeta);
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivativeContainer) const;
   const Eigen::MatrixXd& operator()() const {
     return G_;
@@ -67,8 +67,17 @@ class TwoElectronMatrix {
     return GBeta_;
   }
 
+  /**
+   * @brief Getter for the 1 center 2 electrons integral matrix.
+   */
+  const OneCenterIntegralContainer& getOneCenterIntegrals() const;
+  /**
+   * @brief Getter for the 2 center 2 electron integral matrix.
+   */
+  const TwoCenterIntegralContainer& getTwoCenterIntegrals() const;
+
  private:
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivativesForBlock(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivativeContainer, int a, int b,
                               int startA, int startB, int nAOsA, int nAOsB, const multipole::Global2c2eMatrix& m) const;
 

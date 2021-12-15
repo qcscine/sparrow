@@ -1,7 +1,7 @@
 /**
  * @file DFTB2MethodWrapper.h
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_DFTB2METHODWRAPPER_H
@@ -14,13 +14,18 @@
 #include <string>
 
 namespace Scine {
+
+namespace Utils {
+class AdditiveElectronicContribution;
+} // namespace Utils
+
 namespace Sparrow {
 /**
  * @class DFTB2MethodWrapper DFTB2MethodWrapper.h
  * @brief A method wrapper handling DFTB2 calculations,
  * also known as SCC-DFTB, self-consistent charge DFTB.
  */
-class DFTB2MethodWrapper : public Utils::CloneInterface<DFTB2MethodWrapper, DFTBMethodWrapper> {
+class DFTB2MethodWrapper final : public Utils::CloneInterface<DFTB2MethodWrapper, DFTBMethodWrapper> {
  public:
   static constexpr const char* model = "DFTB2";
 
@@ -42,14 +47,20 @@ class DFTB2MethodWrapper : public Utils::CloneInterface<DFTB2MethodWrapper, DFTB
    * @brief Function to apply the settings to the underlying method.
    */
   void applySettings() final;
+  /**
+   * @brief Function to add a contribution to the electronic DFTB2 Hamiltonian.
+   * @param contribution An Utils::AdditiveElectronicContribution polymorphic class.
+   */
+  void addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) final;
 
  private:
+  TDDFTBData getTDDFTBDataImpl() const final;
   bool successfulCalculation() const final;
   Utils::DensityMatrix getDensityMatrixGuess() const final;
   //! Initializes a method with the parameter file present in the settings.
   void initialize() final;
   //! Calls the underlying method's calculate() function.
-  void calculateImpl(Utils::derivativeType requiredDerivative) final;
+  void calculateImpl(Utils::Derivative requiredDerivative) final;
   //! Get the underlying method as a LCAO method.
   const Utils::LcaoMethod& getLcaoMethod() const final;
   Utils::LcaoMethod& getLcaoMethod() final;

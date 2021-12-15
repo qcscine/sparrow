@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -48,7 +48,7 @@ void AM1RepulsionEnergy::initializePair(int i, int j) {
   rep_[i][j] = std::make_unique<AM1PairwiseRepulsion>(p1, p2);
 }
 
-void AM1RepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
+void AM1RepulsionEnergy::calculateRepulsion(Utils::DerivativeOrder order) {
 #pragma omp parallel for
   for (int i = 0; i < nAtoms_; i++) {
     for (int j = i + 1; j < nAtoms_; j++) {
@@ -57,7 +57,7 @@ void AM1RepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
   }
 }
 
-void AM1RepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
+void AM1RepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::DerivativeOrder order) {
   auto pA = positions_.row(i);
   auto pB = positions_.row(j);
   Eigen::Vector3d Rab = pB - pA;
@@ -76,19 +76,19 @@ double AM1RepulsionEnergy::getRepulsionEnergy() const {
   return repulsionEnergy;
 }
 
-void AM1RepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::derivativeType::first>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::first>(derivatives);
+void AM1RepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::Derivative::First>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::First>(derivatives);
 }
 
-void AM1RepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::second_atomic>(derivatives);
+void AM1RepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::SecondAtomic>(derivatives);
 }
 
-void AM1RepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::second_full>(derivatives);
+void AM1RepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::SecondFull>(derivatives);
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void AM1RepulsionEnergy::addRepulsionDerivativesImpl(DerivativeContainerType<O>& derivatives) const {
   for (int i = 0; i < nAtoms_; ++i) {
     for (int j = i + 1; j < nAtoms_; ++j) {

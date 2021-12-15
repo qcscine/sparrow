@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -19,7 +19,7 @@ using namespace testing;
 using namespace nddo;
 using namespace Utils::AutomaticDifferentiation;
 using std::sqrt;
-using Utils::derivOrder;
+using Utils::DerivativeOrder;
 
 class AMNDOPairwiseRepulsion : public Test {
  public:
@@ -60,7 +60,7 @@ class AMNDOPairwiseRepulsion : public Test {
 TEST_F(AMNDOPairwiseRepulsion, ReturnsTheCorrectValueForArbitraryParameters) {
   double expected = arbitraryCharge1 * arbitraryCharge2 * arbitraryIntegral *
                     (1.0 + std::exp(-arbitraryAlpha1 * arbitraryRadius) + std::exp(-arbitraryAlpha2 * arbitraryRadius));
-  ASSERT_THAT(rep.calculateRepulsion<derivOrder::zero>(arbitraryRadius), DoubleEq(expected));
+  ASSERT_THAT(rep.calculateRepulsion<DerivativeOrder::Zero>(arbitraryRadius), DoubleEq(expected));
 }
 
 /*TEST_F(APM6PairwiseRepulsion, UsesOtherFormulaForOH) {
@@ -72,7 +72,7 @@ Utils::ev_per_hartree; ap1.setElement(Utils::ElementType::H); ap2.setElement(Uti
   double expected = 1 * 6 * arbitraryIntegral *
                         (1.0 + FACTOR * arbitraryX * std::exp(-arbitraryAlpha * (arbitraryRadius * arbitraryRadius))) +
                     additionalTerm;
-  ASSERT_THAT(rep.calculateRepulsion<derivOrder::zero>(arbitraryRadius), DoubleEq(expected));
+  ASSERT_THAT(rep.calculateRepulsion<DerivativeOrder::Zero>(arbitraryRadius), DoubleEq(expected));
 }*/
 
 TEST_F(AMNDOPairwiseRepulsion, ReturnsTheCorrectDerivativeForArbitraryParameters) {
@@ -88,7 +88,7 @@ TEST_F(AMNDOPairwiseRepulsion, ReturnsTheCorrectDerivativeForArbitraryParameters
                       (-arbitraryAlpha1 * std::exp(-arbitraryAlpha1 * arbitraryRadius) -
                        arbitraryAlpha2 * std::exp(-arbitraryAlpha2 * arbitraryRadius));
 
-  First1D ed = rep.calculateRepulsion<derivOrder::one>(arbitraryRadius);
+  First1D ed = rep.calculateRepulsion<DerivativeOrder::One>(arbitraryRadius);
   ASSERT_THAT(ed.value(), DoubleEq(expected));
   ASSERT_THAT(ed.derivative(), DoubleEq(derExp));
 }
@@ -98,7 +98,7 @@ TEST_F(AMNDOPairwiseRepulsion, CorrectDerivativeForStandardParenthesis) {
   double DerExpected = -arbitraryAlpha1 * std::exp(-arbitraryAlpha1 * arbitraryRadius) -
                        arbitraryAlpha2 * std::exp(-arbitraryAlpha2 * arbitraryRadius);
 
-  First1D sT = rep.standardParenthesis<derivOrder::one>(arbitraryRadius);
+  First1D sT = rep.standardParenthesis<DerivativeOrder::One>(arbitraryRadius);
   ASSERT_THAT(sT.value(), DoubleEq(expected));
   ASSERT_THAT(sT.derivative(), DoubleEq(DerExpected));
 }

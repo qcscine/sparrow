@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -11,6 +11,7 @@
 #include "OneCenterTwoElectronCalculator.h"
 #include <Sparrow/Implementations/Nddo/Utils/ParameterUtils/PrincipalQuantumNumbers.h>
 #include <Utils/Geometry/ElementTypes.h>
+#include <Eigen/Core>
 #include <exception>
 #include <vector>
 
@@ -39,6 +40,7 @@ class OneCenterTwoElectronIntegrals {
   void set(orb_index_t a, orb_index_t b, orb_index_t c, orb_index_t d, double value);
   double get(orb_index_t a, orb_index_t b, orb_index_t c, orb_index_t d) const;
   double get(int index) const;
+  const Eigen::MatrixXd getIntegralMatrix();
 
   void setSlaterCondonParameters(const SlaterCondonParameters* slaterCondonParameters);
 

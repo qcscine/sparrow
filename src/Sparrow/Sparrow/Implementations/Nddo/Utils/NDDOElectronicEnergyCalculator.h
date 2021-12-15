@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -41,12 +41,11 @@ class NDDOElectronicEnergyCalculator : public Utils::ElectronicEnergyCalculator 
   const OneElectronMatrix& oneElectronMatrix_;
   const TwoElectronMatrix& twoElectronMatrix_;
   const bool& unrestrictedCalculationRunning_;
-  const std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>>&densityIndependentContributions_,
-      densityDependentContributions_;
+  const std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>>& densityIndependentContributions_;
+  const std::vector<std::shared_ptr<Utils::AdditiveElectronicContribution>>& densityDependentContributions_;
 };
 
 } // namespace nddo
-
 } // namespace Sparrow
 } // namespace Scine
 #endif // SPARROW_NDDO_ELECTRONICENERGYCALCULATOR_H

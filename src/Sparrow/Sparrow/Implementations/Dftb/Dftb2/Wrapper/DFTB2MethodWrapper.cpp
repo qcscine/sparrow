@@ -1,20 +1,24 @@
 /**
  * @file DFTB2MethodWrapper.cpp
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 /* Internal Includes */
 #include "DFTB2MethodWrapper.h"
 #include "DFTB2Settings.h"
+#include <Sparrow/Implementations/Dftb/TimeDependent/LinearResponse/TDDFTBData.h>
 #include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.h>
 #include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMomentCalculator.h>
 /* External Includes */
 #include <Core/Exceptions.h>
+#include <Sparrow/Implementations/Dftb/Utils/SecondOrderFock.h>
 #include <Utils/Geometry/AtomCollection.h>
 #include <Utils/IO/NativeFilenames.h>
+#include <Utils/Scf/LcaoUtils/SpinMode.h>
 #include <Utils/Scf/MethodExceptions.h>
+#include <Utils/Scf/MethodInterfaces/AdditiveElectronicContribution.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <memory>
 
@@ -42,33 +46,41 @@ DFTB2MethodWrapper::~DFTB2MethodWrapper() = default;
 
 void DFTB2MethodWrapper::applySettings() {
   GenericMethodWrapper::applySettings();
-  if (settings_->check()) {
-    bool isUnrestricted = settings_->getBool(Utils::SettingsNames::unrestrictedCalculation);
+  if (settings_->valid()) {
+    auto spinMode = Utils::SpinModeInterpreter::getSpinModeFromString(settings_->getString(Utils::SettingsNames::spinMode));
     int molecularCharge = settings_->getInt(Utils::SettingsNames::molecularCharge);
     int spinMultiplicity = settings_->getInt(Utils::SettingsNames::spinMultiplicity);
-    double selfConsistenceCriterion = settings_->getDouble(Utils::SettingsNames::selfConsistanceCriterion);
-    int maxIterations = settings_->getInt(Utils::SettingsNames::maxIterations);
+    double selfConsistenceCriterion = settings_->getDouble(Utils::SettingsNames::selfConsistenceCriterion);
+    double densityRmsdThreshold = settings_->getDouble(Utils::SettingsNames::densityRmsdCriterion);
+    int maxScfIterations = settings_->getInt(Utils::SettingsNames::maxScfIterations);
     auto scfMixerName = settings_->getString(Utils::SettingsNames::mixer);
-    auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToScfMixer(std::move(scfMixerName));
+    auto scfMixerType = Utils::UniversalSettings::SettingPopulator::stringToScfMixer(scfMixerName);
 
-    method_.setUnrestrictedCalculation(isUnrestricted);
+    if (spinMode == Utils::SpinMode::Any) {
+      if (spinMultiplicity == 1) {
+        method_.setUnrestrictedCalculation(false);
+      }
+      else {
+        method_.setUnrestrictedCalculation(true);
+      }
+    }
+    if (spinMode == Utils::SpinMode::Restricted) {
+      if (spinMultiplicity != 1) {
+        throw std::runtime_error("Restricted calculation with multiplicity != 1 requested.");
+      }
+      method_.setUnrestrictedCalculation(false);
+    }
+    if (spinMode == Utils::SpinMode::Unrestricted) {
+      method_.setUnrestrictedCalculation(true);
+    }
     method_.setMolecularCharge(molecularCharge);
     method_.setSpinMultiplicity(spinMultiplicity);
-    method_.setConvergenceCriteria(selfConsistenceCriterion);
-    method_.setMaxIterations(maxIterations);
+    method_.setConvergenceCriteria({selfConsistenceCriterion, densityRmsdThreshold});
+    method_.setMaxIterations(maxScfIterations);
     method_.setScfMixer(scfMixerType);
-
-    // After call to verifyPesValidity, update settings if they were internally changed due to
-    // charge/spin multiplicity mismatch if not empty
-    if (getLcaoMethod().getNumberAtomicOrbitals() != 0) {
-      method_.verifyPesValidity();
-      settings_->modifyBool(Utils::SettingsNames::unrestrictedCalculation, method_.unrestrictedCalculationRunning());
-      settings_->modifyInt(Utils::SettingsNames::molecularCharge, method_.getMolecularCharge());
-      settings_->modifyInt(Utils::SettingsNames::spinMultiplicity, method_.spinMultiplicity());
-    }
   }
   else {
-    throw Core::InitializationException("settings invalid!");
+    settings_->throwIncorrectSettings();
   }
 }
 
@@ -78,10 +90,8 @@ std::string DFTB2MethodWrapper::name() const {
 
 void DFTB2MethodWrapper::initialize() {
   try {
-    auto parameterFile = settings_->getString(Utils::SettingsNames::parameterFile);
-    auto resourceDirectory = settings_->getString(Utils::SettingsNames::parameterRootDirectory);
-    auto fullPathToParameters = Utils::NativeFilenames::combinePathSegments(resourceDirectory, parameterFile);
-    method_.initializeFromParameterPath(fullPathToParameters);
+    auto parameters = settings_->getString(Utils::SettingsNames::methodParameters);
+    method_.initializeFromParameterPath(parameters);
   }
   catch (Utils::Methods::InitializationException& e) {
     throw Core::InitializationException(e.what());
@@ -96,12 +106,20 @@ Utils::LcaoMethod& DFTB2MethodWrapper::getLcaoMethod() {
   return method_;
 }
 
-void DFTB2MethodWrapper::calculateImpl(Utils::derivativeType requiredDerivative) {
-  method_.calculate(requiredDerivative);
+void DFTB2MethodWrapper::calculateImpl(Utils::Derivative requiredDerivative) {
+  method_.calculate(requiredDerivative, getLog());
 }
 
 Utils::DensityMatrix DFTB2MethodWrapper::getDensityMatrixGuess() const {
   return method_.getDensityMatrixGuess();
+}
+
+void DFTB2MethodWrapper::addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) {
+  method_.addElectronicContribution(std::move(contribution));
+}
+
+TDDFTBData DFTB2MethodWrapper::getTDDFTBDataImpl() const {
+  return TDDFTBData::constructTDDFTBDataFromDFTBMethod(method_);
 }
 
 bool DFTB2MethodWrapper::successfulCalculation() const {

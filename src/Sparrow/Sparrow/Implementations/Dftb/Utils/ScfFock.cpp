@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -47,7 +47,7 @@ void ScfFock::initialize() {
   spinDFTB.initialize(getNumberAtoms(), numberOrbitals, aoIndexes_);
 }
 
-void ScfFock::calculateDensityDependentPart(Utils::derivOrder order) {
+void ScfFock::calculateDensityDependentPart(Utils::DerivativeOrder order) {
   populationAnalysis();
   if (unrestrictedCalculationRunning_) {
     spinDFTB.spinPopulationAnalysis(densityMatrix_.alphaMatrix(), densityMatrix_.betaMatrix(), overlapMatrix_);
@@ -62,7 +62,7 @@ void ScfFock::calculateDensityDependentPart(Utils::derivOrder order) {
   }
 }
 
-void ScfFock::calculateDensityIndependentPart(Utils::derivOrder order) {
+void ScfFock::calculateDensityIndependentPart(Utils::DerivativeOrder order) {
   zeroOrderMatricesCalculator_.calculateFockMatrix(order);
   H0_ = zeroOrderMatricesCalculator_.getZeroOrderHamiltonian().getMatrixXd();
   constructG(order);
@@ -90,7 +90,7 @@ Utils::SpinAdaptedMatrix ScfFock::getMatrix() const {
   return fock;
 }
 
-void ScfFock::finalize(Utils::derivOrder /*order*/) {
+void ScfFock::finalize(Utils::DerivativeOrder /*order*/) {
   // Repeat the population analysis to make sure that the correct spin energy is employed
   // populationAnalysis(); (not needed anymore; is already done in ScfMethod::finalizeCalculation.
   if (unrestrictedCalculationRunning_) {
@@ -110,7 +110,7 @@ void ScfFock::addDensityIndependentElectronicContribution(std::shared_ptr<Utils:
   densityIndependentContributions_.emplace_back(std::move(contribution));
 }
 
-void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const {
+void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const {
   for (auto& contribution : densityIndependentContributions_) {
     if (contribution->isValid())
       contribution->addDerivatives(derivatives);
@@ -121,8 +121,7 @@ void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContaine
   }
 }
 
-void ScfFock::addDerivatives(
-    Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
+void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const {
   for (auto& contribution : densityIndependentContributions_) {
     if (contribution->isValid())
       contribution->addDerivatives(derivatives);
@@ -133,7 +132,7 @@ void ScfFock::addDerivatives(
   }
 }
 
-void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
+void ScfFock::addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const {
   for (auto& contribution : densityIndependentContributions_) {
     if (contribution->isValid())
       contribution->addDerivatives(derivatives);

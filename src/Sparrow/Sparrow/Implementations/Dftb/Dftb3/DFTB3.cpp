@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -10,6 +10,7 @@
 #include "Sparrow/Implementations/Dftb/Utils/DensityGuess.h"
 #include "Sparrow/Implementations/Dftb/Utils/Overlap.h"
 #include "Sparrow/Implementations/Dftb/Utils/Repulsion.h"
+#include "Sparrow/Implementations/Dftb/Utils/SecondOrderFock.h"
 #include "Sparrow/Implementations/Dftb/Utils/ThirdOrderFock.h"
 #include "Sparrow/Implementations/Dftb/Utils/ZeroOrderMatricesCalculator.h"
 #include <Utils/Scf/LcaoUtils/LcaoUtils.h>
@@ -21,7 +22,7 @@ using namespace Utils::AutomaticDifferentiation;
 
 namespace dftb {
 
-DFTB3::DFTB3() : ScfMethod(true, Utils::derivOrder::two), atomParameters(110) {
+DFTB3::DFTB3() : ScfMethod(true, Utils::DerivativeOrder::Two), atomParameters(110) {
   dftbBase = std::make_shared<DFTBCommon>(elementTypes_, nElectrons_, molecularCharge_, atomParameters, pairParameters);
   matricesCalculator_ = std::make_unique<dftb::ZeroOrderMatricesCalculator>(elementTypes_, positions_, aoIndexes_,
                                                                             atomParameters, pairParameters, densityMatrix_);
@@ -43,6 +44,27 @@ void DFTB3::initializeFromParameterPath(const std::string& path) {
   ScfMethod::initialize();
 }
 
+std::shared_ptr<DFTBCommon> DFTB3::getInitializer() const {
+  return dftbBase;
+}
+
+Eigen::MatrixXd DFTB3::calculateGammaMatrix() const {
+  auto thirdOrderFock = std::dynamic_pointer_cast<ThirdOrderFock>(electronicPart_);
+  return thirdOrderFock->getGammaMatrix().selfadjointView<Eigen::Lower>();
+}
+
+std::shared_ptr<Eigen::VectorXd> DFTB3::calculateSpinConstantVector() const {
+  try {
+    Eigen::VectorXd spinConstantVector(elementTypes_.size());
+    for (int atom = 0; atom < static_cast<int>(elementTypes_.size()); ++atom) {
+      spinConstantVector(atom) = atomParameters[Utils::ElementInfo::Z(elementTypes_[atom])]->getAtomicResolvedSpinConstant();
+    }
+    return std::make_shared<Eigen::VectorXd>(std::move(spinConstantVector));
+  }
+  catch (...) {
+    return nullptr;
+  }
+}
 } // namespace dftb
 } // namespace Sparrow
 } // namespace Scine

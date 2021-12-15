@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -39,7 +39,7 @@ class MultipoleMultipoleInteraction {
    * @return an Utils::AutomaticDifferentiation::Value1D<O>, i.e. a collection of all the derivative orders up to the
    * O-th for a 1-dimensional object
    */
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value1DType<O> calculate(double R, double D1, double d2, double squaredRhos) const {
     auto sum = Utils::AutomaticDifferentiation::constant1D<O>(0);
     for (const auto& t : terms_) {

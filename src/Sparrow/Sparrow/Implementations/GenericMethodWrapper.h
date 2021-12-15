@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_GENERICMETHODWRAPPER_H
@@ -16,13 +16,15 @@
 #include <Utils/Settings.h>
 #include <Utils/Technical/CloneInterface.h>
 #include <string>
+#include <unordered_map>
 
 namespace Scine {
 namespace Utils {
 class LcaoMethod;
 class DensityMatrix;
 class DipoleMatrix;
-enum class derivativeType;
+class AdditiveElectronicContribution;
+enum class Derivative;
 } // namespace Utils
 namespace Sparrow {
 
@@ -105,6 +107,10 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
   const Utils::Results& results() const final;
 
   /**
+   * @brief Interface method to add an electronic contribution to the Hamiltonian.
+   */
+  virtual void addElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution) = 0;
+  /**
    * @brief Whether the calculator supports a method family
    * In this library, every calculator supports just one "method family": itself.
    * @param methodFamily identifier for the method family
@@ -117,6 +123,8 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
   virtual const Utils::LcaoMethod& getLcaoMethod() const = 0;
   /// @brief Returns a Sto-6G expansion
   std::string getStoNGExpansionPath() const;
+  /// @brief get map of GTOs of each element in the calculated structure with Z as key
+  std::unordered_map<int, Utils::AtomicGtos> getAtomicGtosMap() const;
   void generateWavefunctionInformation(const std::string& filename) final;
   void generateWavefunctionInformation(std::ostream& out) final;
 
@@ -129,7 +137,7 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
   //! Initializes a method with the parameter file present in the settings.
   virtual void initialize() = 0;
   //! Determines the highest derivative type needed based on the property needed for calculation.
-  Utils::derivativeType highestDerivativeRequired() const;
+  Utils::Derivative highestDerivativeRequired() const;
   virtual void assembleResults(const std::string& description);
 
   virtual bool successfulCalculation() const = 0;
@@ -148,7 +156,7 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
   virtual bool getZPVEInclusion() const = 0;
 
   //! Method-dependent implementation of the calculate member function
-  virtual void calculateImpl(Utils::derivativeType requiredDerivative) = 0;
+  virtual void calculateImpl(Utils::Derivative requiredDerivative) = 0;
 
   std::unique_ptr<DipoleMomentCalculator> dipoleCalculator_;
   std::unique_ptr<DipoleMatrixCalculator> dipoleMatrixCalculator_;

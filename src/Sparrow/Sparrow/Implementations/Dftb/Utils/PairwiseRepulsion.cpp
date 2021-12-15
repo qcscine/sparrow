@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -20,47 +20,50 @@ namespace dftb {
 PairwiseRepulsion::PairwiseRepulsion(const RepulsionParameters& repulsionPars) : repulsionPars_(repulsionPars) {
 }
 
-void PairwiseRepulsion::calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::derivOrder order) {
+void PairwiseRepulsion::calculate(const Eigen::Ref<Eigen::Vector3d>& R, Utils::DerivativeOrder order) {
   double Rabs = R.norm();
-  if (order == Utils::derivOrder::zero) {
-    repulsionEnergy_ = calculateRepulsion<Utils::derivOrder::zero>(Rabs);
+  if (order == Utils::DerivativeOrder::Zero) {
+    repulsionEnergy_ = calculateRepulsion<Utils::DerivativeOrder::Zero>(Rabs);
   }
-  else if (order == Utils::derivOrder::one) {
-    First1D rep = calculateRepulsion<Utils::derivOrder::one>(Rabs);
+  else if (order == Utils::DerivativeOrder::One) {
+    First1D rep = calculateRepulsion<Utils::DerivativeOrder::One>(Rabs);
     repulsionEnergy_ = rep.value();
-    repulsionGradient_ = Utils::Gradient(get3Dfrom1D<Utils::derivOrder::one>(rep, R).derivatives());
+    repulsionGradient_ = Utils::Gradient(get3Dfrom1D<Utils::DerivativeOrder::One>(rep, R).derivatives());
   }
-  else if (order == Utils::derivOrder::two) {
-    Second1D rep = calculateRepulsion<Utils::derivOrder::two>(Rabs);
+  else if (order == Utils::DerivativeOrder::Two) {
+    Second1D rep = calculateRepulsion<Utils::DerivativeOrder::Two>(Rabs);
     repulsionEnergy_ = rep.value();
-    repulsionHessian_ = get3Dfrom1D<Utils::derivOrder::two>(rep, R);
+    repulsionHessian_ = get3Dfrom1D<Utils::DerivativeOrder::Two>(rep, R);
   }
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Value1DType<O> PairwiseRepulsion::calculateRepulsion(double r) const {
+  // TODO duplicated in SKPair
+
   auto R = variableWithUnitDerivative<O>(r);
   if (r > repulsionPars_.cutoff)
     return constant1D<O>(0);
-  if (r < repulsionPars_.splineStart[0])
+  if (r < repulsionPars_.splines[0].start)
     return exp(-repulsionPars_.a1 * R + repulsionPars_.a2) + repulsionPars_.a3;
 
-  auto i = static_cast<int>((r - repulsionPars_.splineStart[0]) /
-                            (repulsionPars_.cutoff - repulsionPars_.splineStart[0]) * repulsionPars_.nSplineInts);
+  auto i = static_cast<int>((r - repulsionPars_.splines[0].start) /
+                            (repulsionPars_.cutoff - repulsionPars_.splines[0].start) * repulsionPars_.nSplineInts);
 
   // If not the right bin, change it:
-  if (repulsionPars_.splineStart[i] > r)
-    while (repulsionPars_.splineStart[--i] > r) {
+  if (repulsionPars_.splines[i].start > r)
+    while (repulsionPars_.splines[--i].start > r) {
     }
-  else if (repulsionPars_.splineEnd[i] < r)
-    while (repulsionPars_.splineEnd[++i] < r) {
+  else if (repulsionPars_.splines[i].end < r)
+    while (repulsionPars_.splines[++i].end < r) {
     }
 
-  auto dr = R - repulsionPars_.splineStart[i];
-  auto repulsion = repulsionPars_.c0[i] +
-                   dr * (repulsionPars_.c1[i] +
-                         dr * (repulsionPars_.c2[i] +
-                               dr * (repulsionPars_.c3[i] + (i == repulsionPars_.nSplineInts - 1
+  const auto& spline = repulsionPars_.splines[i];
+
+  auto dr = R - spline.start;
+  auto repulsion =
+      spline.c0 +
+      dr * (spline.c1 + dr * (spline.c2 + dr * (spline.c3 + (i == repulsionPars_.nSplineInts - 1
                                                                  ? dr * (repulsionPars_.c4 + dr * repulsionPars_.c5)
                                                                  : constant1D<O>(0.0)))));
 

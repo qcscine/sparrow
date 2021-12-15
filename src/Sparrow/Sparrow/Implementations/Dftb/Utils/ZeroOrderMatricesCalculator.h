@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -16,7 +16,7 @@
 namespace Scine {
 
 namespace Utils {
-enum class derivOrder;
+enum class DerivativeOrder;
 class DensityMatrix;
 class AtomsOrbitalsIndexes;
 } // namespace Utils
@@ -41,7 +41,7 @@ class ZeroOrderMatricesCalculator {
    */
   void initializeH0S();
   //! @brief Calculate the remaining parts of the Hamiltonian and overlap matrices.
-  void constructH0S(Utils::derivOrder order);
+  void constructH0S(Utils::DerivativeOrder order);
 
   /**
    * @brief Correspond to functions from ElectronicContributionCalculator
@@ -49,28 +49,28 @@ class ZeroOrderMatricesCalculator {
    */
   void initializeFockCalculator() {
   }
-  void calculateFockMatrix(Utils::derivOrder /*order*/) {
+  void calculateFockMatrix(Utils::DerivativeOrder /*order*/) {
   }
   // For DFTB0, overlapDerivativeMultiplier is the energy-weighted density matrix.
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives,
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives,
                       const Eigen::MatrixXd& overlapDerivativeMultiplier) const;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives,
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives,
                       const Eigen::MatrixXd& overlapDerivativeMultiplier) const;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives,
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives,
                       const Eigen::MatrixXd& overlapDerivativeMultiplier) const;
 
   // Correspond to functions from OverlapCalculator
-  void calculateOverlap(Utils::derivOrder highestRequiredOrder);
+  void calculateOverlap(Utils::DerivativeOrder highestRequiredOrder);
   const Utils::MatrixWithDerivatives& getOverlap() const;
   const Utils::MatrixWithDerivatives& getZeroOrderHamiltonian() const;
   void resetOverlap();
 
  private:
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void constructH0S();
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void constructPartOfH0S();
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivativesImpl(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives,
                           const Eigen::MatrixXd& overlapDerivativeMultiplier) const;
 

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -35,15 +35,17 @@ void OneCenterTwoElectronIntegrals::initialize(BasisFunctions basisFunctions) {
 void OneCenterTwoElectronIntegrals::calculateIntegrals() {
   setExchangePIntegral();
 
-  if (needsIntegralsFromSlaterCondonParameters())
+  if (needsIntegralsFromSlaterCondonParameters()) {
     calculateIntegralsFromExponents();
+  }
 }
 
 bool OneCenterTwoElectronIntegrals::needsIntegralsFromSlaterCondonParameters() {
   bool exponentsNeeded = false;
   for (int i = 0; i < nIntegrals_; i++) {
-    if (!alreadyGiven_[i])
+    if (!alreadyGiven_[i]) {
       exponentsNeeded = true;
+    }
   }
   return exponentsNeeded;
 }

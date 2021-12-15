@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -13,7 +13,10 @@
 #include <Sparrow/Implementations/Dftb/Dftb0/Wrapper/DFTB0MethodWrapper.h>
 #include <Sparrow/Implementations/Dftb/Dftb2/Wrapper/DFTB2MethodWrapper.h>
 #include <Sparrow/Implementations/Dftb/Dftb3/Wrapper/DFTB3MethodWrapper.h>
+#include <Sparrow/Implementations/Dftb/TimeDependent/LinearResponse/TDDFTBCalculator.h>
 #include <Sparrow/Implementations/MoldenFileGenerator.h>
+#include <Sparrow/Implementations/Nddo/TimeDependent/LinearResponse/CISLinearResponseTimeDependentCalculator.h>
+#include <Sparrow/Implementations/OrbitalSteeringCalculator.h>
 /* External Includes */
 #include <Core/DerivedModule.h>
 #include <Core/Exceptions.h>
@@ -26,12 +29,13 @@ namespace Sparrow {
 using InterfaceModelMap = boost::mpl::map<
     boost::mpl::pair<Core::Calculator, boost::mpl::vector<PM6MethodWrapper, AM1MethodWrapper, RM1MethodWrapper, PM3MethodWrapper, MNDOMethodWrapper,
                                                           DFTB0MethodWrapper, DFTB2MethodWrapper, DFTB3MethodWrapper>>,
+    boost::mpl::pair<Core::CalculatorWithReference, boost::mpl::vector<CISLinearResponseTimeDependentCalculator, TDDFTBCalculator, OrbitalSteeringCalculator>>,
     boost::mpl::pair<Core::WavefunctionOutputGenerator, boost::mpl::vector<PM6MethodWrapper, AM1MethodWrapper, RM1MethodWrapper, PM3MethodWrapper, MNDOMethodWrapper,
                                                                            DFTB0MethodWrapper, DFTB2MethodWrapper, DFTB3MethodWrapper>>>;
 
 std::string SparrowModule::name() const noexcept {
   return "Sparrow";
-};
+}
 
 boost::any SparrowModule::get(const std::string& interface, const std::string& model) const {
   boost::any resolved = Core::DerivedModule::resolve<InterfaceModelMap>(interface, model);
@@ -42,7 +46,7 @@ boost::any SparrowModule::get(const std::string& interface, const std::string& m
   }
 
   return resolved;
-};
+}
 
 bool SparrowModule::has(const std::string& interface, const std::string& model) const noexcept {
   return Core::DerivedModule::has<InterfaceModelMap>(interface, model);

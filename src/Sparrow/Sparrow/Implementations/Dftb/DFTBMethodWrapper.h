@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_DFTBMETHODWRAPPER_H
@@ -12,6 +12,7 @@
 
 namespace Scine {
 namespace Sparrow {
+class TDDFTBData;
 
 class DFTBMethodWrapper : public Utils::CloneInterface<Utils::Abstract<DFTBMethodWrapper>, GenericMethodWrapper> {
  public:
@@ -27,20 +28,25 @@ class DFTBMethodWrapper : public Utils::CloneInterface<Utils::Abstract<DFTBMetho
    * If they diverge, override this in each method wrapper.
    */
   Utils::PropertyList possibleProperties() const final;
+  TDDFTBData getTDDFTBData() const;
 
  private:
   void assembleResults(const std::string& description) final;
 
  protected:
+  virtual TDDFTBData getTDDFTBDataImpl() const = 0;
+
   // Extracted method from all copy constructors and copy assignment operators.
   template<class DFTBMethod>
   void copyInto(DFTBMethod& instance, const DFTBMethod& classToCopy) {
-    instance.results() = classToCopy.results();
+    auto results = classToCopy.results();
     instance.settings() = classToCopy.settings();
     // Concurrent calling of the logger introduces race conditions
     // that eventually trigger a segfault
     instance.setStructure(*classToCopy.getStructure());
+    instance.results() = std::move(results);
     instance.loadState(classToCopy.getState());
+    instance.setLog(classToCopy.getLog());
   }
   bool getZPVEInclusion() const final;
 };

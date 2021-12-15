@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -36,7 +36,7 @@ class OverlapMatrix : public Utils::OverlapCalculator {
   OverlapMatrix(const Utils::ElementTypeCollection& elements, const Utils::PositionCollection& positions,
                 const Utils::AtomsOrbitalsIndexes& aoIndexes, const ElementParameters& elementParameters);
   //! @brief Function calculating the overlap between the AO basis functions up to the desired derivative order
-  void calculateOverlap(Utils::derivOrder highestRequiredOrder) override;
+  void calculateOverlap(Utils::DerivativeOrder highestRequiredOrder) override;
   //! @brief Getter for the overlap matrix with its derivatives.
   const Utils::MatrixWithDerivatives& getOverlap() const override;
   //! @brief (Re)-initializes the overlap matrix with its derivatives.
@@ -48,9 +48,9 @@ class OverlapMatrix : public Utils::OverlapCalculator {
   const Utils::PositionCollection& positions_;
   const Utils::AtomsOrbitalsIndexes& aoIndexes_;
   const ElementParameters& elementParameters_;
-  AtomPairOverlap<Utils::derivOrder::one> pairOverlapFirstOrder_;
-  AtomPairOverlap<Utils::derivOrder::zero> pairOverlapZeroOrder_;
-  AtomPairOverlap<Utils::derivOrder::two> pairOverlapSecondOrder_;
+  AtomPairOverlap<Utils::DerivativeOrder::One> pairOverlapFirstOrder_;
+  AtomPairOverlap<Utils::DerivativeOrder::Zero> pairOverlapZeroOrder_;
+  AtomPairOverlap<Utils::DerivativeOrder::Two> pairOverlapSecondOrder_;
   int nAOs_ = 0;
   int nAtoms_ = 0;
 };

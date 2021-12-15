@@ -1,12 +1,13 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #include "MNDOMethod.h"
 #include "MNDORepulsionEnergy.h"
+#include <Sparrow/Implementations/Nddo/Parameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/FockMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/OverlapMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDODensityGuess.h>
@@ -23,7 +24,7 @@ using namespace Utils::AutomaticDifferentiation;
 
 namespace nddo {
 
-MNDOMethod::MNDOMethod() : ScfMethod(true, Utils::derivOrder::two, true) {
+MNDOMethod::MNDOMethod() : ScfMethod(true, Utils::DerivativeOrder::Two, true) {
   mndoSettings_ = std::make_unique<NDDOInitializer>(BasisFunctions::sp, false);
   overlapCalculator_ =
       std::make_unique<OverlapMatrix>(elementTypes_, positions_, aoIndexes_, mndoSettings_->getElementParameters());
@@ -41,7 +42,13 @@ MNDOMethod::MNDOMethod() : ScfMethod(true, Utils::derivOrder::two, true) {
 MNDOMethod::~MNDOMethod() = default;
 
 void MNDOMethod::setStructure(const Utils::AtomCollection& atoms, std::string parameterPath) {
-  readParameters(std::move(parameterPath));
+  if (parameterPath.empty()) {
+    mndoSettings_->getRawParameters() = nddo::mndo();
+  }
+  else {
+    readParameters(std::move(parameterPath));
+  }
+
   setAtomCollection(atoms);
   initialize();
 }
@@ -54,11 +61,11 @@ void MNDOMethod::saveParameters(const std::string& fileName) {
   mndoSettings_->saveParameters(fileName);
 }
 
-RawParametersContainer& MNDOMethod::getRawParameters() {
+Parameters& MNDOMethod::getRawParameters() {
   return mndoSettings_->getRawParameters();
 }
 
-const RawParametersContainer& MNDOMethod::getRawParameters() const {
+const Parameters& MNDOMethod::getRawParameters() const {
   return mndoSettings_->getRawParameters();
 }
 

@@ -1,13 +1,14 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #ifndef SPARROW_DFTBDIPOLEMATRIXCALCULATOR_H
 #define SPARROW_DFTBDIPOLEMATRIXCALCULATOR_H
 
+#include "TransitionChargesCalculator.h"
 #include <Sparrow/Implementations/DipoleMatrixCalculator.h>
 #include <Utils/DataStructures/DipoleMatrix.h>
 #include <Utils/Typenames.h>
@@ -34,27 +35,38 @@ namespace Sparrow {
  * unrestricted formalism.
  */
 template<class DFTBMethod>
-class DFTBDipoleMatrixCalculator : public DipoleMatrixCalculator {
+class DFTBDipoleMatrixCalculator final : public DipoleMatrixCalculator {
  public:
-  /*
+  /**
    * @brief Factory method for the DFTBDipoleMatrixCalculator.
    * This returns a unique pointer to a DFTBDipoleMatrixCalculator class.
    */
   static std::unique_ptr<DFTBDipoleMatrixCalculator<DFTBMethod>> create(DFTBMethod& method);
   //! @brief Virtual destructor.
   ~DFTBDipoleMatrixCalculator() final;
-  //! @brief Getter for the AO dipole matrix. Throws an exception.
+  DFTBDipoleMatrixCalculator(DFTBDipoleMatrixCalculator&&) = default;
+  /**
+   * @brief Getter for the AO dipole matrix. Throws an exception.
+   * @throws DipoleMatrixTypeNotAvailableException
+   * No AO dipole matrix is currently implemented.
+   * TODO: it is just D_{AO} = C * D_{MO} * C^T
+   */
   const Utils::DipoleMatrix& getAODipoleMatrix() const final;
   //! @brief Getter for the MO dipole matrix. Returns an rvalue.
   Utils::DipoleMatrix getMODipoleMatrix() const final;
-  //! @brief Setter for the AO dipole matrix. Here it throws an exception.
+  /**
+   * @brief Setter for the AO dipole matrix. Here it throws an exception.
+   * @throws DipoleMatrixTypeNotAvailableException
+   * No AO dipole matrix is currently implemented.
+   * TODO: it is just D_{AO} = C * D_{MO} * C^T
+   */
   void setAODipoleMatrix(Utils::DipoleMatrix dipoleMatrix) final;
   //! @brief Calculates the MO dipole matrix for the DFTB methods.
   void fillDipoleMatrix(const Eigen::RowVector3d& dipoleEvaluationCoordinate) final;
 
   //! @brief Initialize the underlying dipole matrix.
   void initialize() final;
-  //! @brief This does nothing in DFTB.
+  //! @brief This does nothing in DFTB as there is just one method currently to calculate Dipole Matrix.
   void setIntegralMethod(const IntegralMethod& IntegralMethod) final;
   //! @brief Invalidates the underlying dipole matrices and forces a new calculation.
   void invalidate() final;
@@ -63,8 +75,6 @@ class DFTBDipoleMatrixCalculator : public DipoleMatrixCalculator {
 
  private:
   explicit DFTBDipoleMatrixCalculator(DFTBMethod& method);
-  void calculateRestrictedTransitionChargeMatrices(const Utils::PositionCollection& positions);
-  void calculateUnrestrictedTransitionChargeMatrices(const Utils::PositionCollection& positions);
   bool valid_{false};
   Utils::DipoleMatrix dipoleMatrixMO_;
   const DFTBMethod& method_;
@@ -73,8 +83,6 @@ class DFTBDipoleMatrixCalculator : public DipoleMatrixCalculator {
   const Utils::MolecularOrbitals& coefficientMatrix_;
   const Eigen::MatrixXd& overlapMatrix_;
   const Utils::AtomsOrbitalsIndexes& aoIndex_;
-
-  std::vector<Eigen::MatrixXd> transitionChargeMatrices_;
 };
 
 } // namespace Sparrow

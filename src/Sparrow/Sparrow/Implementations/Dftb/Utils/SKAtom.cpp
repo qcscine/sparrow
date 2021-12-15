@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -65,10 +65,8 @@ double SKAtom::getHubbardParameter() const {
   // Remark: all three Us, Up and Ud are given in the Slater-Koster files, but they are identical.
 }
 
-void SKAtom::setSpinConstants(double spinConstants[][3]) {
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      sc[i][j] = spinConstants[i][j];
+void SKAtom::setSpinConstants(std::array<std::array<double, 3>, 3> arr) {
+  sc = arr;
   allowsSpin = true;
 }
 

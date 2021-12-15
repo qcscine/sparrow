@@ -1,11 +1,12 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #include "DFTBMethodWrapper.h"
+#include <Sparrow/Implementations/Dftb/TimeDependent/LinearResponse/TDDFTBData.h>
 #include <Sparrow/Implementations/Dftb/Utils/DipoleUtils/DFTBDipoleMatrixCalculator.h>
 #include <Utils/CalculatorBasics/PropertyList.h>
 
@@ -41,6 +42,10 @@ void DFTBMethodWrapper::assembleResults(const std::string& description) {
 
 bool DFTBMethodWrapper::getZPVEInclusion() const {
   return false;
+}
+
+TDDFTBData DFTBMethodWrapper::getTDDFTBData() const {
+  return getTDDFTBDataImpl();
 }
 
 } // namespace Sparrow

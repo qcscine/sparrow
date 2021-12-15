@@ -5,6 +5,7 @@
 %%
 % For graphics / images
 \usepackage{graphicx}
+\usepackage{amsmath}
 \setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
 \graphicspath{{graphics/}}
 \usepackage{hyperref}
@@ -20,8 +21,8 @@
 %\savebox{\scineimage}{\includegraphics[height=5\baselineskip]{scine_darkblue.png}}
 
 
-\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 2.0.1}}
-\author[The SCINE Sparrow Developers]{The SCINE Sparrow Developers: \newline \noindent Francesco Bosia, Tamara Husch, Alain Vaucher, and Markus Reiher}
+\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 3.0.0}}
+\author[The SCINE Sparrow Developers]{The SCINE Sparrow Developers: \newline \noindent Francesco Bosia, Tamara Husch, Charlotte H.~M\"uller, Severin Polonius, Jan-Grimo Sobez, Miguel Steiner, Jan P.~Unsleber, Alain C.~Vaucher, Thomas Weymuth, and Markus Reiher}
 \publisher{ETH Z\"urich}
 
 %%
@@ -234,7 +235,7 @@ respect to the nuclear coordinates, and Hessians rapidly. The SCINE \textsc{Spar
 \textsc{Interactive}, SCINE \textsc{ReaDuct}, and SCINE \textsc{Chemoton}. However, as with all SCINE modules it is also 
 a stand-alone program which can be applied on its own or easily interfaced to other programs.
 
-SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 2.0.1 
+SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 3.0.0 
 provides the \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, non-SCC DFTB (\texttt{DFTB0}), \texttt{DFTB2}, and \texttt{DFTB3} methods 
 (open- and closed-shell formalisms are implemented). 
 The application of semiempirical models usually allows for rapid calculation of electronic energies and energy gradients 
@@ -265,12 +266,12 @@ calculations might become resource intensive if extremely large systems are stud
 
 \textsc{Sparrow} is distributed as an open source code. In order to compile \textsc{Sparrow} from this source code, you need
 \begin{itemize}
- \item A C++ compiler supporting the C++14 standard (we recommend gcc 7.3.0),
- \item cmake (at least version 3.9.0),
- \item the Boost library (we recommend version 1.64.0), and
- \item the Eigen3 library (we recommend version 3.3.2).
+ \item A C++ compiler supporting the C++14 standard,
+ \item cmake (at least version 3.9),
+ \item the Boost library (at least version 1.65.0), and
+ \item the Eigen3 library (at least version 3.3.2).
 \end{itemize}
-In order to compile the software, either directly clone the repository with git or extract the downloaded tarball, change 
+In order to compile the software, either directly clone the repository with git or extract the downloaded tarball, change
 to the source directory and execute the following steps:
 \begin{verbatim}
 git submodule init
@@ -283,7 +284,7 @@ make test
 make install
 export PATH=$PATH:<source code directory>/install/bin
 \end{verbatim}
-This will configure everything, compile your software, run the tests, and install the software 
+This will configure everything, compile your software, run the tests, and install the software
 into the folder ``install''. Finally, it will add the \textsc{Sparrow} binary to your \texttt{PATH}, such that you can use
 it without having to specify its full location. In this last command, you have to replace \texttt{<source code directory>}
 with the full path where you stored the source code of \textsc{Sparrow}.
@@ -321,7 +322,7 @@ This will calculate the electronic energy for the neutral water molecule with PM
 sparrow -x h2o.xyz -c 0 -s 1 -M PM6
 \end{verbatim}
 to achieve the same result. If you also want to calculate the nuclear gradient, simply add the option \texttt{-{}-gradient}
-or \texttt{-G}. For the Hessian, specify \texttt{-{}-hessian} or \texttt{-H}.
+or \texttt{-G}. For the Hessian, specify \texttt{-{}-hessian} or \texttt{-H}. For the atomic second derivatives (which can be used to approximate the Hessian as a block-diagonal matrix of second derivatives. Both coordinates with respect to which the energy is derived refer to the same atom), specify \texttt{-{}-atomic\_hessians} or \texttt{-A}.
 
 
 
@@ -337,28 +338,32 @@ are listed and explained.
 as a path to an XYZ file.
 \item \texttt{-{}-molecular\_charge}, \texttt{-c}: This is used to specify the overall charge of the system to be calculated, 
 \texttt{e.g.}, \texttt{-{}-molecular\_charge 0} or \texttt{-c -1}. The default charge is zero.
-Only charges between -20 and + 20 are supported.
+Only charges between $-$20 and +20 are supported.
 \item \texttt{-{}-spin\_multiplicity}, \texttt{-s}: This is used to specify the spin multiplicity of the system to be
 calculated, \texttt{e.g.}, \texttt{-s 1} for a singlet state. The default multiplicity is one. The maximal spin multiplicity is 10.
 \item \texttt{-{}-gradients}, \texttt{-G}: If given, the nuclear gradients will be calculated.
 \item \texttt{-{}-hessian}, \texttt{-H}: If given, the Hessian and the nuclear gradients will be calculated.
+\item \texttt{-{}-atomic\_hessians}, \texttt{-A}: If given, a list of the atomic second derivatives will be calculated.
 \item \texttt{-{}-thermochemistry}, \texttt{-C}: If given, the heat capacities at constant volume or pressure, 
 the enthalpy, the entropy, the Gibbs free enthalpy as well as the zero point vibrational energy (ZPVE) are calculated
 from the total molecular partition function.
 The calculation of the thermochemical properties requires the Hessian matrix: its calculation is therefore implied by setting this option.
+\item \texttt{-{}-symmetry\_number}, \texttt{-S}: Specifies the point group-dependent molecular symmetry number $\sigma$ for the calculation of thermochemical properties.
+It is not adapted automatically for molecules with more than two atoms. The default value is one. 
 \item \texttt{-{}-temperature}, \texttt{-T}: This is used to specify the temperature in Kelvin at which the thermochemical properties are calculated.
 The default temperature is 298.15\,K. The maximum allowed temperature is 10'000\,K.
 \item \texttt{-{}-suppress\_normal\_modes}, \texttt{-N}: If given, the full Hessian will be printed instead of the normal 
 modes and the vibrational frequencies. This option has no effect if the Hessian is not calculated (see above).
 \item \texttt{-{}-bond\_orders}, \texttt{-B}: If given, the bond order matrix will be calculated.
 \item \texttt{-{}-method}, \texttt{-M}: With this option, the desired calculation method can be set. Options in
-\textsc{Sparrow} 2.0.1 are \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, \texttt{DFTB0}, \texttt{DFTB2}, and
+\textsc{Sparrow} 3.0.0 are \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, \texttt{DFTB0}, \texttt{DFTB2}, and
 \texttt{DFTB3}. By default, \texttt{PM6} is selected.
 \item \texttt{-{}-output\_to\_file}, \texttt{-o}: If this option is given, the output will not only be printed to the screen, 
 but also to files. By default, the energy is stored in a file named ``energy.dat'', the nuclear gradients in a file named
-``gradients.dat'', the Hessian in a file named ``hessian.dat'', and the bond order matrix in a file named ``bond\_orders.dat''.
+``gradients.dat'', the Hessian in a file named ``hessian.dat'', the atomic Hessians in a file named ``atomic\_hessians.dat'', and the
+bond order matrix in a file named ``bond\_orders.dat''.
 If a description is given with the option \texttt{-d} (see below), this description will also be used in the file name.
-\item \texttt{-{}-description}, \texttt{-d}: This can be used to add a (short) description of the calculation. This
+\item \texttt{-{}-description}, \texttt{-D}: This can be used to add a (short) description of the calculation. This
 description will appear in the output. This allows to quickly find a certain calculation output at a later point. The
 description should be enclosed by quotation marks if it is composed by more than one word, \textit{e.g.},
 \texttt{-d "This is an example"}.
@@ -366,9 +371,58 @@ description should be enclosed by quotation marks if it is composed by more than
 will be performed. By default, a restricted calculation will be done.
 \item \texttt{-{}-wavefunction}, \texttt{-W}: If this option is given, a Molden input file is generated after the
 calculation to allow for the visualization of the molecular orbitals.The basis functions used for the generation of the
-Molden input are defined in the files \texttt{<source code directory>/Sparrow/Sparrow/Resources/<method>/STO-6G.basis}.
+Molden input are defined in the files \texttt{<source code directory>/Sparrow/Sparrow/Resources/<method>/<method>-STO-6G.basis}.
 All \texttt{NDDO} methods have their own STO-6G expansion which are fine tuned based on the method's parameters.
 For the \texttt{DFTB} methods, the same basis set as \texttt{PM6} is used.
+\item \texttt{-{}-excited\_states}, \texttt{-E}: If this option is given, an
+  electronic excited states calculation will be performed. Vertical transition
+    energies and transition properties result from single electron substitutions
+    for DFTB0, TD-DFTB formalism for DFTB2 and DFTB3 and NDDO-CIS for all NDDO
+    methods.
+\item \texttt{-{}-number\_eigenstates}, \texttt{-r}: Specifies the desired number of
+  excited states. Note that this option is only considered when the option \texttt{-E} (see above) is also given.
+By default, one excited state is calculated.
+\item \texttt{-{}-initial\_subspace\_dimension}, \texttt{-n}: Specifies the desired number of
+  initial guess vectors for the calculation of the excited states with TD-DFTB
+    or NDDO-CIS. Multiples of the desired number of excited states may have a
+    beneficial impact on the computational time. Note that this option is only considered when the option \texttt{-E}
+(see above) is also given. The default value is 0.
+\item \texttt{-{}-spin\_block}, \texttt{-b}: Specifies the desired excited-state
+  symmetry to compute. Possible values are \texttt{-b singlet} for singlet
+    excited states, \texttt{-b triplet} for triplet excited states, and
+    \texttt{-b both} if excited states of both spin symmetries are desired. This
+    option has no effect if an unrestricted calculation is performed. Note that this option is only considered when the
+option \texttt{-E} (see above) is also given. By default, the singlet states are computed.
+\item \texttt{-{}-number\_orbital\_mixes} \texttt{-O}:
+    Sets the number of orbital steers to carry out, if 0, no steering occurs.
+    The default is 0, so no steering. The command
+    \texttt{-{}-number\_orbital\_mixes} 3 causes the program to first do a
+    reference calculation, then three rounds of random mixing of the orbitals, 
+    followed by an acceptance of the lowest energy.
+\item \texttt{-{}-number\_orbitals\_to\_mix}: Specifies how many
+  occupied--virtual orbital pairs are
+  sampled without replacement and mixed together in each mixing round of the
+  orbital steering. The default is 15 orbital pairs.
+\item \texttt{-{}-number\_orbitals\_to\_consider}: Specifies the number of
+  orbitals around the Fermi level that will form the set from which the orbital steering 
+  samples the occupied--virtual orbital pairs that can be mixed. The default is
+  0, which causes the program to consider all the orbitals
+\item \texttt{-{}-maximal\_mixing\_angle}: Specifies the maximal angle in
+  degrees for the 
+  mixing of the occupied--virtual orbital pairs in the orbital steering. The
+  default value is 90 degrees, i.e. the angle for which the two orbitals are
+  swapped.
+\item \texttt{-{}-minimal\_mixing\_angle}: Specifies the minimal angle in
+  degrees for the 
+  mixing of the occupied--virtual orbital pairs in the orbital steering. The
+  default value is 0 degrees, i.e. the angle for which nothing happens.
+  The new, mixed orbitals are obtained according to:
+  \begin{align*}
+    \phi_{\mathrm {occ, new}} &= \cos \alpha \cdot \phi_{\mathrm{occ, old}} + \sin \alpha \cdot
+    \phi_{\mathrm {vir, old}}\\
+    \phi_{\mathrm {vir, new}} &= \cos \alpha \cdot \phi_{\mathrm{vir, old}} - \sin \alpha \cdot
+    \phi_{\mathrm {occ, old}} \, .
+  \end{align*}
 
 \end{itemize}
 
@@ -381,19 +435,57 @@ arguments
 consistent-field (SCF) calculations can be set. Possible options are `no\_mixer` (no convergence acceleration), `diis`
 (direct inversion of the iterative subspace, DIIS), `ediis` (energy DIIS), and `ediis\_diis`. The
 default is `diis`.
-\item \texttt{-{}-max\_scf\_iterations}, \texttt{-i}: This is used to specify the maximum number of SCF iterations. Default is 100.
+\item \texttt{-{}-max\_scf\_iterations}, \texttt{-I}: This is used to specify the maximum number of SCF iterations. Default is 100.
 \item \texttt{-{}-self\_consistence\_criterion}, \texttt{-t}: This specifies the convergence threshold for the electronic energy.
-This value is given in hartree. By default, it is `1e-5`. 
-\item \texttt{-{}-parameter\_file}, \texttt{-p}: This option can be used to specify the path of the parameter file to be
-used. This option is usually not needed, since \textsc{Sparrow} provides default parameter files for all its methods.
-\item \texttt{-{}-parameter\_root}, \texttt{-P}: This option can be used to specify a directory in which \textsc{Sparrow}
-should search for its parameter files. This option is usually not needed, since \textsc{Sparrow} provides default parameter 
-files for all its methods. The path to the parameter file (or directory for the DFTB methods) is the concatenation of
-the \texttt{parameter\_root} and \texttt{parameter\_file} options.
+This value is given in hartree. By default, it is `1e-7`. 
+\item \texttt{-{}-density\_rmsd\_criterion}: This specifies the
+  convergence threshold for the density difference between iterations (density
+    matrix RMSD). By default, it is `1e-5`. 
+\item \texttt{-{}-method\_parameters}, \texttt{-p}: This option can be used to specify the path of the parameter file to be
+used. This option is usually not needed, since \textsc{Sparrow} provides default parameter for all its methods.
+\item \texttt{-{}-excited\_parameterfile}, \texttt{-j}: This option can be used
+  to specify the path of the parameter file for the excited-state calculation
+    with NDDO-CIS to be used. This option is usually not needed, since \textsc{Sparrow} provides default parameter for 
+    the excited-state calculation with all its methods. Note that this option is only considered when the
+option \texttt{-E} (see above) is also given.
 \item \texttt{-{}-log}, \texttt{-l}: This sets the log level for warning messages and errors. Supported levels are 
-\texttt{trace}, \texttt{info}, \texttt{warning}, \texttt{error}, and \texttt{fatal}. By default, the level is set to
-\texttt{info}, \textit{i.e.}, all warnings and errors are printed to STDERR. If you set this option to \texttt{error}, 
-only errors are printed. If you set this to \texttt{none}, neither warnings nor errors are printed.
+\texttt{debug}, \texttt{output}, \texttt{warning}, \texttt{error}, and
+    \texttt{none}. By default, the level is set to
+\texttt{warning}, \textit{i.e.}, all warnings are printed to STDOUT and errors are printed to STDERR. If you set this option to \texttt{error}, 
+only errors are printed. If you set this to \texttt{none}, neither warnings nor
+    errors are printed. If you set this option to a string other than the ones
+    indicated above, an exception is thrown.
+\item \texttt{-{}-log\_filename}, \texttt{-f}: This sets the name of the file
+  where the logging shall be printed. By default, logging to file is disabled.
+\item \texttt{-{}-distance\_threshold}, \texttt{-d}: specifies the desired
+  distance cutoff for the 2-electron interactions in nddo-cis excited-state
+  calculations. This feature can lead to calculations not converging. Default is
+    no screening.
+\item \texttt{-{}-prune\_basis}, \texttt{-y}: if this option is given, the
+  TD-DFTB calculation is performed in a pruned determinant basis. The pruning is 
+    specified by the options \texttt{-{}-energy\_threshold} and
+    \texttt{-{}-pt\_threshold}.
+\item \texttt{-{}-energy\_threshold}, \texttt{-e}: specifies the desired
+  energy cutoff in a.u. for the basis functions spanning the excited stated to be
+    included. Every basis function characterized by a single orbital
+    substitution between orbitals with an energy difference smaller than this
+    threshold is included to the pruned basis.
+\item \texttt{-{}-pt\_threshold}: specifies the desired
+  perturbation theory cutoff in a.u. (for TDA calculations) or in ${\rm a.u.}^2$ (for
+    full TD-DFTB calculations) for the basis functions spanning the excited stated to be
+    included. Every basis function whose cumulative interaction with basis
+    functions included with the \texttt{-{}-energy\_threshold} criterion is
+    larger than this threshold is included to the pruned basis.
+\item \texttt{-{}-max\_memory}, \texttt{-g}: specifies the maximum memory the
+    excited-state calculation can take. This is estimated from the size of the
+    excited-state basis dimension and the number of desired roots. 
+\item \texttt{-{}-scf\_mixer\_steering}: With this option, the
+  method used to accelerate the convergence of the self-
+consistent-field (SCF) calculations after an orbital steering mix can be set. Possible options are `no\_mixer` (no convergence acceleration), `diis`
+(direct inversion of the iterative subspace, DIIS), `ediis` (energy DIIS), and `ediis\_diis`. The
+default is `diis`.
+\item \texttt{-{}-max\_iterations\_in\_steering}: This is used to
+  specify the maximum number of SCF iterations after an orbital steering mix. Default is 100.
 \end{itemize}
 
 
@@ -413,44 +505,194 @@ where \texttt{n} is the number of CPUs you want to use. Note that by default, \t
 
 \textsc{Sparrow} provides Python bindings such that all functionality of \textsc{Sparrow} can be accessed also via the
 Python programming language. In order to build the Python bindings, you need to specify \texttt{-DSCINE\_BUILD\_PYTHON\_BINDINGS=ON}
-when running cmake (see also chapter~\nameref{ch:installation}).
+when running cmake (see also chapter~\nameref{ch:installation}). 
+Some options, for instance, the convergence of the excited-state subspace solver, 
+are only present in the Python bindings.
+Please note that the setting types are rigorously checked in Python. It is
+important not to confuse integer and floating point types!
+For instance, there is a difference between 1 (an integer type) and 1.0 (a floating
+point type).
 
 In order to use the Python bindings, you need to specify the path to the Python library in the environment variable
-\texttt{PYTHONPATH}. Additionally, the path to the Sparrow module needs to be added to the environment variables
-\texttt{SCINE\_MODULE\_PATH}, \textit{e.g.}, you have to run the command
+\texttt{PYTHONPATH}, \textit{e.g.}, you have to run the command
 \begin{verbatim}
 export PYTHONPATH=$PYTHONPATH:<source code directory>/install/lib/python<version>/site-packages
-export SCINE_MODULE_PATH=<source code directory>/install/lib
 \end{verbatim}
 where \texttt{<version>} is the Python version you are using (\textit{e.g.}, 3.6). Now, you can simply import the library 
 and use it as any other Python library. For example, in order to calculate the total electronic energy of H$_2$ with the 
-\texttt{AM1} method, use the following Python statements:
+\texttt{AM1} method as well as the gradient and the atomic second derivatives (where the latter can be used to approximate the Hessian as a block-diagonal matrix of second derivatives), use the following Python statements:
 \begin{verbatim}
+import scine_utilities as su
 import scine_sparrow
 
-calculation = scine_sparrow.Calculation('AM1')
-calculation.set_elements(['H', 'H'])
-calculation.set_positions([[0, 0, 0], [1, 0, 0]])
-calculation.calculate_energy()
-\end{verbatim}
-Note that the atomic coordinates are specified in \AA{} (\textit{i.e.}, basically, the XYZ format is used). The output
-of \textsc{Sparrow} is always in Hartree atomic units.
+# Generate Structure
+structure = su.AtomCollection()
+structure.elements = [su.ElementType.H, su.ElementType.H]
+structure.positions = [[-0.7, 0, 0], [0.7, 0, 0]]
 
-A detailed list of all the functions provided by the \textsc{Sparrow} Python library can be found by running
+# Get calculator
+manager = su.core.ModuleManager()
+calculator = manager.get('calculator', 'AM1')
+
+# Configure Calculator
+calculator.structure = structure
+calculator.set_required_properties([su.Property.Energy,
+                                    su.Property.Gradients, 
+                                    su.Property.AtomicHessians])
+
+# Calculate
+results = calculator.calculate()
+print(results.energy)
+print(results.gradients)
+# Print the atomic second derivatives as a list of 3x3 matrices.
+# To use this as an approximation of the total Hessian, this output
+# needs to be rearranged in a block-diagonal matrix.
+print(results.atomic_hessian.get_atomic_hessians())
+\end{verbatim}
+The output of \textsc{Sparrow} is always in Hartree atomic units, also the input is expected in Hartree atomic units.
+
+A detailed list of all the functions provided by the \textsc{SCINE} Python libraries can be found by running
 \begin{verbatim}
+import scine_utilities
+
+help(scine_utilities)
+\end{verbatim}
+The import of the SCINE \textsc{Sparrow} module mainly makes the included methods available.
+A shorter version of the above code could be written using an XYZ file input.
+\begin{verbatim}
+import scine_utilities as su
 import scine_sparrow
 
-help(scine_sparrow)
+# Load xyz into calculator
+calculator = su.core.get('calculator', 'AM1')
+calculator.structure = su.io.read('h2.xyz')[0]
+
+# Configure Calculator
+calculator.set_required_properties([su.Property.Energy,su.Property.Gradients])
+
+# calculate
+results = calculator.calculate()
+print(results.energy)
+print(results.gradients)
+\end{verbatim}
+In the latter example, the XYZ file is expected in \AA{}, all results will still be in Hartree atomic units.
+
+Excited-state calculations can also be calculated with the SCINE \textsc{Sparrow} module:
+\begin{verbatim}
+import scine_utilities as su
+import scine_sparrow
+
+# Generate structure
+# This can also be done with 
+# structure = su.io.read('structure.xyz')
+# (will automatically be converted to bohr)
+structure = su.AtomCollection(6)
+structure.elements = [su.ElementType.C, su.ElementType.C, su.ElementType.H, 
+                      su.ElementType.H, su.ElementType.H, su.ElementType.H]
+# in angstrom                                                                
+structure.positions = [[0.94815,    0.05810,    0.05008], 
+                       [2.28393,    0.05810,    0.05008],       
+                       [0.38826,   -0.56287,    0.74233],       
+                       [0.38826,    0.67907,   -0.64217],       
+                       [2.84382,   -0.56287,    0.74233],       
+                       [2.84382,    0.67907,   -0.64217]]
+structure.positions = structure.positions * su.BOHR_PER_ANGSTROM
+
+# Get excited-state calculator
+manager = su.core.ModuleManager()
+excited_states_calculator = manager.get('calculator_with_reference', 'TD-DFTB')
+# Generate a suitable ground-state reference calculator
+excited_states_calculator.reference_calculator = manager.get('calculator', 'DFTB2')
+
+# Configure the calculation
+excited_states_calculator.reference_calculator.settings['self_consistence_criterion']=1e-9
+excited_states_calculator.settings['number_eigenstates'] = 3
+excited_states_calculator.settings['initial_subspace_dimension'] = 3
+
+# Carry out the ground-state calculation
+excited_states_calculator.reference_calculator.structure = structure
+excited_states_calculator.reference_calculation()
+
+# Carry out the excited-state calculation
+result = excited_states_calculator.calculate()
+
+# Print the vertical transition energies and the oscillator strengths
+print(result.excited_states.singlet.eigenstates.eigenvalues * su.EV_PER_HARTREE)
+su.transition_dipole_to_oscillator_strength(result.excited_states.singlet.transition_dipoles, 
+                                            result.excited_states.singlet.eigenstates.eigenvalues)
+
+# Print the labels of the transition density matrix elements
+# and their coefficients in the first excited state
+print(result.excited_states.mo_labels)
+print(result.excited_states.singlet.eigenstates.eigenvectors[:,0])
 \end{verbatim}
 
+Orbital steering calculations can also be calculated with the SCINE \textsc{Sparrow} module:
+\begin{verbatim}
+import scine_utilities as su
+import scine_sparrow
 
+# Generate structure
+# This can also be done with 
+# structure = su.io.read('structure.xyz')
+# (will automatically be converted to bohr)
+structure = su.AtomCollection(6)
+structure.elements = [su.ElementType.C, su.ElementType.C, su.ElementType.H, 
+                      su.ElementType.H, su.ElementType.H, su.ElementType.H]
+# in angstrom                                                                
+structure.positions = [[0.94815,    0.05810,    0.05008], 
+                       [2.28393,    0.05810,    0.05008],       
+                       [0.38826,   -0.56287,    0.74233],       
+                       [0.38826,    0.67907,   -0.64217],       
+                       [2.84382,   -0.56287,    0.74233],       
+                       [2.84382,    0.67907,   -0.64217]]
+structure.positions = structure.positions * su.BOHR_PER_ANGSTROM
 
+# Get orbital steering calculator
+manager = su.core.ModuleManager()
+orbital_steering_calculator = manager.get('calculator_with_reference',
+'orbital_steering')
+# Generate a suitable reference calculator
+calc = manager.get('calculator', 'PM6')
+calc.structure = structure
+calc.settings['self_consistence_criterion'] = 1e-8
+calc.settings['spin_mode'] = 'unrestricted'
+orbital_steering_calculator.reference_calculator = calc
+
+# Configure the calculation
+
+# How often a steering of the orbitals is carried out (1 = every call to
+"calculate()", 2 = every second call to "calculate()", ...)
+# Often  steering the orbitals after each single point is not needed, and
+# the additional cost is not justified. In those cases, one can carry out
+# a steering calculation, e.g., every 5th single-point calculations. Since the
+# density guess is taken to be the solution of the previous calculation, 
+# a steered guess will provide a suitable solution for subsequent calculations.
+orbital_steering_calculator.settings['mixing_frequency'] = 5
+# How many occupied-virtual orbital pairs are created to mix
+orbital_steering_calculator.settings['number_orbitals_to_mix'] = 15
+# Note: not 0 and 90, as those would be integers.
+orbital_steering_calculator.settings['minimal_mixing_angle'] = 0.0
+orbital_steering_calculator.settings['maximal_mixing_angle'] = 90.0
+# You can set other convergence criteria in the orbital steering calculations.
+orbital_steering_calculator.settings['max_scf_iterations'] = 200 
+orbital_steering_calculator.settings['scf_mixer'] = 'ediis_diis'
+
+# Carry out ground-state calculation without steering (not needed, but you can
+# do it). This will not increment the counter used to determine when a steering is
+# needed.
+orbital_steering_calculator.reference_calculation()
+
+# Carry out the orbital-steering calculation
+result = orbital_steering_calculator.calculate()
+
+\end{verbatim}
 
 \chapter{Extensions Planned in Future Releases}
 \begin{itemize}
 \item Availability of OMx models
 \item Availability of the CISE approach
-\item Calculation of excited states
+\item Implementation of multireference semiempirical approach
 \item Implementation of periodic boundary conditions
 \end{itemize}
 
@@ -463,14 +705,19 @@ We kindly ask you to cite the appropriate references in any publication of resul
 \vspace{1.0cm}
 
 \begin{itemize}
-\item Primary reference for Sparrow 2.0.1:
-F.~Bosia, T.~Husch, A.~C.~Vaucher, M.~Reiher, \href{https://doi.org/10.5281/zenodo.3244105}{"qcscine/sparrow: Release 2.0.1 (Version 2.0.1)"}, Zenodo, 2020.
+\item Primary reference for Sparrow 3.0.0:
+F.~Bosia, T.~Husch, C.~H.~M\"uller, S.~Polonius, J.-G.~Sobez, M.~Steiner, J.~P.~Unsleber, A.~C.~Vaucher, T.~Weymuth, M.~Reiher, \href{https://doi.org/10.5281/zenodo.3244105}{"qcscine/sparrow: Release 3.0.0 (Version 3.0.0)"}, Zenodo, 2021.
 \item Presentation of the formalism of MNDO-type and OMx models: \newline
 T.~Husch, A.~C.~Vaucher, M.~Reiher \href{https://doi.org/10.1002/qua.25799}{"Semiempirical Molecular Orbital Models Based on the Neglect of Diatomic Differential Overlap Approximation"}, \textit{Int.~J.~Quantum Chem.}, \textbf{2018}, \textit{118}, e25799.
 \item Presentation of DFTB approaches: \newline
 M.~Elstner, G.~Seifert, \href{https://doi.org/10.1098/rsta.2012.0483}{"Density functional tight binding"}, \textit{Phil. Trans.~R.~Soc.~A}, \textbf{2014}, \textit{371}, 20120483.
 \item Presentation of CISE: \newline
 T.~Husch, M.~Reiher \href{https://doi.org/10.1021/acs.jctc.8b00601}{"Comprehensive Analysis of the Neglect of Diatomic Differential Overlap Approximation"}, \textit{J.~Chem.~Theory Comput.}, \textbf{2018}, \textit{14}, 5169.
+\item Presentation of the Orbital Steering approach: \newline
+A.~C.~Vaucher, M.~Reiher
+    \href{https://doi.org/10.1021/acs.jctc.7b00011}{"Steering Orbital
+    Optimization out of Local Minima and Saddle Points Toward Lower Energy"},
+    \textit{J.~Chem.~Theory Comput.}, \textbf{2017}, \textit{13}, 1219.
 \end{itemize}
 
 

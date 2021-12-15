@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -52,7 +52,7 @@ class TwoCenterIntegralContainer {
    * @brief Updated the Global2c2eMatrix for each atom pair.
    * @param order specify up to which derivative the integral has to be calculated.
    */
-  void update(Utils::derivOrder order);
+  void update(Utils::DerivativeOrder order);
 
   /**
    * @brief sets a Global2c2eMatrix to correspond to a certain atom pair.
@@ -79,7 +79,7 @@ class TwoCenterIntegralContainer {
   // Initializes the matrix corresponding to a given atom pair.
   void initializePair(unsigned int i, unsigned int j);
   // Updates the matrix corresponding to a given atom pair.
-  void updatePair(unsigned int i, unsigned int j, Utils::derivOrder order);
+  void updatePair(unsigned int i, unsigned int j, Utils::DerivativeOrder order);
 
   multipole::Global2c2eTerms terms_;
   const ElementParameters& elementParameters_;

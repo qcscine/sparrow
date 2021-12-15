@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -29,19 +29,18 @@ class Repulsion : public Utils::RepulsionCalculator {
   using Container = std::vector<std::vector<PairRepulsion>>;
 
   void initialize() override;
-  void calculateRepulsion(Utils::derivOrder order) override;
+  void calculateRepulsion(Utils::DerivativeOrder order) override;
   double getRepulsionEnergy() const override;
+  void addRepulsionDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const override;
   void addRepulsionDerivatives(
-      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
+      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const override;
   void addRepulsionDerivatives(
-      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
-  void addRepulsionDerivatives(
-      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+      Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const override;
 
  private:
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addRepulsionDerivativesImpl(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const;
-  void calculatePairRepulsion(int i, int j, Utils::derivOrder order);
+  void calculatePairRepulsion(int i, int j, Utils::DerivativeOrder order);
   void initializePair(int i, int j);
 
   int nAtoms_;

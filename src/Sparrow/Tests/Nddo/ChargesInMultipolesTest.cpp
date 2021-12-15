@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -33,18 +33,18 @@ class AChargesInMultipoles : public Test {
 TEST_F(AChargesInMultipoles, HasCorrectNumberOfChargesInMultipoles) {
   using CM = ChargesInMultipoles;
 
-  ASSERT_THAT(CM::getChargeConfiguration(M00).size(), Eq(1u));
-  ASSERT_THAT(CM::getChargeConfiguration(Qxx).size(), Eq(3u));
-  ASSERT_THAT(CM::getChargeConfiguration(Qyy).size(), Eq(3u));
-  ASSERT_THAT(CM::getChargeConfiguration(M1m1).size(), Eq(2u));
-  ASSERT_THAT(CM::getChargeConfiguration(M10).size(), Eq(2u));
-  ASSERT_THAT(CM::getChargeConfiguration(M11).size(), Eq(2u));
-  ASSERT_THAT(CM::getChargeConfiguration(M2m2).size(), Eq(4u));
-  ASSERT_THAT(CM::getChargeConfiguration(M2m1).size(), Eq(4u));
-  ASSERT_THAT(CM::getChargeConfiguration(M20).size(), Eq(6u));
-  ASSERT_THAT(CM::getChargeConfiguration(M21).size(), Eq(4u));
-  ASSERT_THAT(CM::getChargeConfiguration(M22).size(), Eq(4u));
-  ASSERT_THAT(CM::getChargeConfiguration(Qzx).size(), Eq(4u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M00).size(), Eq(1u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::Qxx).size(), Eq(3u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::Qyy).size(), Eq(3u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M1m1).size(), Eq(2u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M10).size(), Eq(2u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M11).size(), Eq(2u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M2m2).size(), Eq(4u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M2m1).size(), Eq(4u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M20).size(), Eq(6u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M21).size(), Eq(4u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::M22).size(), Eq(4u));
+  ASSERT_THAT(CM::getChargeConfiguration(Multipole::Qzx).size(), Eq(4u));
 }
 } // namespace Sparrow
 } // namespace Scine

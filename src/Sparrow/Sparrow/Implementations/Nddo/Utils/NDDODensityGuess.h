@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -29,13 +29,12 @@ class NDDODensityGuess : public Utils::DensityMatrixGuessCalculator {
                    Utils::OverlapCalculator& overlapCalculator, const int& nElectrons, const int& nAOs);
 
   Utils::DensityMatrix calculateGuess() const override;
-  void setNElectrons(int nElectrons) final;
 
  private:
   const Utils::ElementTypeCollection& elements_;
   const ElementParameters& elementParameters_;
   Utils::OverlapCalculator& overlapCalculator_;
-  int nElectrons_;
+  const int& nElectrons_;
   const int& nAOs_;
 };
 

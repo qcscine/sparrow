@@ -1,12 +1,12 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
-#include "parameters_location.h"
 #include <Core/Interfaces/Calculator.h>
+#include <Core/Log.h>
 #include <Core/ModuleManager.h>
 #include <Sparrow/Implementations/GenericMethodWrapper.h>
 #include <Sparrow/Implementations/Nddo/Pm6/PM6Method.h>
@@ -18,7 +18,6 @@
 #include <Utils/IO/ChemicalFileFormats/XyzStreamHandler.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <gmock/gmock.h>
-#include <boost/dll/runtime_symbol_info.hpp>
 
 using namespace testing;
 
@@ -33,22 +32,13 @@ class ANDDOStatesHandlerTest : public Test {
   Utils::AtomCollection ethanol_;
   Utils::StatesHandler statesHandler_;
 
- public:
+  Core::Log log;
+
+ private:
   void SetUp() override {
     auto& manager = Core::ModuleManager::getInstance();
-    // Load the Sparrow module if it is not already loaded.
-    try {
-      auto programPath = boost::dll::program_location();
-      auto libPath = programPath.parent_path() / "sparrow";
-      manager.load(libPath);
-    }
-    catch (std::exception& e) {
-    }
-
     interfaceMethod_ = manager.get<Core::Calculator>("PM6");
-    auto& settings = interfaceMethod_->settings();
-    settings.modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-    settings.modifyString(Utils::SettingsNames::parameterFile, parameters_pm6);
+    interfaceMethod_->setLog(Core::Log::silent());
     interfaceMethod_->setRequiredProperties(Utils::Property::Energy);
 
     std::stringstream ss("9\n\n"
@@ -62,14 +52,15 @@ class ANDDOStatesHandlerTest : public Test {
                          "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                          "H     -1.8356000997    0.0539308952   -0.5014877498\n");
     ethanol_ = Utils::XyzStreamHandler::read(ss);
-    underlyingMethod_.setStructure(ethanol_, parameters_pm6);
+    underlyingMethod_.setStructure(ethanol_);
     interfaceMethod_->setStructure(ethanol_);
     statesHandler_ = Utils::StatesHandler(interfaceMethod_);
+    log = Core::Log::silent();
   };
 };
 
 TEST_F(ANDDOStatesHandlerTest, CanSaveState) {
-  underlyingMethod_.calculate(Utils::derivativeType::none);
+  underlyingMethod_.calculate(Utils::Derivative::None, log);
   auto results = interfaceMethod_->calculate("");
 
   statesHandler_.store();
@@ -81,13 +72,13 @@ TEST_F(ANDDOStatesHandlerTest, CanSaveState) {
 
   for (int i = 0; i < actualDensity.rows(); ++i) {
     for (int j = i; j < actualDensity.cols(); ++j) {
-      ASSERT_THAT(stateDensity.col(j)(i), DoubleNear(actualDensity.col(j)(i), 1e-7));
+      ASSERT_DOUBLE_EQ(stateDensity.col(j)(i), actualDensity.col(j)(i));
     }
   }
 }
 
 TEST_F(ANDDOStatesHandlerTest, LoadsStateCorrectly) {
-  underlyingMethod_.calculate(Utils::derivativeType::none);
+  underlyingMethod_.calculate(Utils::Derivative::None, log);
 
   Utils::DensityMatrix densityMatrix = underlyingMethod_.getDensityMatrix();
 

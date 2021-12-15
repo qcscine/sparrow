@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -22,28 +22,30 @@ class AtomsOrbitalsIndexes;
 class DensityMatrix;
 class OverlapCalculator;
 class ElectronicEnergyCalculator;
+class AdditiveElectronicContribution;
 } // namespace Utils
 
 namespace Sparrow {
 
 namespace nddo {
 
-class FockMatrix : public Utils::ElectronicContributionCalculator {
+class FockMatrix final : public Utils::ElectronicContributionCalculator {
  public:
   FockMatrix(const Utils::ElementTypeCollection& elements, const Utils::PositionCollection& positions,
              const Utils::DensityMatrix& densityMatrix, const OneCenterIntegralContainer& oneCIntegrals,
              const ElementParameters& elementPar, const Utils::AtomsOrbitalsIndexes& aoIndexes,
              const Utils::OverlapCalculator& overlapCalculator, const bool& unrestrictedCalculationRunning);
+  ~FockMatrix() final;
 
   void initialize() override;
-  void calculateDensityIndependentPart(Utils::derivOrder order) override;
-  void calculateDensityDependentPart(Utils::derivOrder order) override;
-  void finalize(Utils::derivOrder order) override;
+  void calculateDensityIndependentPart(Utils::DerivativeOrder order) override;
+  void calculateDensityDependentPart(Utils::DerivativeOrder order) override;
+  void finalize(Utils::DerivativeOrder order) override;
   Utils::SpinAdaptedMatrix getMatrix() const override;
   double calculateElectronicEnergy() const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const override;
 
   const OneElectronMatrix& getOneElectronMatrix() const;
   const TwoElectronMatrix& getTwoElectronMatrix() const;
@@ -64,7 +66,7 @@ class FockMatrix : public Utils::ElectronicContributionCalculator {
   void eraseElectronicContribution(std::shared_ptr<Utils::AdditiveElectronicContribution> contribution);
 
  private:
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   void addDerivativesImpl(Utils::AutomaticDifferentiation::DerivativeContainerType<O>& derivatives) const;
 
   TwoCenterIntegralContainer twoCenterIntegrals_;

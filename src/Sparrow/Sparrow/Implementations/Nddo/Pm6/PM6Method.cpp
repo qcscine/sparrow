@@ -1,12 +1,13 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #include "PM6Method.h"
 #include "PM6RepulsionEnergy.h"
+#include <Sparrow/Implementations/Nddo/Parameters.h>
 #include <Sparrow/Implementations/Nddo/Utils/FockMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/IntegralsEvaluationUtils/OverlapMatrix.h>
 #include <Sparrow/Implementations/Nddo/Utils/NDDODensityGuess.h>
@@ -23,7 +24,7 @@ using namespace Utils::AutomaticDifferentiation;
 
 namespace nddo {
 
-PM6Method::PM6Method() : ScfMethod(true, Utils::derivOrder::two, true) {
+PM6Method::PM6Method() : ScfMethod(true, Utils::DerivativeOrder::Two, true) {
   pm6Settings_ = std::make_unique<NDDOInitializer>(BasisFunctions::spd, true);
   overlapCalculator_ =
       std::make_unique<OverlapMatrix>(elementTypes_, positions_, aoIndexes_, pm6Settings_->getElementParameters());
@@ -42,7 +43,13 @@ PM6Method::PM6Method() : ScfMethod(true, Utils::derivOrder::two, true) {
 PM6Method::~PM6Method() = default;
 
 void PM6Method::setStructure(const Utils::AtomCollection& atoms, std::string parameterPath) {
-  readParameters(std::move(parameterPath));
+  if (parameterPath.empty()) {
+    pm6Settings_->getRawParameters() = nddo::pm6();
+  }
+  else {
+    readParameters(parameterPath);
+  }
+
   setAtomCollection(atoms);
   initialize();
 }
@@ -55,11 +62,11 @@ void PM6Method::saveParameters(const std::string& fileName) {
   pm6Settings_->saveParameters(fileName);
 }
 
-RawParametersContainer& PM6Method::getRawParameters() {
+Parameters& PM6Method::getRawParameters() {
   return pm6Settings_->getRawParameters();
 }
 
-const RawParametersContainer& PM6Method::getRawParameters() const {
+const Parameters& PM6Method::getRawParameters() const {
   return pm6Settings_->getRawParameters();
 }
 

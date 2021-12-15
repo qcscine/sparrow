@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -30,31 +30,31 @@ class PM6PairwiseRepulsion{
  public:
   PM6PairwiseRepulsion(const AtomicParameters& A, const AtomicParameters&B, const PM6DiatomicParameters& AB);
 
-  void calculate(const Eigen::Vector3d& R, Utils::derivOrder order);
+  void calculate(const Eigen::Vector3d& R, Utils::DerivativeOrder order);
 
   double getRepulsionEnergy() const { return repulsionEnergy_; }
 
   Eigen::RowVector3d getRepulsionGradient() const { return repulsionGradient_; }
 
   Utils::AutomaticDifferentiation::Second3D getRepulsionHessian() const { return repulsionHessian_; }
-  template <Utils::derivativeType O> Utils::AutomaticDifferentiation::DerivativeType<O> getDerivative() const;
+  template <Utils::Derivative O> Utils::AutomaticDifferentiation::DerivativeType<O> getDerivative() const;
 
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> calculateRepulsion(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> baseTerm(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> additionalTerm(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> gaussianRepulsionTerm(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> gaussianRepulsion(const AtomicParameters& P, double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> calculateRepulsion(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> baseTerm(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> additionalTerm(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> gaussianRepulsionTerm(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> gaussianRepulsion(const AtomicParameters& P, double R) const;
 
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> parenthesisValue(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> standardParenthesis(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> NHOHParenthesis(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> CCParenthesis(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> SiOParenthesis(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> parenthesisValue(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> standardParenthesis(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> NHOHParenthesis(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> CCParenthesis(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> SiOParenthesis(double R) const;
 
 
  private:
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> radius(double R) const;
-  template <Utils::derivOrder O> Utils::AutomaticDifferentiation::Value1DType<O> integral(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> radius(double R) const;
+  template <Utils::DerivativeOrder O> Utils::AutomaticDifferentiation::Value1DType<O> integral(double R) const;
 
   const double cOfAdditiveTerm; // NB: The value of c = 1e-8 described in the paper is transformed from Angstrom^12 to bohr^12.
   const double exponentCoefficient; // NB: The value of 0.0003 described in the paper is transformed from Angstrom^-5 to bohr^-5.
@@ -73,18 +73,18 @@ class PM6PairwiseRepulsion{
 };
 // clang-format on
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::calculateRepulsion(double R) const {
   return baseTerm<O>(R) + additionalTerm<O>(R) + gaussianRepulsionTerm<O>(R);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::baseTerm(double R) const {
   auto ssssIntegral = integral<O>(R);
   return pA_.coreCharge() * pB_.coreCharge() * ssssIntegral * parenthesisValue<O>(R);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::parenthesisValue(double R) const {
   if ((pA_.element() == Utils::ElementType::H && (pB_.element() == Utils::ElementType::O || pB_.element() == Utils::ElementType::N ||
                                                   pB_.element() == Utils::ElementType::C)) ||
@@ -100,7 +100,7 @@ Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::parenthesi
   return standardParenthesis<O>(R);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::additionalTerm(double R) const {
   auto RD = radius<O>(R);
   double za13 = std::pow(Utils::ElementInfo::Z(pA_.element()), 1.0 / 3.0);
@@ -112,14 +112,14 @@ Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::additional
   return cOfAdditiveTerm * v6 * v6 / Utils::Constants::ev_per_hartree;
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::gaussianRepulsionTerm(double R) const {
   auto RD = radius<O>(R);
   return (gaussianRepulsion<O>(pA_, R) + gaussianRepulsion<O>(pB_, R)) / RD *
          (pA_.coreCharge() * pB_.coreCharge() / Utils::Constants::ev_per_hartree);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::gaussianRepulsion(const AtomicParameters& P,
                                                                                         double R) const {
   if (P.hasGaussianRepulsionParameters()) {
@@ -134,7 +134,7 @@ Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::gaussianRe
   return Utils::AutomaticDifferentiation::constant1D<O>(0);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::standardParenthesis(double R) const {
   auto RD = radius<O>(R);
   auto R2 = RD * RD;
@@ -143,47 +143,47 @@ Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::standardPa
   return res + (2 * pAB_.x()) * exp(-pAB_.alpha() * (RD + exponentCoefficient * R6));
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::NHOHParenthesis(double R) const {
   auto RD = radius<O>(R);
   auto res = 1.0;
   return res + 2 * pAB_.x() * exp(-pAB_.alpha() * (RD * RD));
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::CCParenthesis(double R) const {
   return standardParenthesis<O>(R) + factorCC * exp(-furtherExponentCC * radius<O>(R));
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::SiOParenthesis(double R) const {
   auto r1 = radius<O>(R) - distanceSiO;
   return standardParenthesis<O>(R) + factorSiO * exp(-r1 * r1);
 }
 
-template<Utils::derivOrder O>
+template<Utils::DerivativeOrder O>
 inline Utils::AutomaticDifferentiation::Value1DType<O> PM6PairwiseRepulsion::radius(double R) const {
   return Utils::AutomaticDifferentiation::variableWithUnitDerivative<O>(R);
 }
 
 template<>
-inline Utils::AutomaticDifferentiation::Value1DType<Utils::derivOrder::zero>
-PM6PairwiseRepulsion::integral<Utils::derivOrder::zero>(double R) const {
+inline Utils::AutomaticDifferentiation::Value1DType<Utils::DerivativeOrder::Zero>
+PM6PairwiseRepulsion::integral<Utils::DerivativeOrder::Zero>(double R) const {
   double pSum = pA_.pCore() + pB_.pCore();
   double igr = 1.0 / std::sqrt(R * R + pSum * pSum);
   return igr;
 }
 template<>
-inline Utils::AutomaticDifferentiation::Value1DType<Utils::derivOrder::one>
-PM6PairwiseRepulsion::integral<Utils::derivOrder::one>(double R) const {
+inline Utils::AutomaticDifferentiation::Value1DType<Utils::DerivativeOrder::One>
+PM6PairwiseRepulsion::integral<Utils::DerivativeOrder::One>(double R) const {
   double pSum = pA_.pCore() + pB_.pCore();
   double igr = 1.0 / std::sqrt(R * R + pSum * pSum);
   Utils::AutomaticDifferentiation::First1D integralD(igr, -igr * igr * igr * R);
   return integralD;
 }
 template<>
-inline Utils::AutomaticDifferentiation::Value1DType<Utils::derivOrder::two>
-PM6PairwiseRepulsion::integral<Utils::derivOrder::two>(double R) const {
+inline Utils::AutomaticDifferentiation::Value1DType<Utils::DerivativeOrder::Two>
+PM6PairwiseRepulsion::integral<Utils::DerivativeOrder::Two>(double R) const {
   double pSum = pA_.pCore() + pB_.pCore();
   double igr = 1.0 / std::sqrt(R * R + pSum * pSum);
   double igr3 = igr * igr * igr;
@@ -191,18 +191,18 @@ PM6PairwiseRepulsion::integral<Utils::derivOrder::two>(double R) const {
   return integralD;
 }
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::first>
-PM6PairwiseRepulsion::getDerivative<Utils::derivativeType::first>() const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::First>
+PM6PairwiseRepulsion::getDerivative<Utils::Derivative::First>() const {
   return getRepulsionGradient();
 }
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::second_atomic>
-PM6PairwiseRepulsion::getDerivative<Utils::derivativeType::second_atomic>() const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::SecondAtomic>
+PM6PairwiseRepulsion::getDerivative<Utils::Derivative::SecondAtomic>() const {
   return getRepulsionHessian();
 }
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::second_full>
-PM6PairwiseRepulsion::getDerivative<Utils::derivativeType::second_full>() const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::SecondFull>
+PM6PairwiseRepulsion::getDerivative<Utils::Derivative::SecondFull>() const {
   return getRepulsionHessian();
 }
 

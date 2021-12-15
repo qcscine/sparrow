@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -27,6 +27,9 @@ class DFTB3 : public Utils::ScfMethod {
   DFTB3();
   ~DFTB3() override;
   void initializeFromParameterPath(const std::string& path);
+  std::shared_ptr<DFTBCommon> getInitializer() const;
+  Eigen::MatrixXd calculateGammaMatrix() const;
+  std::shared_ptr<Eigen::VectorXd> calculateSpinConstantVector() const;
 
  private:
   DFTBCommon::AtomicParameterContainer atomParameters;   // parameters for atoms

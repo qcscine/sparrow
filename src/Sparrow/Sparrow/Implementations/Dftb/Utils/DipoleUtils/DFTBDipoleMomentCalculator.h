@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_DFTBDIPOLEMOMENTCALCULATOR_H
@@ -22,7 +22,7 @@ namespace Sparrow {
  * @tparam DFTBMethod One of the DFTB methods type, i.e. DFTB0, DFTB2, DFTB3.
  */
 template<class DFTBMethod>
-class DFTBDipoleMomentCalculator : public DipoleMomentCalculator {
+class DFTBDipoleMomentCalculator final : public DipoleMomentCalculator {
  public:
   explicit DFTBDipoleMomentCalculator(const DFTBMethod& method);
   ~DFTBDipoleMomentCalculator() final;

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -17,6 +17,8 @@
 #include <Utils/Geometry.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
+#include <Eigen/Eigenvalues>
+#include <iostream>
 
 namespace Scine {
 namespace Sparrow {
@@ -109,11 +111,12 @@ void NDDODipoleMatrixCalculator<NDDOMethod>::invalidate() {
 template<class NDDOMethod>
 Utils::DipoleMatrix NDDODipoleMatrixCalculator<NDDOMethod>::calculateMODipoleMatrixRestricted() const {
   Utils::DipoleMatrix moDipoleMatrix;
-  auto& MOMatrix = molecularOrbitals_.restrictedMatrix();
-  moDipoleMatrix.reset(MOMatrix.cols());
+  Eigen::MatrixXd MOMatrix = molecularOrbitals_.restrictedMatrix();
+  moDipoleMatrix.reset(dipoleMatrix_[0].cols());
   // Get the MO matrix as D_{MO} = C^T * D_{AO} * C
   for (int dimension = 0; dimension < 3; ++dimension) {
-    moDipoleMatrix[dimension] = MOMatrix.transpose() * dipoleMatrix_[dimension] * MOMatrix;
+    moDipoleMatrix[dimension] =
+        MOMatrix.transpose() * dipoleMatrix_[dimension].template selfadjointView<Eigen::Upper>() * MOMatrix;
   }
   return moDipoleMatrix;
 }
@@ -121,15 +124,19 @@ Utils::DipoleMatrix NDDODipoleMatrixCalculator<NDDOMethod>::calculateMODipoleMat
 template<class NDDOMethod>
 Utils::DipoleMatrix NDDODipoleMatrixCalculator<NDDOMethod>::calculateMODipoleMatrixUnrestricted() const {
   Utils::DipoleMatrix moDipoleMatrix;
-  auto& alphaMOMatrix = molecularOrbitals_.alphaMatrix();
-  auto& betaMOMatrix = molecularOrbitals_.betaMatrix();
-  moDipoleMatrix.reset(alphaMOMatrix.cols());
-  // Get the MO matrix as D_{MO} = C_\alpha^T * D_{AO} * C_\alpha
-  //                             + C_\beta^T  * D_{AO} * C_\beta
+  Eigen::MatrixXd alphaMOMatrix = molecularOrbitals_.alphaMatrix();
+  Eigen::MatrixXd betaMOMatrix = molecularOrbitals_.betaMatrix();
+
+  moDipoleMatrix.reset(alphaMOMatrix.cols() * 2);
+
   for (int dimension = 0; dimension < 3; ++dimension) {
-    auto alphaContribution = alphaMOMatrix.transpose() * dipoleMatrix_[dimension] * alphaMOMatrix;
-    auto betaContribution = betaMOMatrix.transpose() * dipoleMatrix_[dimension] * betaMOMatrix;
-    moDipoleMatrix[dimension] = alphaContribution + betaContribution;
+    auto alphaContribution =
+        alphaMOMatrix.transpose() * dipoleMatrix_[dimension].template selfadjointView<Eigen::Upper>() * alphaMOMatrix;
+    auto betaContribution =
+        betaMOMatrix.transpose() * dipoleMatrix_[dimension].template selfadjointView<Eigen::Upper>() * betaMOMatrix;
+    moDipoleMatrix[dimension].block(0, 0, alphaContribution.rows(), alphaContribution.cols()) = alphaContribution;
+    moDipoleMatrix[dimension].block(alphaContribution.rows(), alphaContribution.cols(), betaContribution.rows(),
+                                    betaContribution.cols()) = betaContribution;
   }
   return moDipoleMatrix;
 }

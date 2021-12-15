@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -29,7 +29,7 @@ void OverlapMatrix::reset() {
   S_.setBaseMatrix(Eigen::MatrixXd::Identity(nAOs_, nAOs_));
 }
 
-void OverlapMatrix::calculateOverlap(Utils::derivOrder highestRequiredOrder) {
+void OverlapMatrix::calculateOverlap(Utils::DerivativeOrder highestRequiredOrder) {
   auto order = Utils::AutomaticDifferentiation::getDerivativeOrder(highestRequiredOrder);
   S_.setOrder(highestRequiredOrder);
   if (nAOs_ == 0)
@@ -49,15 +49,15 @@ void OverlapMatrix::calculateOverlap(Utils::derivOrder highestRequiredOrder) {
       Eigen::RowVector3d Rij = Rj - Ri;
       if (order == 0) {
         auto resultBlock = pairOverlapZeroOrder_.getMatrixBlock(GTOsA, GTOsB, Rij);
-        S_.get<Utils::derivOrder::zero>().block(rowIndex, colIndex, resultBlock.rows(), resultBlock.cols()) = resultBlock;
+        S_.get<Utils::DerivativeOrder::Zero>().block(rowIndex, colIndex, resultBlock.rows(), resultBlock.cols()) = resultBlock;
       }
       else if (order == 1) {
         auto resultBlock = pairOverlapFirstOrder_.getMatrixBlock(GTOsA, GTOsB, Rij);
-        S_.get<Utils::derivOrder::one>().block(rowIndex, colIndex, resultBlock.rows(), resultBlock.cols()) = resultBlock;
+        S_.get<Utils::DerivativeOrder::One>().block(rowIndex, colIndex, resultBlock.rows(), resultBlock.cols()) = resultBlock;
       }
       else if (order == 2) {
         auto resultBlock = pairOverlapSecondOrder_.getMatrixBlock(GTOsA, GTOsB, Rij);
-        S_.get<Utils::derivOrder::two>().block(rowIndex, colIndex, resultBlock.rows(), resultBlock.cols()) = resultBlock;
+        S_.get<Utils::DerivativeOrder::Two>().block(rowIndex, colIndex, resultBlock.rows(), resultBlock.cols()) = resultBlock;
       }
     }
   }

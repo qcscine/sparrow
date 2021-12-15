@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -56,8 +56,8 @@ void GTODipoleMatrixBlock::calculateSingleGTFPair(int GaussTypeFunctionIndexA, i
                                                   const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                                   const Eigen::Vector3d& Rab,
                                                   const Eigen::Vector3d& dipoleEvaluationCoordinate) {
-  auto const& exponentGTFonA = gtoA.getExponent(GaussTypeFunctionIndexA);
-  auto const& exponentGTFonB = gtoB.getExponent(GaussTypeFunctionIndexB);
+  auto const& exponentGTFonA = gtoA.gtfs.at(GaussTypeFunctionIndexA).exponent;
+  auto const& exponentGTFonB = gtoB.gtfs.at(GaussTypeFunctionIndexB).exponent;
   auto const exponentSum = exponentGTFonA + exponentGTFonB;
   initialize(Ra, Rb, dipoleEvaluationCoordinate, exponentGTFonA, exponentGTFonB, gtoA, gtoB);
   double exponentialCoefficientS_00 = -exponentGTFonB * exponentGTFonA / exponentSum;
@@ -86,8 +86,8 @@ void GTODipoleMatrixBlock::calculateSingleGTFPairIntegralOverShell(const Utils::
   const double p = 1 / (2 * exponentSum);
   for (int dimension = 0; dimension < 3; ++dimension) {
     // calculate directly overlap and dipole matrix elements, as they all will be used.
-    for (int i = 0; i <= gtoA.angularMomentum(); ++i) {
-      for (int j = 0; j <= gtoB.angularMomentum(); ++j) {
+    for (int i = 0; i <= gtoA.angularMomentum; ++i) {
+      for (int j = 0; j <= gtoB.angularMomentum; ++j) {
         if (i != 0 || j != 0) {
           if (j == 0) { // first formulae
             overlapIntegral_[dimension][i][j] = PminusA_[dimension] * overlapIntegral_[dimension][i - 1][j];
@@ -126,8 +126,8 @@ double GTODipoleMatrixBlock::getNormalizationFactorAndCoefficient(int GaussTypeF
   double z_ab = Rab(2);
 
   auto exponentialPrefactor = exp(expCoefficientS_00 * (x_ab * x_ab + y_ab * y_ab + z_ab * z_ab));
-  auto GTFNormalizationCoefficients =
-      gtoA.getNormalizedCoefficient(GaussTypeFunctionIndexA) * gtoB.getNormalizedCoefficient(GaussTypeFunctionIndexB);
+  auto GTFNormalizationCoefficients = gtoA.gtfs.at(GaussTypeFunctionIndexA).normalizedCoefficient *
+                                      gtoB.gtfs.at(GaussTypeFunctionIndexB).normalizedCoefficient;
   return exponentialPrefactor * GTFNormalizationCoefficients;
 }
 
@@ -180,10 +180,10 @@ std::array<Eigen::MatrixXd, 3>
 GTODipoleMatrixBlock::createSTOBlock(const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                      const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                      const Eigen::Vector3d& Rab, const Eigen::Vector3d& dipoleEvaluationCoordinate) {
-  auto const numberGTFsOnA = gtoA.size();
-  auto const numberGTFsOnB = gtoB.size();
-  auto const blockRowSize = gtoA.nAOs();
-  auto const blockColSize = gtoB.nAOs();
+  auto const numberGTFsOnA = static_cast<int>(gtoA.gtfs.size());
+  auto const numberGTFsOnB = static_cast<int>(gtoB.gtfs.size());
+  auto const blockRowSize = static_cast<int>(gtoA.nAOs());
+  auto const blockColSize = static_cast<int>(gtoB.nAOs());
 
   for (auto& dCB : dipoleComponentsBlocks_)
     dCB.setConstant(6, 6, 0);
@@ -210,13 +210,12 @@ void GTODipoleMatrixBlock::calculateAnalyticalDipoleIntegrals(int GaussTypeFunct
                                                               const Utils::GtoExpansion& gtoA, const Utils::GtoExpansion& gtoB,
                                                               const Eigen::RowVector3d& Ra, const Eigen::RowVector3d& Rb,
                                                               const Eigen::Vector3d& evaluationCoordinates) {
-  const double expA = gtoA.getExponent(GaussTypeFunctionIndexA);
-  const double expB = gtoB.getExponent(GaussTypeFunctionIndexB);
+  const double expA = gtoA.gtfs.at(GaussTypeFunctionIndexA).exponent;
+  const double expB = gtoB.gtfs.at(GaussTypeFunctionIndexB).exponent;
   const double expSum = expA + expB;
   const double exponentialPrefactor = std::sqrt(M_PI / expSum) / expSum;
-  twoDimensionalArray xDipoleIntegral, yDipoleIntegral, zDipoleIntegral;
-  for (int i = 0; i <= gtoA.angularMomentum(); ++i) {
-    for (int j = 0; j <= gtoB.angularMomentum(); ++j) {
+  for (int i = 0; i <= gtoA.angularMomentum; ++i) {
+    for (int j = 0; j <= gtoB.angularMomentum; ++j) {
       AnalyticalDipoleIntegralOverGTOsCalculator dipoleMatrixCalculator(i, j, expA, expB, Ra, Rb, evaluationCoordinates);
       auto const dipoleArray = dipoleMatrixCalculator.calculateAnalyticalDipoleElement();
       for (int dimension = 0; dimension < 3; ++dimension) {

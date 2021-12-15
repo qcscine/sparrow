@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -12,18 +12,25 @@
 
 namespace Scine {
 namespace Sparrow {
-
 namespace dftb {
 
 /*!
  * DFTB parameters for the repulsion of an element pair.
  */
 struct RepulsionParameters {
+  struct Spline {
+    double start;
+    double end;
+    double c0;
+    double c1;
+    double c2;
+    double c3;
+  };
+
   int nSplineInts;
   double cutoff;
   double a1, a2, a3; // Coefficients for exponential part of repulsion
-  std::vector<double> splineStart, splineEnd;
-  std::vector<double> c0, c1, c2, c3;
+  std::vector<Spline> splines;
   double c4, c5; // For last spline
 };
 

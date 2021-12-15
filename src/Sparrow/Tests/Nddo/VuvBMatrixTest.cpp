@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -28,27 +28,27 @@ class AVuvBMatrix : public Test {
   const double zb{4.00};
 
   void SetUp() override {
-    KV.set(ss0, 2.27401429);
-    KV.set(sp1, 1.49936943);
-    KV.set(pp2, 1.99647866);
-    KV.set(sd2, 1.34719346);
-    KV.set(pd1, 1.88688065);
-    KV.set(dd2, 1.29691630);
-    KV.set(pp0, 2.27401429);
-    KV.set(dd0, 1.76187597);
+    KV.set(MultipolePair::ss0, 2.27401429);
+    KV.set(MultipolePair::sp1, 1.49936943);
+    KV.set(MultipolePair::pp2, 1.99647866);
+    KV.set(MultipolePair::sd2, 1.34719346);
+    KV.set(MultipolePair::pd1, 1.88688065);
+    KV.set(MultipolePair::dd2, 1.29691630);
+    KV.set(MultipolePair::pp0, 2.27401429);
+    KV.set(MultipolePair::dd0, 1.76187597);
     DV.computeFromExponents(4, 4, 3, 1.974330, 1.063106, 1.394806);
   }
 };
 
 TEST_F(AVuvBMatrix, ReturnsSameValuesAs2e2cMatrix) {
   Eigen::Vector3d Rab(0.0837, -0.6, 1.1);
-  v.calculate<Utils::derivOrder::zero>(Rab, DV, KV, pcore, zb);
+  v.calculate<Utils::DerivativeOrder::Zero>(Rab, DV, KV, pcore, zb);
 
   KlopmanParameter KCore;
   ChargeSeparationParameter DCore;
-  KCore.set(ss0, pcore);
+  KCore.set(MultipolePair::ss0, pcore);
   Global2c2eMatrix g(2, 0, DV, DCore, KV, KCore);
-  g.calculate<Utils::derivOrder::zero>(Rab);
+  g.calculate<Utils::DerivativeOrder::Zero>(Rab);
 
   for (int i = 0; i < 40; i++) {
     SCOPED_TRACE("... for i = " + std::to_string(static_cast<long long>(i)));

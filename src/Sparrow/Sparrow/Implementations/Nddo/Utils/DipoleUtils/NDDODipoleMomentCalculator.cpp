@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #include "NDDODipoleMomentCalculator.h"
@@ -47,12 +47,12 @@ Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculate() const {
     std::vector<double> chargeSeparationSP(nrAOs.size());
     std::vector<double> chargeSeparationPD(nrAOs.size());
 
-    for (int el = 0; el < nrAOs.size(); ++el) {
+    for (int el = 0; el < static_cast<int>(nrAOs.size()); ++el) {
       nrAOs[el] = method_.getAtomsOrbitalsIndexesHolder().getNOrbitals(el);
       chargeSeparationSP[el] =
-          method_.getInitializer().getElementParameters().get(elements[el]).chargeSeparations().get(nddo::multipole::sp1);
+          method_.getInitializer().getElementParameters().get(elements[el]).chargeSeparations().get(nddo::multipole::MultipolePair::sp1);
       chargeSeparationPD[el] =
-          method_.getInitializer().getElementParameters().get(elements[el]).chargeSeparations().get(nddo::multipole::pd1);
+          method_.getInitializer().getElementParameters().get(elements[el]).chargeSeparations().get(nddo::multipole::MultipolePair::pd1);
     }
     return calculateWithNDDOApproximation(std::move(atomicCharges), std::move(positions), std::move(densityMatrix),
                                           std::move(elements), std::move(nrAOs), std::move(chargeSeparationSP),
@@ -81,7 +81,8 @@ Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculateWithNDDOAppr
 
   int currentdensityMatrixOrbital = 0;
   // Put center of mass at the origin
-  auto centerOfMass = Utils::Geometry::getCenterOfMass(positions, Utils::Geometry::getMasses(elements));
+  auto centerOfMass =
+      Utils::Geometry::Properties::getCenterOfMass(positions, Utils::Geometry::Properties::getMasses(elements));
   positions.rowwise() -= centerOfMass;
   for (unsigned atom = 0; atom < atomicDipoles.rows(); ++atom) {
     // Mullikan charges dipole contribution
@@ -144,7 +145,7 @@ template<class NDDOMethod>
 Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculateWithDipoleMatrix(
     std::vector<double> coreCharges, Utils::PositionCollection positions, Eigen::MatrixXd densityMatrix,
     Utils::DipoleMatrix dipoleMatrix, Eigen::MatrixXd overlapMatrix, Eigen::RowVector3d dipoleEvaluationCoordinate) const {
-  auto const nAtoms = coreCharges.size();
+  auto const nAtoms = static_cast<int>(coreCharges.size());
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(overlapMatrix);
   Eigen::MatrixXd sqrtS = es.operatorInverseSqrt();
   Eigen::MatrixXd nonOrthogonalDensityMatrix =
@@ -154,7 +155,7 @@ Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculateWithDipoleMa
 
   positions.rowwise() -= dipoleEvaluationCoordinate;
 
-  const auto atomicOrbitalsNumber = dipoleMatrix.x().get<Utils::derivOrder::zero>().cols();
+  const auto atomicOrbitalsNumber = dipoleMatrix.x().get<Utils::DerivativeOrder::Zero>().cols();
   // Classical Core charge component
   for (int atom = 0; atom < nAtoms; ++atom) {
     dipole += coreCharges[atom] * positions.row(atom);
@@ -162,16 +163,16 @@ Eigen::RowVector3d NDDODipoleMomentCalculator<NDDOMethod>::calculateWithDipoleMa
 
   // electronic component (diagonal)
   for (int AO = 0; AO < atomicOrbitalsNumber; ++AO) {
-    dipole.x() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.x().get<Utils::derivOrder::zero>()(AO, AO);
-    dipole.y() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.y().get<Utils::derivOrder::zero>()(AO, AO);
-    dipole.z() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.z().get<Utils::derivOrder::zero>()(AO, AO);
+    dipole.x() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.x().get<Utils::DerivativeOrder::Zero>()(AO, AO);
+    dipole.y() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.y().get<Utils::DerivativeOrder::Zero>()(AO, AO);
+    dipole.z() -= nonOrthogonalDensityMatrix(AO, AO) * dipoleMatrix.z().get<Utils::DerivativeOrder::Zero>()(AO, AO);
   }
   // electronic component(off-diagonal)
   for (int nu = 0; nu < atomicOrbitalsNumber; ++nu) {
     for (int mu = nu + 1; mu < atomicOrbitalsNumber; ++mu) {
-      dipole.x() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.x().get<Utils::derivOrder::zero>()(nu, mu);
-      dipole.y() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.y().get<Utils::derivOrder::zero>()(nu, mu);
-      dipole.z() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.z().get<Utils::derivOrder::zero>()(nu, mu);
+      dipole.x() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.x().get<Utils::DerivativeOrder::Zero>()(nu, mu);
+      dipole.y() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.y().get<Utils::DerivativeOrder::Zero>()(nu, mu);
+      dipole.z() -= 2 * nonOrthogonalDensityMatrix(nu, mu) * dipoleMatrix.z().get<Utils::DerivativeOrder::Zero>()(nu, mu);
     }
   }
   return dipole;

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -9,16 +9,12 @@
 #define SPARROW_SPARROWSTATE_H
 
 #include <Core/BaseClasses/StateHandableObject.h>
+#include <Utils/DataStructures/DensityMatrix.h>
 #include <exception>
 
 namespace Scine {
-
-namespace Utils {
-class DensityMatrix;
-class SpinAdaptedMatrix;
-} // namespace Utils
-
 namespace Sparrow {
+
 class GenericMethodWrapper;
 
 class IncompatibleStateException : public std::exception {
@@ -33,7 +29,7 @@ class IncompatibleStateException : public std::exception {
  * The calculation state is defined as the density matrix and the coefficient matrix at some point.
  * If the density matrix is empty, an exception is thrown at loading time.
  */
-struct SparrowState : public Core::State {
+struct SparrowState final : public Core::State {
   explicit SparrowState(Utils::DensityMatrix densityMatrix) : densityMatrix_(std::move(densityMatrix)){};
   ~SparrowState() final = default;
 

@@ -8,56 +8,49 @@ include(ImportCore)
 import_core()
 include(ImportCereal)
 import_cereal()
-find_package(OpenMP)
-find_package(Boost REQUIRED filesystem)
-set(Boost_USE_STATIC_LIBS OFF)
 
-# Shared Sparrow library / Sparrow module
+if(SCINE_PARALLELIZE)
+  find_package(OpenMP)
+endif()
+
+if(NOT TARGET Boost::filesystem OR NOT TARGET Boost::program_options)
+  find_package(Boost REQUIRED COMPONENTS program_options filesystem)
+endif()
+
+# Sparrow is a Scine module and is always shared, never linked against
 add_library(Sparrow SHARED ${SPARROW_MODULE_FILES})
-set_property(TARGET Sparrow PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(Sparrow PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
+  $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include/Scine>
 )
-
-if(WIN32)
-  set_target_properties(Sparrow PROPERTIES PREFIX "")
-  set_target_properties(Sparrow PROPERTIES IMPORT_PREFIX "")
-  set_target_properties(Sparrow PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
-
 
 set_target_properties(Sparrow PROPERTIES
-  OUTPUT_NAME sparrow
+  PREFIX ""
+  OUTPUT_NAME sparrow.module
+  WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
-# Set the option to repropduce the standard PM6 errors
+# Add an option to repropduce the standard PM6 errors
 # This is needed until a new reparametrization of PM6 is done with the right method.
 option(REPRODUCE_PM6_ERRORS "Reproduce the errors of standard PM6 implementations" ON)
 
-# include it in the build / move to the appropriate folder for build
-target_compile_options(Sparrow
-                       PRIVATE
-                       $<$<BOOL:${OpenMP_CXX_FOUND}>:${OpenMP_CXX_FLAGS}>
-                       PUBLIC
-                       $<TARGET_PROPERTY:Scine::Core,INTERFACE_COMPILE_OPTIONS>
-                       )
+target_compile_options(Sparrow PRIVATE
+  $<$<BOOL:${OpenMP_CXX_FOUND}>:${OpenMP_CXX_FLAGS}>
+)
 target_compile_definitions(Sparrow
-                           PRIVATE
-                           $<$<CONFIG:Debug>:EIGEN_INITIALIZE_MATRICES_BY_NAN>
-                           $<$<BOOL:${REPRODUCE_PM6_ERRORS}>:REPRODUCE_PM6_ERRORS>
-                           PUBLIC
-                           BOOST_ALL_DYN_LINK
-                           )
-
+ PRIVATE
+  $<$<CONFIG:Debug>:EIGEN_INITIALIZE_MATRICES_BY_NAN>
+  $<$<BOOL:${REPRODUCE_PM6_ERRORS}>:REPRODUCE_PM6_ERRORS>
+)
 
 target_link_libraries(Sparrow
   PUBLIC
-    Scine::Core
     Scine::UtilsOS
+    Scine::Core
   PRIVATE
-    cereal::cereal
+    cereal
     Boost::filesystem
     $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
 )
@@ -67,162 +60,192 @@ add_library(Scine::Sparrow ALIAS Sparrow)
 add_library(Scine::SparrowModule ALIAS Sparrow)
 
 # -- Define Install
-# Headers
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/
-        DESTINATION include/${PROJECT_NAME}
-        FILES_MATCHING PATTERN "*.h"
-)
-
 # Targets
 install(TARGETS Sparrow
-        EXPORT sparrowTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/${PROJECT_NAME})
-
-# Symlink on install
-install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}sparrow${CMAKE_SHARED_LIBRARY_SUFFIX} \
-        ${CMAKE_INSTALL_PREFIX}/lib/sparrow.module${CMAKE_SHARED_LIBRARY_SUFFIX})"
+  EXPORT sparrowTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
 )
-
-# Symlink on build
-add_custom_command(TARGET Sparrow POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E create_symlink
-                   "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}sparrow${CMAKE_SHARED_LIBRARY_SUFFIX}"
-                   "${CMAKE_CURRENT_BINARY_DIR}/sparrow.module${CMAKE_SHARED_LIBRARY_SUFFIX}"
-)
-
-# Parameters
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/Sparrow/Resources/ DESTINATION resources/Parameters)
-## Configure file containing the install location of the parameters
-set(parameter_dir ${CMAKE_INSTALL_PREFIX}/resources/Parameters/)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/ParametersHeader.h.in
-               ${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/ParametersHeader.h)
-## Configure file containing the location of the parameters for the tests.
-set(parameter_dir "${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Resources/")
-set(target_dir "${CMAKE_CURRENT_SOURCE_DIR}/App")
-configure_file(${target_dir}/parameters_location.h.in
-               ${target_dir}/parameters_location.h)
 
 # Component-level cmake package files
 scine_install_component_cmake_files(
-  COMPONENT  Sparrow
+  COMPONENT  ScineSparrow
   EXPORT_NAME sparrowTargets
 )
 
 # Tests
 if(SCINE_BUILD_TESTS)
-  add_executable(Sparrow_tests ${SPARROW_TEST_FILES})
-  target_link_libraries(Sparrow_tests
-    PRIVATE
-      gtest_main
-      gmock
-      Scine::Sparrow
-      cereal::cereal
-      $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
+  include(ImportGTest)
+  import_gtest()
+  add_executable(Sparrow_tests ${SPARROW_TEST_FILES} $<$<NOT:$<CONFIG:Debug>>:${SPARROW_TEST_SLOW_FILES}>)
+  target_link_libraries(Sparrow_tests PRIVATE
+    GTest::Main
+    GMock::GMock
+    Scine::Sparrow
+    cereal
+    $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
+    ${CMAKE_DL_LIBS}
   )
   add_test(NAME Sparrow COMMAND Sparrow_tests)
-  target_compile_options(Sparrow_tests
-    PUBLIC
-      $<TARGET_PROPERTY:Scine::Core,INTERFACE_COMPILE_OPTIONS>
-  )  
+  find_package(PythonInterp REQUIRED)
+  if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    set(TEST_SELECTION "::TestSparrowFast")
+  else()
+    set(TEST_SELECTION "")
+  endif()
 
-  # Hard-code location of the parameter sets into the test by configuring a header file for it.
-  set(parameter_dir "${CMAKE_CURRENT_SOURCE_DIR}/Sparrow/Resources/")
-  set(methodTests_dir "${CMAKE_CURRENT_SOURCE_DIR}/Tests/MethodsTests")
-  configure_file(${methodTests_dir}/parameters_location.h.in
-                 ${methodTests_dir}/parameters_location.h)
-endif()
-
-
-# Set the RPATH to be used when installing. $ORIGIN refers to the installation directory of the binary.
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
-
-# Executable
-find_package(Boost COMPONENTS program_options system REQUIRED)
-
-add_executable(SparrowApp ${SPARROW_APP_FILES})
-
-add_executable(Scine::SparrowApp ALIAS SparrowApp)
-
-if (NOT APPLE)
-  set_target_properties(SparrowApp PROPERTIES
-    OUTPUT_NAME sparrow
+  # App tests
+  add_test(
+    NAME Sparrow_App
+    COMMAND ${PYTHON_EXECUTABLE} -B -m pytest test_sparrow.py${TEST_SELECTION} --junitxml=${CMAKE_CURRENT_BINARY_DIR}/app_report.xml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Tests/AppTests
+  )
+  set_tests_properties(Sparrow_App PROPERTIES
+    ENVIRONMENT SCINE_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{SCINE_MODULE_PATH}
+    ENVIRONMENT PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH}
+    ENVIRONMENT PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PATH}
   )
 endif()
 
-target_compile_definitions(SparrowApp
-                           PUBLIC
-                           BOOST_ALL_DYN_LINK
-                           )
-target_link_libraries(SparrowApp
+# Set the RPATH to be used when installing.
+if(APPLE)
+  set(CMAKE_INSTALL_RPATH "@loader_path;@loader_path/../lib")
+else()
+  # $ORIGIN refers to the installation directory of the binary.
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN;\$ORIGIN/../lib")
+endif()
+
+# Executable
+add_executable(SparrowApp ${SPARROW_APP_FILES})
+add_executable(Scine::SparrowApp ALIAS SparrowApp)
+
+set_target_properties(SparrowApp PROPERTIES OUTPUT_NAME sparrow)
+
+target_link_libraries(SparrowApp PRIVATE
+  Boost::program_options
+  Scine::UtilsOS
+  Scine::Core
+  ${CMAKE_DL_LIBS}
+)
+
+add_subdirectory(Sparrow/Implementations/RealTimeSpectroscopy)
+
+add_executable(RTSpectroscopyDriver App/RTSpectroscopyDriver.cpp)
+target_link_libraries(RTSpectroscopyDriver
   PRIVATE
-    Boost::program_options
     Scine::UtilsOS
     Scine::Core
+    Scine::RealTimeSpectroscopy
+    yaml-cpp
+    ${CMAKE_DL_LIBS}
 )
-target_compile_options(SparrowApp
-  PUBLIC
-    $<TARGET_PROPERTY:Scine::Core,INTERFACE_COMPILE_OPTIONS>
-)  
 
-
-# Add link library specific for MinGW
-if(WIN32)
-  target_link_libraries(SparrowApp PRIVATE $<$<BOOL:MINGW>:ws2_32>)
+# Add link library specific to MinGW
+if(WIN32 AND MINGW)
+  target_link_libraries(SparrowApp PRIVATE ws2_32)
 endif()
 
 # Python Bindings
 if(SCINE_BUILD_PYTHON_BINDINGS)
-  include(ImportPybind11)
-  import_pybind11()
-  set(PYBIND11_PYTHON_VERSION ${PYTHONVERSION})
-  pybind11_add_module(scine_sparrow ${SPARROW_PYTHON_FILES})
-  set_target_properties(scine_sparrow PROPERTIES SUFFIX ".so")
-  set_target_properties(scine_sparrow PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/scine_sparrow)
-  target_link_libraries(scine_sparrow
-          PRIVATE
-          Scine::Sparrow
-          Scine::UtilsOS
-          )
-  install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install --prefix=${CMAKE_INSTALL_PREFIX} --upgrade ${CMAKE_CURRENT_BINARY_DIR})")
-
-  # Python tests
-  if(SCINE_BUILD_TESTS)
-    add_test(
-      NAME Sparrow_Python_Bindings
-      COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Python/Tests/CalculationTest.py
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-    set_tests_properties(Sparrow_Python_Bindings PROPERTIES
-      ENVIRONMENT "SCINE_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}"
-    )
+  # Figure out which targets the python bindings are going to need copied
+  include(TargetLibName)
+  set(_py_targets_to_copy Sparrow)
+  target_lib_type(Scine::UtilsOS _utils_libtype)
+  if(_utils_libtype STREQUAL "SHARED_LIBRARY")
+    list(APPEND _py_targets_to_copy Scine::UtilsOS)
   endif()
-  # Copy the setup file and README.md into the binary dir so you can install
+  unset(_utils_libtype)
+
+  # Generate generator expressions for each targets and figure out filenames
+  # for the python setup file
+  set(sparrow_PY_DEPS "")
+  foreach(target ${_py_targets_to_copy})
+    list(APPEND _py_target_gen_exprs "\$<TARGET_FILE:${target}>")
+    target_lib_filename(${target} _target_filename)
+    string(APPEND sparrow_PY_DEPS ", \"${_target_filename}\"")
+  endforeach()
+  message(STATUS "Targets to copy for python bindings: ${_py_targets_to_copy}")
+  unset(_py_targets_to_copy)
+
+  add_custom_command(TARGET Sparrow POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${_py_target_gen_exprs} ${CMAKE_CURRENT_BINARY_DIR}/scine_sparrow
+    COMMENT "Copying required shared libraries into python package directory"
+  )
+  unset(_py_target_gen_exprs)
+
+  install(CODE
+    "execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install --prefix=${CMAKE_INSTALL_PREFIX} --upgrade --no-deps ${CMAKE_CURRENT_BINARY_DIR}
+                     RESULT_VARIABLE retcode)
+     if(NOT \$\{retcode\} EQUAL 0)
+       message(FATAL_ERROR \"Fatal error when installing Python module using PIP.\")
+     endif()"
+  )
+
+  # Copy the setup file and README.rst into the binary dir so you can install
   # using pip or make a distribution with the compiled binary
   file(
     COPY
       ${CMAKE_CURRENT_SOURCE_DIR}/Python/__init__.py
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/scine_sparrow
+      ${PROJECT_SOURCE_DIR}/LICENSE.txt
+      ${EXTERNAL_LICENSE_FILES}
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/scine_sparrow/
   )
+
+  # Add setup and readme to current binary dir
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Python/setup.py
+    ${CMAKE_CURRENT_BINARY_DIR}/setup.py
+    @ONLY
+  )
+  unset(sparrow_PY_DEPS)
   file(
-    COPY
-      ${CMAKE_CURRENT_SOURCE_DIR}/Python/setup.py
-      ${PROJECT_SOURCE_DIR}/README.md
+    COPY ${PROJECT_SOURCE_DIR}/README.rst
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
   )
-endif()
 
-# Targets
-install(TARGETS SparrowApp RUNTIME 
-  DESTINATION bin
-)
+  # Python Binding Tests
+  if(SCINE_BUILD_TESTS)
+    add_test(
+      NAME Sparrow_Calculator_Python_Bindings
+      COMMAND ${PYTHON_EXECUTABLE} -B -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/Python/Tests/CalculatorTest.py --junitxml=${CMAKE_CURRENT_BINARY_DIR}/bindings_calculator_report.xml
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_test(
+      NAME Sparrow_CalculatorWithReference_Python_Bindings
+      COMMAND ${PYTHON_EXECUTABLE} -B -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/Python/Tests/CalculatorWithReferenceTest.py --junitxml=${CMAKE_CURRENT_BINARY_DIR}/bindings_calculator_with_reference_report.xml
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    set(Sparrow_Python_Bindings
+      Sparrow_Calculator_Python_Bindings
+      Sparrow_CalculatorWithReference_Python_Bindings
+      )
+    set_tests_properties(${Sparrow_Python_Bindings} PROPERTIES
+        ENVIRONMENT SCINE_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR}
+        ENVIRONMENT PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH}
+      )
 
-if (APPLE)
-  # Rename to sparrow upon install
-  install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E rename
-          ${CMAKE_INSTALL_PREFIX}/bin/SparrowApp \
-          ${CMAKE_INSTALL_PREFIX}/bin/sparrow)"
+    # In-tree scine utilities?
+    if(scine-utils-os_BINARY_DIR)
+      set(UTILS_PYTHONPATH ${scine-utils-os_BINARY_DIR}/src/Utils)
+      set_tests_properties(${Sparrow_Python_Bindings} PROPERTIES
+        ENVIRONMENT PYTHONPATH=${UTILS_PYTHONPATH}:$ENV{PYTHONPATH}
+      )
+    endif()
+  endif()
+
+  include(SphinxDocumentation)
+  scine_sphinx_documentation(
+    TARGET scine_sparrow
+    CONFIGURATION ${CMAKE_CURRENT_SOURCE_DIR}/Python/sphinx/conf.py.in
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Python/sphinx
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doc-py
+    LINK UtilsPythonDoc
+    DOCTEST
+    DOCTEST_REQUIRES scine_utilities
   )
 endif()
+
+add_subdirectory(Embed)
+
+# Targets
+install(TARGETS SparrowApp RUNTIME DESTINATION bin)

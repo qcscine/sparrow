@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -69,13 +69,15 @@ void OneCenterSlaterIntegral::computeHelperVariables() {
 }
 
 double OneCenterSlaterIntegral::calculateFactor() {
-  double x = std::pow(2 * ec_, nc_ + 0.5) * std::pow(2 * ed_, nd_ + 0.5) / std::sqrt(factorial(2 * nc_) * factorial(2 * nd_));
-  double y = std::pow(2 * ea_, na_ + 0.5) * std::pow(2 * eb_, nb_ + 0.5) / std::sqrt(factorial(2 * na_) * factorial(2 * nb_));
-  return x * y * factorial(n2_ + l_) / std::pow(e2_, n2_ + l_ + 1);
+  double x = std::pow(2 * ec_, nc_ + 0.5) * std::pow(2 * ed_, nd_ + 0.5) /
+             std::sqrt(boost::math::factorial<double>(2 * nc_) * boost::math::factorial<double>(2 * nd_));
+  double y = std::pow(2 * ea_, na_ + 0.5) * std::pow(2 * eb_, nb_ + 0.5) /
+             std::sqrt(boost::math::factorial<double>(2 * na_) * boost::math::factorial<double>(2 * nb_));
+  return x * y * boost::math::factorial<double>(n2_ + l_) / std::pow(e2_, n2_ + l_ + 1);
 }
 
 double OneCenterSlaterIntegral::calculateFirstTerm() {
-  return factorial(n1_ - l_ - 1) / std::pow(e1_, n1_ - l_);
+  return boost::math::factorial<double>(n1_ - l_ - 1) / std::pow(e1_, n1_ - l_);
 }
 
 double OneCenterSlaterIntegral::calculateSecondTerm() {
@@ -86,8 +88,8 @@ double OneCenterSlaterIntegral::calculateSecondTerm() {
 }
 
 double OneCenterSlaterIntegral::calculateSecondSumTerm(int ll) {
-  double firstFraction = std::pow(e2_, n2_ + l_ - ll + 1) / factorial(n2_ + l_ - ll + 1);
-  double secondFraction = factorial(n1_ + n2_ - ll) / std::pow(e1_ + e2_, n1_ + n2_ - ll + 1);
+  double firstFraction = std::pow(e2_, n2_ + l_ - ll + 1) / boost::math::factorial<double>(n2_ + l_ - ll + 1);
+  double secondFraction = boost::math::factorial<double>(n1_ + n2_ - ll) / std::pow(e1_ + e2_, n1_ + n2_ - ll + 1);
   return firstFraction * secondFraction;
 }
 
@@ -99,24 +101,11 @@ double OneCenterSlaterIntegral::calculateThirdTerm() {
 }
 
 double OneCenterSlaterIntegral::calculateThirdSumTerm(int ll) {
-  double numerator = std::pow(e2_, n2_ + l_ - ll + 1) * factorial(n2_ - l_ - 1) * factorial(n1_ + n2_ - ll);
-  double denominator = factorial(n2_ + l_) * factorial(n2_ - l_ - ll) * std::pow(e1_ + e2_, n1_ + n2_ - ll + 1);
+  double numerator = std::pow(e2_, n2_ + l_ - ll + 1) * boost::math::factorial<double>(n2_ - l_ - 1) *
+                     boost::math::factorial<double>(n1_ + n2_ - ll);
+  double denominator = boost::math::factorial<double>(n2_ + l_) * boost::math::factorial<double>(n2_ - l_ - ll) *
+                       std::pow(e1_ + e2_, n1_ + n2_ - ll + 1);
   return numerator / denominator;
-}
-
-long long OneCenterSlaterIntegral::factorial(int n) {
-  assert(n <= 20);
-  static auto factorialArray = createFactorialArrayUpTo20();
-  return factorialArray[n];
-}
-
-std::array<long long int, 20> OneCenterSlaterIntegral::createFactorialArrayUpTo20() {
-  std::array<long long int, 20> array{};
-  array[0] = 1;
-  for (long long int i = 1; i < 20; ++i) {
-    array[i] = array[i - 1] * i;
-  }
-  return array;
 }
 
 } // namespace nddo

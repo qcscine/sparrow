@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_MOLDENFILEGENERATOR_H
@@ -43,7 +43,6 @@ class MoldenFileGenerator {
   void generateWavefunctionInformation(std::ostream& out) const;
 
  private:
-  virtual std::vector<Utils::AtomicGtos> getStoNGExpansion() const;
   void generateAtomBlock(std::ostream& out) const;
   void generateGTOBlock(std::ostream& out) const;
   void generateMolecularOrbitalsBlock(std::ostream& out) const;

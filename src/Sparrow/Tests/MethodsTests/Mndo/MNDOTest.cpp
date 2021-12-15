@@ -1,12 +1,12 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
-#include "../parameters_location.h"
 #include <Core/Interfaces/Calculator.h>
+#include <Core/Log.h>
 #include <Core/ModuleManager.h>
 #include <Sparrow/Implementations/Nddo/Mndo/MNDOMethod.h>
 #include <Sparrow/Implementations/Nddo/Mndo/Wrapper/MNDOMethodWrapper.h>
@@ -18,7 +18,6 @@
 #include <Utils/Scf/ConvergenceAccelerators/ConvergenceAcceleratorFactory.h>
 #include <gmock/gmock.h>
 #include <Eigen/Core>
-#include <boost/dll/runtime_symbol_info.hpp>
 
 namespace Scine {
 namespace Sparrow {
@@ -35,21 +34,21 @@ class AMNDOCalculation : public Test {
   std::shared_ptr<Core::Calculator> polymorphicMethodWrapper;
   ElementParameters elementParameters;
 
+  Core::Log log;
+
   void SetUp() override {
     mndoMethodWrapper = std::make_shared<MNDOMethodWrapper>();
     polymorphicMethodWrapper = std::make_shared<MNDOMethodWrapper>();
 
     method.setMaxIterations(10000);
-    method.setConvergenceCriteria(1e-8);
-    mndoMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
-    mndoMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-    mndoMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-    mndoMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
-    polymorphicMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
-    polymorphicMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-    polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-    polymorphicMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
-    Utils::Log::startConsoleLogging(Utils::SettingsNames::LogLevels::none);
+    method.setConvergenceCriteria({1e-7, 1e-8});
+    log = Core::Log::silent();
+    mndoMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
+    mndoMethodWrapper->setLog(Core::Log::silent());
+    mndoMethodWrapper->settings().modifyDouble(Utils::SettingsNames::densityRmsdCriterion, 1e-8);
+    polymorphicMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
+    polymorphicMethodWrapper->setLog(Core::Log::silent());
+    polymorphicMethodWrapper->settings().modifyDouble(Utils::SettingsNames::densityRmsdCriterion, 1e-8);
   }
 };
 TEST_F(AMNDOCalculation, HasTheCorrectNumberOfAOsAfterInitialization) {
@@ -59,15 +58,42 @@ TEST_F(AMNDOCalculation, HasTheCorrectNumberOfAOsAfterInitialization) {
                         "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                         "H     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ssH);
-  method.setStructure(as, parameters_mndo);
+  method.setMolecularCharge(1);
+  method.setStructure(as);
   ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(10));
+}
+
+TEST_F(AMNDOCalculation, CanReturnAtomicGtos) {
+  std::stringstream ssH("4\n\n"
+                        "C      0.0000000000    0.0000000000    0.0000000000\n"
+                        "P      0.0529177211   -0.3175063264    0.2645886053\n"
+                        "H     -0.5291772107    0.1058354421   -0.1587531632\n"
+                        "H     -0.1058354421    0.1058354421   -0.1587531632\n");
+  auto as = Utils::XyzStreamHandler::read(ssH);
+  method.setMolecularCharge(1);
+  mndoMethodWrapper->settings().modifyInt(Utils::SettingsNames::molecularCharge, 1);
+  method.setStructure(as);
+  mndoMethodWrapper->setStructure(as);
+  auto gtoMap = mndoMethodWrapper->getAtomicGtosMap();
+  ASSERT_TRUE(gtoMap.find(6) != gtoMap.end());
+  ASSERT_TRUE(gtoMap.find(15) != gtoMap.end());
+  ASSERT_TRUE(gtoMap.find(1) != gtoMap.end());
+  ASSERT_TRUE(gtoMap.find(8) == gtoMap.end());
+  ASSERT_THAT(gtoMap.at(15).p->angularMomentum, Eq(1));
+  ASSERT_THAT(gtoMap.at(6).s->nAOs(), Eq(1));
+  ASSERT_THAT(gtoMap.at(6).p->nAOs(), Eq(3));
+  ASSERT_THAT(gtoMap.at(1).s->gtfs.size(), Eq(6));
+  ASSERT_THAT(gtoMap.at(1).s->gtfs.at(0).exponent, DoubleNear(4.098792193376860e+01, 1e-10));
+  ASSERT_THAT(gtoMap.at(15).p->gtfs.at(2).coefficient, DoubleNear(1.541922015532646e-01, 1e-10));
 }
 
 TEST_F(AMNDOCalculation, GetsCorrectOneElectronPartOfFockForH) {
   std::stringstream ssH("1\n\n"
                         "H -1.0 0.2 -0.3\n");
   auto as = Utils::XyzStreamHandler::read(ssH);
-  method.setStructure(as, parameters_mndo);
+  method.setSpinMultiplicity(2);
+  method.setUnrestrictedCalculation(true);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   ASSERT_THAT(method.getOneElectronMatrix().getMatrix()(0, 0) * ev_per_hartree, DoubleNear(-11.906276, 1e-4));
@@ -77,7 +103,7 @@ TEST_F(AMNDOCalculation, GetsCorrectOneElectronPartOfFockForC) {
   std::stringstream ssC("1\n\n"
                         "C 0.0 0.0 0.0\n");
   auto as = Utils::XyzStreamHandler::read(ssC);
-  method.setStructure(as, parameters_mndo);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
   method.calculateDensityIndependentQuantities();
@@ -91,7 +117,7 @@ TEST_F(AMNDOCalculation, GetsCorrectOneElectronPartOfFockForH2) {
                          "H -0.529177  0.105835 -0.158753\n"
                          "H -0.105835  0.105835 -0.158753\n");
   auto as = Utils::XyzStreamHandler::read(ssH2);
-  method.setStructure(as, parameters_mndo);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   Eigen::Matrix<double, 2, 2> expected;
@@ -104,7 +130,7 @@ TEST_F(AMNDOCalculation, GetsCorrectOneElectronPartOfFockForCC) {
                          "C 0.0 0.0 0.0\n"
                          "C 0.423342  0.0529177 -0.0529177\n");
   auto as = Utils::XyzStreamHandler::read(ssC2);
-  method.setStructure(as, parameters_mndo);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   Eigen::Matrix<double, 8, 8> expected;
@@ -123,7 +149,7 @@ TEST_F(AMNDOCalculation, GetsCorrectOneElectronPartOfFockForCH2O) {
                        "H     -0.5291772107    0.1058354421   -0.1587531632\n"
                        "H     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
+  method.setStructure(as);
 
   method.calculateDensityIndependentQuantities();
   Eigen::Matrix<double, 10, 10> expected;
@@ -143,10 +169,10 @@ TEST_F(AMNDOCalculation, GetsCorrectEigenvaluesForC) {
   std::stringstream ss("1\n\n"
                        "C     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
 
-  method.convergedCalculation();
+  method.convergedCalculation(log);
 
   auto eigenvalues = method.getSingleParticleEnergies().getRestrictedEnergies();
 
@@ -161,11 +187,11 @@ TEST_F(AMNDOCalculation, GetsCorrectUnrestrictedEigenvaluesForBoron) {
   std::stringstream ss("1\n\n"
                        "B     -0.1058354421    0.1058354421   -0.1587531632\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
-
   method.setUnrestrictedCalculation(true);
   method.setSpinMultiplicity(2);
-  method.convergedCalculation(Utils::derivativeType::none);
+  method.setStructure(as);
+
+  method.convergedCalculation(log, Utils::Derivative::None);
 
   auto alphaEigenvalues = method.getSingleParticleEnergies().getAlphaEnergies();
   auto betaEigenvalues = method.getSingleParticleEnergies().getBetaEnergies();
@@ -189,8 +215,8 @@ TEST_F(AMNDOCalculation, IsIndependentOfOrderOfAtoms) {
                        "H      0.4005871485    0.3100978455    0.0000000000\n"
                        "H     -0.4005871485    0.3100978455    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
   double energy1 = method.getElectronicEnergy();
 
   std::stringstream ss2("3\n\n"
@@ -198,9 +224,9 @@ TEST_F(AMNDOCalculation, IsIndependentOfOrderOfAtoms) {
                         "H     -0.4005871485    0.3100978455    0.0000000000\n"
                         "O      0.0000000000    0.0000000000    0.0000000000\n");
   auto as2 = Utils::XyzStreamHandler::read(ss2);
-  method.setStructure(as2, parameters_mndo);
+  method.setStructure(as2);
 
-  method.convergedCalculation();
+  method.convergedCalculation(log);
   double energy2 = method.getElectronicEnergy();
 
   ASSERT_THAT(energy1, DoubleNear(energy2, 1e-10));
@@ -211,9 +237,9 @@ TEST_F(AMNDOCalculation, GetsCorrectTotalEnergyForH2) {
                          "H -0.529177  0.105835 -0.158753\n"
                          "H -0.105835  0.105835 -0.158753\n");
   auto as = Utils::XyzStreamHandler::read(ssH2);
-  method.setStructure(as, parameters_mndo);
+  method.setStructure(as);
   method.setScfMixer(Utils::scf_mixer_t::none);
-  method.convergedCalculation();
+  method.convergedCalculation(log);
 
   auto eigenvalues = method.getSingleParticleEnergies().getRestrictedEnergies();
   std::vector<double> expected = {-17.37700, 6.41245};
@@ -231,8 +257,8 @@ TEST_F(AMNDOCalculation, GetsCorrectTotalEnergyForH2AtOtherDistance) {
                        "H     0.0000000000    0.0000000000   -0.0000000000\n"
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * ev_per_hartree, DoubleNear(6.35835, 1e-4));
   ASSERT_THAT(method.getElectronicEnergy() * ev_per_hartree, DoubleNear(-28.12803, 1e-3));
@@ -243,8 +269,8 @@ TEST_F(AMNDOCalculation, GetsCorrectTotalEnergyForC2) {
                        "C     0.0000000000    0.0000000000   -0.0000000000\n"
                        "C     2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * ev_per_hartree, DoubleNear(100.49139, 1e-4));
   ASSERT_THAT(method.getElectronicEnergy() * ev_per_hartree, DoubleNear(-340.03345, 1e-3));
@@ -256,8 +282,10 @@ TEST_F(AMNDOCalculation, GetsCorrectRepulsionEnergyForCH) {
                        "H     2.0000000000    0.0000000000    0.0000000000\n");
   auto as = Utils::XyzStreamHandler::read(ss);
 
-  method.setStructure(as, parameters_mndo);
-  method.calculate(Utils::derivativeType::none);
+  method.setUnrestrictedCalculation(true);
+  method.setSpinMultiplicity(2);
+  method.setStructure(as);
+  method.calculate(Utils::Derivative::None, log);
 
   ASSERT_THAT(method.getRepulsionEnergy() * ev_per_hartree, DoubleNear(25.27860, 1e-4));
 }
@@ -284,8 +312,8 @@ TEST_F(AMNDOCalculation, GetsCorrectGradientsForMethane) {
                                   "H     -0.6287000000    0.6287000000   -0.6287000000\n"
                                   "H      0.6287000000   -0.6287000000   -0.6287000000\n");
   auto structure = Utils::XyzStreamHandler::read(stream);
-  method.setStructure(structure, parameters_mndo);
-  method.convergedCalculation(Utils::derivativeType::first);
+  method.setStructure(structure);
+  method.convergedCalculation(log, Utils::Derivative::First);
 
   Eigen::RowVector3d cOneGradient(0.000010, 0.000011, 0.000012);
   Eigen::RowVector3d hOneGradient(-8.984101, -8.982663, -8.983207);
@@ -329,8 +357,8 @@ TEST_F(AMNDOCalculation, GetsZeroGradientForOptimizedMethane) {
                            "H     0.63755701   -0.63839156   -0.63640383\n");
 
   auto structure = Utils::XyzStreamHandler::read(stream);
-  method.setStructure(structure, parameters_mndo);
-  method.convergedCalculation(Utils::derivativeType::first);
+  method.setStructure(structure);
+  method.convergedCalculation(log, Utils::Derivative::First);
 
   ASSERT_THAT(method.getEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-185.09228, 1e-3));
   ASSERT_TRUE(method.getGradients().row(0).norm() < 1e-3);
@@ -352,8 +380,8 @@ TEST_F(AMNDOCalculation, GetsCorrectTotalEnergyForEthanol) {
                        "O     -0.8772416674    0.0083263307   -0.6652828084\n"
                        "H     -1.8356000997    0.0539308952   -0.5014877498\n");
   auto as = Utils::XyzStreamHandler::read(ss);
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(-663.83891, 7e-2));
   ASSERT_THAT(method.getRepulsionEnergy() * Utils::Constants::ev_per_hartree, DoubleNear(1133.01130, 7e-2));
@@ -374,8 +402,8 @@ TEST_F(AMNDOCalculation, GetsSameTotalEnergyWithAndWithoutWrapper) {
   auto as = Utils::XyzStreamHandler::read(ss);
   mndoMethodWrapper->setStructure(as);
   auto result = mndoMethodWrapper->calculate("");
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
@@ -394,27 +422,18 @@ TEST_F(AMNDOCalculation, GetsSameTotalEnergyWithPolymorphicMethodAndWithMethod) 
   auto as = Utils::XyzStreamHandler::read(ss);
   polymorphicMethodWrapper->setStructure(as);
   auto result = polymorphicMethodWrapper->calculate("");
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
 }
 
 TEST_F(AMNDOCalculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxIterations, 10000);
-  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
+  dynamicallyLoadedMethodWrapper->setLog(log);
+  dynamicallyLoadedMethodWrapper->settings().modifyInt(Utils::SettingsNames::maxScfIterations, 10000);
+  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-8);
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
                        "C      1.3088788172   -0.0403821764    0.1943189946\n"
@@ -428,8 +447,8 @@ TEST_F(AMNDOCalculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
   auto as = Utils::XyzStreamHandler::read(ss);
   dynamicallyLoadedMethodWrapper->setStructure(as);
   auto result = dynamicallyLoadedMethodWrapper->calculate("");
-  method.setStructure(as, parameters_mndo);
-  method.convergedCalculation();
+  method.setStructure(as);
+  method.convergedCalculation(log);
 
   ASSERT_THAT(result.get<Utils::Property::Energy>() * Utils::Constants::ev_per_hartree, DoubleNear(-663.83891, 7e-2));
   ASSERT_THAT(method.getEnergy(), DoubleNear(result.get<Utils::Property::Energy>(), 1e-5));
@@ -438,18 +457,9 @@ TEST_F(AMNDOCalculation, GetsSameTotalEnergyWithDynamicallyLoadedMethod) {
 
 TEST_F(AMNDOCalculation, MethodWrapperCanBeCloned) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistanceCriterion, 1e-8);
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
+  dynamicallyLoadedMethodWrapper->setLog(log);
+  dynamicallyLoadedMethodWrapper->settings().modifyDouble(Utils::SettingsNames::selfConsistenceCriterion, 1e-8);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -466,23 +476,14 @@ TEST_F(AMNDOCalculation, MethodWrapperCanBeCloned) {
 
   auto cloned = dynamicallyLoadedMethodWrapper->clone();
 
-  auto scc = Utils::SettingsNames::selfConsistanceCriterion;
+  auto scc = Utils::SettingsNames::selfConsistenceCriterion;
   ASSERT_EQ(cloned->settings().getDouble(scc), dynamicallyLoadedMethodWrapper->settings().getDouble(scc));
 }
 
 TEST_F(AMNDOCalculation, StructureIsCorrectlyCloned) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
+  dynamicallyLoadedMethodWrapper->setLog(log);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -504,17 +505,8 @@ TEST_F(AMNDOCalculation, StructureIsCorrectlyCloned) {
 
 TEST_F(AMNDOCalculation, ClonedMethodCanCalculate) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
+  dynamicallyLoadedMethodWrapper->setLog(log);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -538,17 +530,8 @@ TEST_F(AMNDOCalculation, ClonedMethodCanCalculate) {
 
 TEST_F(AMNDOCalculation, ClonedMethodCanCalculateGradients) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
+  dynamicallyLoadedMethodWrapper->setLog(log);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -581,16 +564,8 @@ TEST_F(AMNDOCalculation, ClonedMethodCanCalculateGradients) {
 
 TEST_F(AMNDOCalculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCores) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, parameters_root);
+  dynamicallyLoadedMethodWrapper->setLog(log);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -625,17 +600,8 @@ TEST_F(AMNDOCalculation, ClonedMethodCanCalculateGradientsWithDifferentNumberCor
 
 TEST_F(AMNDOCalculation, ClonedMethodCopiesResultsCorrectly) {
   auto& moduleManager = Core::ModuleManager::getInstance();
-  auto programPath = boost::dll::program_location();
-  auto libPath = programPath.parent_path() / "sparrow";
-  try {
-    moduleManager.load(libPath);
-  }
-  catch (const std::runtime_error& e) {
-    // Do nothing if module is already loaded.
-  }
   auto dynamicallyLoadedMethodWrapper = moduleManager.get<Core::Calculator>("MNDO");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterRootDirectory, "");
-  dynamicallyLoadedMethodWrapper->settings().modifyString(Utils::SettingsNames::parameterFile, parameters_mndo);
+  dynamicallyLoadedMethodWrapper->setLog(log);
 
   std::stringstream ss("9\n\n"
                        "H      1.9655905060   -0.0263662325    1.0690084915\n"
@@ -665,8 +631,34 @@ TEST_F(AMNDOCalculation, AtomCollectionCanBeReturned) {
   auto structure = Utils::XyzStreamHandler::read(ssH);
   mndoMethodWrapper->setStructure(structure);
   ASSERT_EQ(structure.getPositions(), mndoMethodWrapper->getStructure()->getPositions());
-  for (int i = 0; i < structure.getElements().size(); ++i)
+  for (unsigned int i = 0; i < structure.getElements().size(); ++i) {
     ASSERT_EQ(structure.getElements()[i], mndoMethodWrapper->getStructure()->getElements()[i]);
+  }
+}
+
+TEST_F(AMNDOCalculation, GetsCorrectAtomicHessians) {
+  std::stringstream ssH("5\n\n"
+                        "C     -4.22875    2.29085   -0.00000\n"
+                        "H     -3.42876    2.04248    0.66574\n"
+                        "H     -3.90616    3.05518   -0.67574\n"
+                        "H     -4.51405    1.42151   -0.55475\n"
+                        "H     -5.06606    2.64424    0.56475\n");
+  auto structure = Utils::XyzStreamHandler::read(ssH);
+  method.setStructure(structure);
+  method.convergedCalculation(log, Utils::Derivative::SecondAtomic);
+
+  auto ah = method.getAtomicSecondDerivatives();
+  ASSERT_EQ(ah.size(), 5);
+  // Reference data has been generated with original re-implementation in Sparrow
+  ASSERT_NEAR(ah.getAtomicHessian(0)(0, 0), 0.79619364150623639, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(0, 1), 4.1285620353964658e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(0, 2), 1.5643535911998019e-05, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(1, 0), 4.1285620353964658e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(1, 1), 0.79619812358511766, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(1, 2), -8.8660044972391217e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(2, 0), 1.5643535911998019e-05, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(2, 1), -8.8660044972391217e-06, 1e-6);
+  ASSERT_NEAR(ah.getAtomicHessian(0)(2, 2), 0.79619900002843125, 1e-6);
 }
 } // namespace Sparrow
 } // namespace Scine

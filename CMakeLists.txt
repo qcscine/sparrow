@@ -4,12 +4,12 @@ cmake_minimum_required(VERSION 3.9)
 # tree must then provide a properly namespaced target with the same name as
 # your project.
 project(Sparrow
-  VERSION 2.0.0
+  VERSION 3.0.0
   DESCRIPTION "Library for fast and agile quantum chemical calculations with semiempirical methods."
 )
 
 # Set the module path for universal cmake files inclusion
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/dev/cmake)
 
 # Component setup
 include(ComponentSetup)
@@ -23,3 +23,6 @@ endif()
 
 # Subdirectories
 add_subdirectory(src)
+
+# Documentation
+scine_component_documentation(UtilsOSDocumentation)

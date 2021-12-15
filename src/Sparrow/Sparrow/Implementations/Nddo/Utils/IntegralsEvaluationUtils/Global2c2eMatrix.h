@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -55,39 +55,40 @@ class Global2c2eMatrix {
     sameElement_ = sym;
   }
 
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void calculate(const Eigen::Vector3d& Rab);
 
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   Utils::AutomaticDifferentiation::DerivativeType<O> getDerivative(orb_index_t o1, orb_index_t o2, orb_index_t o3,
                                                                    orb_index_t o4) const;
-  template<Utils::derivativeType O>
+  template<Utils::Derivative O>
   Utils::AutomaticDifferentiation::DerivativeType<O> getDerivative(orbPair_index_t op1, orbPair_index_t op2) const;
   double get(orb_index_t o1, orb_index_t o2, orb_index_t o3, orb_index_t o4) const;
   double get(orbPair_index_t op1, orbPair_index_t op2) const;
   orbPair_index_t getPairIndex(orb_index_t o1, orb_index_t o2) const;
+  const Eigen::MatrixXd& getGlobalMatrix() const;
   void output() const;
 
  private:
   Eigen::RowVector3d getFirstDerivative(orbPair_index_t op1, orbPair_index_t op2) const;
   Utils::AutomaticDifferentiation::Second3D getSecondDerivative(orbPair_index_t op1, orbPair_index_t op2) const;
 
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   void evaluate();
 
-  template<Utils::derivOrder O>
+  template<Utils::DerivativeOrder O>
   Utils::AutomaticDifferentiation::Value3DType<O> evaluateMatrixElement(orbPair_index_t op1, orbPair_index_t op2);
 
   const int d1_, d2_;
   Global2c2eTerms terms_;
   const ChargeSeparationParameter &dist1, &dist2;
   const KlopmanParameter &rho1, &rho2;
-  Local2c2eMatrix<Utils::derivOrder::zero> localZero_;
-  Local2c2eMatrix<Utils::derivOrder::one> localOne_;
-  Local2c2eMatrix<Utils::derivOrder::two> localTwo_;
-  OrbitalRotation<Utils::derivOrder::zero> rotationsZero_;
-  OrbitalRotation<Utils::derivOrder::one> rotationsOne_;
-  OrbitalRotation<Utils::derivOrder::two> rotationsTwo_;
+  Local2c2eMatrix<Utils::DerivativeOrder::Zero> localZero_;
+  Local2c2eMatrix<Utils::DerivativeOrder::One> localOne_;
+  Local2c2eMatrix<Utils::DerivativeOrder::Two> localTwo_;
+  OrbitalRotation<Utils::DerivativeOrder::Zero> rotationsZero_;
+  OrbitalRotation<Utils::DerivativeOrder::One> rotationsOne_;
+  OrbitalRotation<Utils::DerivativeOrder::Two> rotationsTwo_;
   double R_, RNormX_, RNormY_, RNormZ_;
   Utils::AutomaticDifferentiation::First3D nullDeriv, oneDeriv;
   Eigen::MatrixXd globalMatrix_;
@@ -112,27 +113,31 @@ inline Utils::AutomaticDifferentiation::Second3D Global2c2eMatrix::getSecondDeri
   return globalMatrixTwo_(op1, op2);
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 Utils::AutomaticDifferentiation::DerivativeType<O> Global2c2eMatrix::getDerivative(orb_index_t o1, orb_index_t o2,
                                                                                    orb_index_t o3, orb_index_t o4) const {
   return getDerivative<O>(getPairIndex(o1, o2), getPairIndex(o3, o4));
 }
 
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::first>
-Global2c2eMatrix::getDerivative<Utils::derivativeType::first>(orbPair_index_t op1, orbPair_index_t op2) const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::First>
+Global2c2eMatrix::getDerivative<Utils::Derivative::First>(orbPair_index_t op1, orbPair_index_t op2) const {
   return getFirstDerivative(op1, op2);
 }
 
+inline const Eigen::MatrixXd& Global2c2eMatrix::getGlobalMatrix() const {
+  return globalMatrix_;
+}
+
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::second_atomic>
-Global2c2eMatrix::getDerivative<Utils::derivativeType::second_atomic>(orbPair_index_t op1, orbPair_index_t op2) const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::SecondAtomic>
+Global2c2eMatrix::getDerivative<Utils::Derivative::SecondAtomic>(orbPair_index_t op1, orbPair_index_t op2) const {
   return getSecondDerivative(op1, op2);
 }
 
 template<>
-inline Utils::AutomaticDifferentiation::DerivativeType<Utils::derivativeType::second_full>
-Global2c2eMatrix::getDerivative<Utils::derivativeType::second_full>(orbPair_index_t op1, orbPair_index_t op2) const {
+inline Utils::AutomaticDifferentiation::DerivativeType<Utils::Derivative::SecondFull>
+Global2c2eMatrix::getDerivative<Utils::Derivative::SecondFull>(orbPair_index_t op1, orbPair_index_t op2) const {
   return getSecondDerivative(op1, op2);
 }
 

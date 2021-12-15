@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -165,7 +165,7 @@ void TwoElectronMatrix::calculateDifferentAtomsBlock(int startA, int startB, int
   }
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void TwoElectronMatrix::addDerivatives(DerivativeContainerType<O>& derivativeContainer) const {
   for (int i = 0; i < nAtoms_; ++i) {
     auto indexA = aoIndexes_.getFirstOrbitalIndex(i);
@@ -179,7 +179,7 @@ void TwoElectronMatrix::addDerivatives(DerivativeContainerType<O>& derivativeCon
   }
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void TwoElectronMatrix::addDerivativesForBlock(DerivativeContainerType<O>& derivativeContainer, int a, int b, int startA,
                                                int startB, int nAOsA, int nAOsB, const multipole::Global2c2eMatrix& m) const {
   int mu, nu, lambda, sigma;
@@ -239,13 +239,18 @@ void TwoElectronMatrix::addDerivativesForBlock(DerivativeContainerType<O>& deriv
   }
   Utils::AutomaticDifferentiation::addDerivativeToContainer<O>(derivativeContainer, a, b, derivativeContribution);
 }
+const OneCenterIntegralContainer& TwoElectronMatrix::getOneCenterIntegrals() const {
+  return oneCenterIntegrals;
+}
+const TwoCenterIntegralContainer& TwoElectronMatrix::getTwoCenterIntegrals() const {
+  return twoCenterIntegrals;
+}
 
+template void TwoElectronMatrix::addDerivatives<Utils::Derivative::First>(DerivativeContainerType<Utils::Derivative::First>&) const;
 template void
-TwoElectronMatrix::addDerivatives<Utils::derivativeType::first>(DerivativeContainerType<Utils::derivativeType::first>&) const;
-template void TwoElectronMatrix::addDerivatives<Utils::derivativeType::second_atomic>(
-    DerivativeContainerType<Utils::derivativeType::second_atomic>&) const;
-template void TwoElectronMatrix::addDerivatives<Utils::derivativeType::second_full>(
-    DerivativeContainerType<Utils::derivativeType::second_full>&) const;
+TwoElectronMatrix::addDerivatives<Utils::Derivative::SecondAtomic>(DerivativeContainerType<Utils::Derivative::SecondAtomic>&) const;
+template void
+TwoElectronMatrix::addDerivatives<Utils::Derivative::SecondFull>(DerivativeContainerType<Utils::Derivative::SecondFull>&) const;
 
 } // namespace nddo
 } // namespace Sparrow

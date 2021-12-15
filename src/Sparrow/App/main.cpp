@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -22,11 +22,10 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  SparrowInitializer initializer;
-  initializer.initialize();
+  SparrowInitializer::initialize();
 
   try {
-    CalculationHandler calculationHandler(commandLineParser, initializer);
+    CalculationHandler calculationHandler(commandLineParser);
     calculationHandler.calculate(std::cout);
   }
   catch (MethodNotAvailableException& e) {

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -47,7 +47,7 @@ void MNDORepulsionEnergy::initializePair(int i, int j) {
   rep_[i][j] = std::make_unique<MNDOPairwiseRepulsion>(p1, p2);
 }
 
-void MNDORepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
+void MNDORepulsionEnergy::calculateRepulsion(Utils::DerivativeOrder order) {
 #pragma omp parallel for
   for (int i = 0; i < nAtoms_; i++) {
     for (int j = i + 1; j < nAtoms_; j++) {
@@ -56,7 +56,7 @@ void MNDORepulsionEnergy::calculateRepulsion(Utils::derivOrder order) {
   }
 }
 
-void MNDORepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::derivOrder order) {
+void MNDORepulsionEnergy::calculatePairRepulsion(int i, int j, Utils::DerivativeOrder order) {
   auto pA = positions_.row(i);
   auto pB = positions_.row(j);
   Eigen::Vector3d Rab = pB - pA;
@@ -75,19 +75,19 @@ double MNDORepulsionEnergy::getRepulsionEnergy() const {
   return repulsionEnergy;
 }
 
-void MNDORepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::derivativeType::first>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::first>(derivatives);
+void MNDORepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::Derivative::First>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::First>(derivatives);
 }
 
-void MNDORepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::second_atomic>(derivatives);
+void MNDORepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::SecondAtomic>(derivatives);
 }
 
-void MNDORepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const {
-  addRepulsionDerivativesImpl<Utils::derivativeType::second_full>(derivatives);
+void MNDORepulsionEnergy::addRepulsionDerivatives(DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const {
+  addRepulsionDerivativesImpl<Utils::Derivative::SecondFull>(derivatives);
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void MNDORepulsionEnergy::addRepulsionDerivativesImpl(DerivativeContainerType<O>& derivatives) const {
   for (int i = 0; i < nAtoms_; ++i) {
     for (int j = i + 1; j < nAtoms_; ++j) {

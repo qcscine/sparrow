@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -19,6 +19,7 @@ namespace Scine {
 namespace Utils {
 class AtomsOrbitalsIndexes;
 class DensityMatrix;
+class AdditiveElectronicContribution;
 } // namespace Utils
 
 namespace Sparrow {
@@ -39,10 +40,10 @@ class ScfFock : public Utils::ElectronicContributionCalculator {
                    const Eigen::MatrixXd& overlapMatrix, const bool& unrestrictedCalculationRunning);
 
   void initialize() override;
-  void calculateDensityDependentPart(Utils::derivOrder order) override;
-  void calculateDensityIndependentPart(Utils::derivOrder order) override;
+  void calculateDensityDependentPart(Utils::DerivativeOrder order) override;
+  void calculateDensityIndependentPart(Utils::DerivativeOrder order) override;
   Utils::SpinAdaptedMatrix getMatrix() const override;
-  void finalize(Utils::derivOrder order) override;
+  void finalize(Utils::DerivativeOrder order) override;
 
   /**
    * This function adds an additive electronic contribution to the
@@ -59,9 +60,9 @@ class ScfFock : public Utils::ElectronicContributionCalculator {
   int getNumberAtoms() const;
   void populationAnalysis();
   //! @brief adds the derivatives for the first, second atomic and second full types.
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::first>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_atomic>& derivatives) const override;
-  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::derivativeType::second_full>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::First>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondAtomic>& derivatives) const override;
+  void addDerivatives(Utils::AutomaticDifferentiation::DerivativeContainerType<Utils::Derivative::SecondFull>& derivatives) const override;
   ZeroOrderMatricesCalculator& zeroOrderMatricesCalculator_;
   const Utils::ElementTypeCollection& elements_;
   const Utils::PositionCollection& positions_;
@@ -84,7 +85,7 @@ class ScfFock : public Utils::ElectronicContributionCalculator {
 
  private:
   virtual void completeH() = 0;
-  virtual void constructG(Utils::derivOrder order) = 0;
+  virtual void constructG(Utils::DerivativeOrder order) = 0;
 };
 
 inline int ScfFock::getNumberAtoms() const {

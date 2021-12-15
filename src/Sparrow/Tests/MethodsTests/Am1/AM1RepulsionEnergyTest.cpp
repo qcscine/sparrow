@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -79,7 +79,7 @@ TEST_F(AAM1PairwiseRepulsion, ReturnsTheCorrectValueForArbitraryParameters) {
   ap1.addGaussianRepulsionParameters(arbitraryK2, arbitraryL2, arbitraryM2);
   ap2.clearGaussianRepulsionParameters();
   ap2.addGaussianRepulsionParameters(arbitraryK3, arbitraryL3, arbitraryM3);
-  ASSERT_THAT(rep.calculateRepulsion<Utils::derivOrder::zero>(arbitraryRadius), DoubleEq(expected));
+  ASSERT_THAT(rep.calculateRepulsion<Utils::DerivativeOrder::Zero>(arbitraryRadius), DoubleEq(expected));
 }
 
 TEST_F(AAM1PairwiseRepulsion, ReturnsTheCorrectDerivativeForArbitraryParameters) {
@@ -95,7 +95,7 @@ TEST_F(AAM1PairwiseRepulsion, ReturnsTheCorrectDerivativeForArbitraryParameters)
                       (-arbitraryAlpha1 * std::exp(-arbitraryAlpha1 * arbitraryRadius) -
                        arbitraryAlpha2 * std::exp(-arbitraryAlpha2 * arbitraryRadius));
 
-  First1D ed = rep.calculateRepulsion<Utils::derivOrder::one>(arbitraryRadius);
+  First1D ed = rep.calculateRepulsion<Utils::DerivativeOrder::One>(arbitraryRadius);
   ASSERT_THAT(ed.value(), DoubleEq(expected));
   ASSERT_THAT(ed.derivative(), DoubleEq(derExp));
 }
@@ -122,7 +122,7 @@ arbitraryL3 * (arbitraryRadius - arbitraryM3)) / ev_per_hartree;
   ap1.addGaussianRepulsionParameters(arbitraryK2, arbitraryL2, arbitraryM2);
   ap2.clearGaussianRepulsionParameters();
   ap2.addGaussianRepulsionParameters(arbitraryK3, arbitraryL3, arbitraryM3);
-  First1D GT = rep.gaussianRepulsionTerm<derivOrder::one>(arbitraryRadius);
+  First1D GT = rep.gaussianRepulsionTerm<DerivativeOrder::One>(arbitraryRadius);
   ASSERT_THAT(GT.value(), DoubleEq(expected));
   ASSERT_THAT(GT.derivative(), DoubleEq(DerExpected));
 
@@ -138,7 +138,7 @@ TEST_F(APM6PairwiseRepulsion, CorrectDerivativeForStandardParenthesis) {
       std::exp(-arbitraryAlpha * (arbitraryRadius + 0.00001244878365801758178693335 * std::pow(arbitraryRadius, 6))) *
       (-arbitraryAlpha * (1 + 0.00001244878365801758178693335 * 6 * std::pow(arbitraryRadius, 5)));
 
-  First1D sT = rep.standardParenthesis<derivOrder::one>(arbitraryRadius);
+  First1D sT = rep.standardParenthesis<DerivativeOrder::One>(arbitraryRadius);
   ASSERT_THAT(sT.value(), DoubleEq(expected));
   ASSERT_THAT(sT.derivative(), DoubleEq(DerExpected));
 } */

@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #include "DFTBDipoleMomentCalculator.h"
@@ -25,9 +25,9 @@ Eigen::RowVector3d Scine::Sparrow::DFTBDipoleMomentCalculator<DFTBMethod>::calcu
   const auto& positions = method_.getPositions();
   Eigen::Vector3d dipole = Eigen::Vector3d::Zero();
 
-  assert(atomicCharges.size() == positions.rows() && "Not same amount of atomic charges and positions.");
+  assert(int(atomicCharges.size()) == int(positions.rows()) && "Not same amount of atomic charges and positions.");
 
-  for (int atom = 0; atom < atomicCharges.size(); ++atom) {
+  for (int atom = 0; atom < static_cast<int>(atomicCharges.size()); ++atom) {
     dipole += positions.row(atom) * atomicCharges[atom];
   }
 

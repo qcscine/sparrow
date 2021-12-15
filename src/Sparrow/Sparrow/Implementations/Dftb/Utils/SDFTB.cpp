@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -50,10 +50,9 @@ double SDFTB::spinEnergyContribution() const {
   return spinEnergy;
 }
 
-template<Utils::derivativeType O>
+template<Utils::Derivative O>
 void SDFTB::addDerivatives(DerivativeContainerType<O>& derivativesContainer, const Utils::MatrixWithDerivatives& overlapDeriv,
                            const Eigen::MatrixXd& pUp, const Eigen::MatrixXd& pDn) const {
-#pragma omp parallel for
   for (int a = 1; a < nAtoms_; ++a) {
     int nAOsA = aoIndexes_.getNOrbitals(a);
     int indexA = aoIndexes_.getFirstOrbitalIndex(a);
@@ -70,8 +69,7 @@ void SDFTB::addDerivatives(DerivativeContainerType<O>& derivativesContainer, con
                           getDerivativeFromValueWithDerivatives<O>(overlapDeriv.get<UnderlyingOrder<O>>()(i, j));
         }
       }
-#pragma omp critical
-      { addDerivativeToContainer<O>(derivativesContainer, a, b, contribution); }
+      addDerivativeToContainer<O>(derivativesContainer, a, b, contribution);
     }
   }
 }
@@ -264,7 +262,6 @@ void SDFTB::constructSpinHamiltonians(Utils::SpinAdaptedMatrix& H, const Eigen::
   Eigen::MatrixXd Hup = H.restrictedMatrix();
   Eigen::MatrixXd Hdn = H.restrictedMatrix();
 
-#pragma omp parallel for simd
   for (int i = 0; i < nAOs_; ++i) {
     for (int j = 0; j <= i; ++j) {
       Hup(i, j) += spinContribution_(i, j) * overlap(i, j);
@@ -281,17 +278,15 @@ void SDFTB::constructSpinHamiltonians(Utils::SpinAdaptedMatrix& H, const Eigen::
   H.setBetaMatrix(std::move(Hdn));
 }
 
-template void SDFTB::addDerivatives<Utils::derivativeType::first>(DerivativeContainerType<Utils::derivativeType::first>&,
-                                                                  const Utils::MatrixWithDerivatives&,
-                                                                  const Eigen::MatrixXd&, const Eigen::MatrixXd&) const;
-template void
-SDFTB::addDerivatives<Utils::derivativeType::second_atomic>(DerivativeContainerType<Utils::derivativeType::second_atomic>&,
-                                                            const Utils::MatrixWithDerivatives&, const Eigen::MatrixXd&,
-                                                            const Eigen::MatrixXd&) const;
-template void
-SDFTB::addDerivatives<Utils::derivativeType::second_full>(DerivativeContainerType<Utils::derivativeType::second_full>&,
-                                                          const Utils::MatrixWithDerivatives&, const Eigen::MatrixXd&,
-                                                          const Eigen::MatrixXd&) const;
+template void SDFTB::addDerivatives<Utils::Derivative::First>(DerivativeContainerType<Utils::Derivative::First>&,
+                                                              const Utils::MatrixWithDerivatives&,
+                                                              const Eigen::MatrixXd&, const Eigen::MatrixXd&) const;
+template void SDFTB::addDerivatives<Utils::Derivative::SecondAtomic>(DerivativeContainerType<Utils::Derivative::SecondAtomic>&,
+                                                                     const Utils::MatrixWithDerivatives&,
+                                                                     const Eigen::MatrixXd&, const Eigen::MatrixXd&) const;
+template void SDFTB::addDerivatives<Utils::Derivative::SecondFull>(DerivativeContainerType<Utils::Derivative::SecondFull>&,
+                                                                   const Utils::MatrixWithDerivatives&,
+                                                                   const Eigen::MatrixXd&, const Eigen::MatrixXd&) const;
 
 } // namespace dftb
 } // namespace Sparrow

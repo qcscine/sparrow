@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -41,7 +41,7 @@ class ElementParameters;
  * unrestricted formalism.
  */
 template<class NDDOMethod>
-class NDDODipoleMatrixCalculator : public DipoleMatrixCalculator {
+class NDDODipoleMatrixCalculator final : public DipoleMatrixCalculator {
  public:
   static std::unique_ptr<NDDODipoleMatrixCalculator<NDDOMethod>> create(NDDOMethod& method);
 

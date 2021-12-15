@@ -1,15 +1,18 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory for Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #include "DFTBCommon.h"
 #include "SKAtom.h"
 #include "SKPair.h"
+#include "Sparrow/Resources/Dftb/ParameterSets.h"
+#include "boost/filesystem.hpp"
 #include <Core/Exceptions.h>
 #include <Utils/DataStructures/AtomsOrbitalsIndexes.h>
+#include <Utils/Geometry/ElementInfo.h>
 #include <Utils/IO/NativeFilenames.h>
 #include <Utils/Math/AtomicSecondDerivativeCollection.h>
 #include <Utils/Scf/MethodExceptions.h>
@@ -23,10 +26,22 @@ namespace Sparrow {
 
 namespace dftb {
 
+struct IncompleteParametersException : public std::exception {
+  IncompleteParametersException(int Z1, int Z2) {
+    error_ = ("No parameter pair found for the element pair " + Utils::ElementInfo::symbol(Utils::ElementInfo::element(Z1)) +
+              " and " + Utils::ElementInfo::symbol(Utils::ElementInfo::element(Z2)));
+  }
+  const char* what() const noexcept final {
+    return error_.c_str();
+  }
+
+ private:
+  std::string error_;
+};
+
 DFTBCommon::DFTBCommon(const Utils::ElementTypeCollection& elements, int& nEl, int& charge,
                        AtomicParameterContainer& atomicPar, DiatomicParameterContainer& diatomicPar)
-  : nElements_(110),
-    atomTypePresent(nElements_, false),
+  : atomTypePresent(nElements_, false),
     atomParameters(atomicPar),
     pairParameters(diatomicPar),
     nElectrons_(nEl),
@@ -38,17 +53,19 @@ DFTBCommon::~DFTBCommon() = default;
 
 void DFTBCommon::reinitializeParameters() {
   atomParameters = AtomicParameterContainer(110);
-  pairParameters = DiatomicParameterContainer();
+  pairParameters.clear();
 }
 
 bool DFTBCommon::unrestrictedCalculationPossible() const {
-  if (dftbType_ == 0)
+  if (dftbType_ == 0) {
     return false;
+  }
+
   return spinPolarizedPossible;
 }
 
 void DFTBCommon::setMethodDetails(const std::string& path, unsigned dftbType) {
-  path_ = Utils::NativeFilenames::addTrailingSeparator(path);
+  path_ = path;
   dftbType_ = dftbType;
 }
 
@@ -58,10 +75,10 @@ void DFTBCommon::initialize(const std::string& path, unsigned dftbType) {
 }
 
 void DFTBCommon::initialize(const Utils::ElementTypeCollection& elementTypes) {
+  elementTypes_ = elementTypes;
   reinitializeParameters();
   nAOs = 0;
-  nAtoms = static_cast<unsigned int>(elementTypes.size());
-  listAtomTypes.clear();
+  nAtoms = static_cast<unsigned>(elementTypes.size());
 
   nInitialElectrons_ = 0;
   noInteractionEnergy = 0.0;
@@ -69,42 +86,64 @@ void DFTBCommon::initialize(const Utils::ElementTypeCollection& elementTypes) {
 
   // Look what atoms are present
   aoIndexes_ = Utils::AtomsOrbitalsIndexes(nAtoms);
-  for (unsigned int i = 0; i < nAtoms; i++) {
+  for (unsigned i = 0; i < nAtoms; i++) {
     const unsigned elementZ = Utils::ElementInfo::Z(elementTypes[i]);
     if (!atomTypePresent[elementZ]) {
       atomTypePresent[elementZ] = true;
-      if (!atomParameters[elementZ])
+
+      if (!atomParameters[elementZ]) {
         atomParameters[elementZ] = std::make_unique<SKAtom>(elementTypes[i]);
-      std::string elementString = Utils::ElementInfo::symbol(elementTypes[i]);
-      listAtomTypes.push_back(elementString);
+      }
     }
-    auto nOrbitalsForAtom = static_cast<unsigned int>(atomParameters[elementZ]->getnAOs());
+    auto nOrbitalsForAtom = static_cast<unsigned>(atomParameters[elementZ]->getnAOs());
     aoIndexes_.addAtom(nOrbitalsForAtom);
     nAOs += nOrbitalsForAtom;
   }
 
-  // Add parameters for atom pairs
-  for (const auto& atom1 : listAtomTypes) {
-    for (const auto& atom2 : listAtomTypes) {
-      auto val1 = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atom1));
-      auto val2 = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atom2));
-      if (!pairParameters[val1][val2])
-        pairParameters[val1][val2] =
-            std::make_unique<SKPair>(atom1, atom2, atomParameters[val1].get(), atomParameters[val2].get(), path_);
+  // Find the unique atomic numbers we need
+  std::vector<int> Zs;
+  Zs.reserve(elementTypes.size());
+  std::transform(std::begin(elementTypes), std::end(elementTypes), std::back_inserter(Zs),
+                 [](Utils::ElementType e) { return Utils::ElementInfo::Z(e); });
+  std::sort(std::begin(Zs), std::end(Zs));
+  Zs.erase(std::unique(std::begin(Zs), std::end(Zs)), std::end(Zs));
+
+  ParameterSet parameters;
+  if (boost::filesystem::exists(path_) && boost::filesystem::is_directory(path_)) {
+    parameters = ParameterSet::collect(path_, Zs);
+  }
+  else {
+    parameters = embeddedParameters(path_, Zs).value_or_eval([this]() -> ParameterSet {
+      throw std::runtime_error("No embedded parameters named '" + path_ + "'");
+      return {};
+    });
+  }
+
+  // Create SKPairs
+  for (auto& atomPair : parameters.pairData) {
+    const auto& pairZ = atomPair.first;
+    pairParameters.emplace(std::piecewise_construct, std::forward_as_tuple(pairZ),
+                           std::forward_as_tuple(atomParameters[pairZ.first].get(), atomParameters[pairZ.second].get(),
+                                                 std::move(atomPair.second)));
+  }
+
+  // Check completeness of the parameters w.r.t. the elements
+  for (int Z1 : Zs) {
+    for (int Z2 : Zs) {
+      if (pairParameters.find(std::make_pair(Z1, Z2)) == pairParameters.end()) {
+        throw IncompleteParametersException(Z1, Z2);
+      }
     }
   }
-  // Eliminate redundancy and complete them
-  for (const auto& atom1 : listAtomTypes) {
-    for (const auto& atom2 : listAtomTypes) {
-      auto val1 = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atom1));
-      auto val2 = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atom2));
-      auto p1 = pairParameters[val1][val2].get();
-      auto p2 = pairParameters[val2][val1].get();
-      if (val1 > val2)
-        std::swap(p1, p2);
-      p1->complete(p2);
-      p1->precalculateGammaTerms();
-      p2->precalculateGammaTerms();
+
+  for (int Z1 : Zs) {
+    for (int Z2 : Zs) {
+      auto& p1 = pairParameters.at(std::make_pair(Z1, Z2));
+      auto& p2 = pairParameters.at(std::make_pair(Z2, Z1));
+      p1.complete(&p2);
+      p2.complete(&p1);
+      p1.precalculateGammaTerms();
+      p2.precalculateGammaTerms();
     }
   }
 
@@ -118,76 +157,38 @@ void DFTBCommon::initialize(const Utils::ElementTypeCollection& elementTypes) {
   }
   nElectrons_ = nInitialElectrons_ - molecularCharge_;
 
-  if (dftbType_ > 0)
-    readSpinConstants(path_);
-  if (dftbType_ == 3) {
-    readHubbardDerivatives(path_);
-    if (!DFTB3Possible)
-      throw Core::InitializationException(
-          "DFTB3 is not possible because there are no Hubbard derivatives for some element.\n");
-  }
-}
-
-void DFTBCommon::readSpinConstants(const std::string& path) {
-  // Get spin constants if available
-  std::string spinFilename = path + "spin.dat";
-  std::ifstream fSpin(spinFilename.c_str());
-  fSpin.imbue(std::locale("C"));
-  // Output warning if it doesn't exist
-  if (fSpin.is_open()) {
-    std::string atom;
-    std::stringstream buffer;
-    while (getline(fSpin, atom)) {
-      // skip comment lines denoted by #
-      if (atom.find('#') == std::string::npos) {
-        buffer = std::stringstream(atom);
-        buffer >> atom;
-        double sc[3][3];
-        buffer >> sc[0][0] >> sc[0][1] >> sc[1][0] >> sc[1][1] >> sc[0][2] >> sc[1][2] >> sc[2][2] >> sc[2][0] >> sc[2][1];
-        auto valatom = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atom));
-        if (atomTypePresent[valatom])
-          atomParameters[valatom]->setSpinConstants(sc);
+  if (dftbType_ > 0 && parameters.spin) {
+    for (auto& spinPair : parameters.spin->map) {
+      if (atomParameters[spinPair.first]) {
+        atomParameters[spinPair.first]->setSpinConstants(std::move(spinPair.second));
       }
     }
+
+    spinPolarizedPossible =
+        std::all_of(std::begin(elementTypes), std::end(elementTypes), [&](const Utils::ElementType element) -> bool {
+          const unsigned Z = Utils::ElementInfo::Z(element);
+          return atomParameters[Z]->hasSpinConstants();
+        });
   }
 
-  // Check if SDFTB is possible
-  spinPolarizedPossible = true;
-  for (const auto& atomStr : listAtomTypes) {
-    auto vali = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atomStr));
-    if (!(atomParameters[vali]->hasSpinConstants())) {
-      spinPolarizedPossible = false;
-      return;
+  if (dftbType_ == 3) {
+    if (!parameters.hubbard) {
+      throw Core::InitializationException(
+          "DFTB3 is not possible because there are no Hubbard derivatives in this parameter set.\n");
     }
-  }
-}
+    for (const auto& hubbardPair : parameters.hubbard->map) {
+      if (atomParameters[hubbardPair.first]) {
+        atomParameters[hubbardPair.first]->setHubbardDerivative(hubbardPair.second);
+      }
+    }
 
-void DFTBCommon::readHubbardDerivatives(const std::string& path) {
-  // Get Hubbard derivatives if available
-  std::string HubbardFilename = path + "hubbard.dat";
-  std::ifstream fHubbard(HubbardFilename.c_str());
-  fHubbard.imbue(std::locale("C"));
-  // Output warning if it doesn't exist
-  if (!fHubbard)
-    throw Utils::Methods::ParameterFileCannotBeOpenedException(HubbardFilename);
-
-  std::string atom;
-  fHubbard >> atom;
-  while (!fHubbard.eof()) {
-    double hubbard;
-    fHubbard >> hubbard;
-    auto valatom = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atom));
-    if (atomTypePresent[valatom])
-      atomParameters[valatom]->setHubbardDerivative(hubbard);
-    fHubbard >> atom;
-  }
-
-  // Check if DFTB3 is allowed
-  DFTB3Possible = true;
-  for (const auto& atomStr : listAtomTypes) {
-    auto vali = Utils::ElementInfo::Z(Utils::ElementInfo::elementTypeForSymbol(atomStr));
-    if (!(atomParameters[vali]->hasHubbardDerivative())) {
-      DFTB3Possible = false;
+    DFTB3Possible = std::all_of(std::begin(elementTypes), std::end(elementTypes), [&](const Utils::ElementType element) -> bool {
+      const unsigned Z = Utils::ElementInfo::Z(element);
+      return atomParameters[Z]->hasHubbardDerivative();
+    });
+    if (!DFTB3Possible) {
+      throw Core::InitializationException(
+          "DFTB3 is not possible because there are no Hubbard derivatives for some element.\n");
     }
   }
 }
