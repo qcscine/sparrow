@@ -73,6 +73,10 @@ scine_install_component_cmake_files(
   EXPORT_NAME sparrowTargets
 )
 
+if(SCINE_BUILD_TESTS OR SCINE_BUILD_PYTHON_BINDINGS)
+  find_package(PythonInterp REQUIRED)
+endif()
+
 # Tests
 if(SCINE_BUILD_TESTS)
   include(ImportGTest)
@@ -87,7 +91,6 @@ if(SCINE_BUILD_TESTS)
     ${CMAKE_DL_LIBS}
   )
   add_test(NAME Sparrow COMMAND Sparrow_tests)
-  find_package(PythonInterp REQUIRED)
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(TEST_SELECTION "::TestSparrowFast")
   else()
@@ -103,7 +106,7 @@ if(SCINE_BUILD_TESTS)
   set_tests_properties(Sparrow_App PROPERTIES
     ENVIRONMENT SCINE_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{SCINE_MODULE_PATH}
     ENVIRONMENT PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH}
-    ENVIRONMENT PATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PATH}
+    ENVIRONMENT PATH=${CMAKE_CURRENT_BINARY_DIR}:${PROJECT_BINARY_DIR}:$ENV{PATH}
   )
 endif()
 
@@ -120,6 +123,9 @@ add_executable(SparrowApp ${SPARROW_APP_FILES})
 add_executable(Scine::SparrowApp ALIAS SparrowApp)
 
 set_target_properties(SparrowApp PROPERTIES OUTPUT_NAME sparrow)
+if(APPLE)
+  set_target_properties(SparrowApp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+endif()
 
 target_link_libraries(SparrowApp PRIVATE
   Boost::program_options
@@ -240,8 +246,6 @@ if(SCINE_BUILD_PYTHON_BINDINGS)
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Python/sphinx
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doc-py
     LINK UtilsPythonDoc
-    DOCTEST
-    DOCTEST_REQUIRES scine_utilities
   )
 endif()
 

@@ -24,7 +24,8 @@ namespace Sparrow {
  * Right now the data needed to perform TD-SCC-DFTB are present. In order to implement
  * TD-DFTB3 other data might be needed.
  */
-struct TDDFTBData : public LinearResponseData {
+class TDDFTBData : public LinearResponseData {
+ public:
   /// @brief Gamma parameters size: nAtoms x nAtoms
   std::shared_ptr<Eigen::MatrixXd> gammaMatrix;
   /// @brief Magnetic Hubbard parameters (spin constants) size: nAtoms

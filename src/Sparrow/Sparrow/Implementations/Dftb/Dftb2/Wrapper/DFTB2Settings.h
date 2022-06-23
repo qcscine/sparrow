@@ -25,6 +25,11 @@ class DFTB2Settings : public Scine::Utils::Settings {
     Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "mio-1-1");
 
+    // Method
+    Utils::UniversalSettings::StringDescriptor method("The method to be used.");
+    method.setDefaultValue("dftb2");
+    _fields.push_back(Utils::SettingsNames::method, method);
+
     resetToDefaults();
   };
 };

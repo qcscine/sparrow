@@ -28,8 +28,9 @@ int main(int argc, char* argv[]) {
     CalculationHandler calculationHandler(commandLineParser);
     calculationHandler.calculate(std::cout);
   }
-  catch (MethodNotAvailableException& e) {
+  catch (const std::exception& e) {
     std::cout << e.what() << std::endl;
+    return 1;
   }
 
   return 0;

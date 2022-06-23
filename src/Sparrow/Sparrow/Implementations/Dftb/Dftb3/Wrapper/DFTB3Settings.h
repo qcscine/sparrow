@@ -25,6 +25,11 @@ class DFTB3Settings : public Scine::Utils::Settings {
     Utils::UniversalSettings::SettingPopulator::populateScfSettings(_fields);
     Utils::UniversalSettings::SettingPopulator::populateSemiEmpiricalSettings(_fields, "3ob-3-1");
 
+    // Method
+    Utils::UniversalSettings::StringDescriptor method("The method to be used.");
+    method.setDefaultValue("dftb3");
+    _fields.push_back(Utils::SettingsNames::method, method);
+
     resetToDefaults();
   }
 };

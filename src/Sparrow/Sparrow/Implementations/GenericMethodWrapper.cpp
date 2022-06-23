@@ -66,6 +66,8 @@ const Utils::Results& GenericMethodWrapper::calculate(std::string description) {
   if (dipoleMatrixCalculator_)
     dipoleMatrixCalculator_->invalidate();
   applySettings();
+  // Check method and basis set fields
+  checkBasicSettings();
   calculateImpl(requiredDerivative);
 
   // If you want the Hessian, but cannot calculate it analytically,
@@ -150,6 +152,21 @@ Utils::Derivative GenericMethodWrapper::highestDerivativeRequired() const {
     requiredDerivative = Utils::Derivative::SecondAtomic;
   }
   return requiredDerivative;
+}
+
+void GenericMethodWrapper::checkBasicSettings() {
+  Utils::Settings settingsCopy(*(this->settings_));
+  settingsCopy.resetToDefaults();
+  auto methodDefault = settingsCopy.getString(Utils::SettingsNames::method);
+  auto currentMethod = this->settings_->getString(Utils::SettingsNames::method);
+
+  // Check selected method
+  std::transform(currentMethod.begin(), currentMethod.end(), currentMethod.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+  if (currentMethod != methodDefault && currentMethod != "any") {
+    throw std::runtime_error("This calculator does not provide the requested method.");
+  }
+  settings_->modifyString(Utils::SettingsNames::method, methodDefault);
 }
 
 void GenericMethodWrapper::assembleResults(const std::string& description) {

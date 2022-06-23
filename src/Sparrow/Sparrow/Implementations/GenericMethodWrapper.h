@@ -143,6 +143,8 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
   virtual bool successfulCalculation() const = 0;
   virtual bool canCalculateAnalyticalHessian() const;
 
+  void checkBasicSettings();
+
   /**
    * @brief Function to apply the settings to the actual calculation method.
    * This method is needed in every calculator as the modification of the

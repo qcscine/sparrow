@@ -29,6 +29,11 @@ class MNDOSettings : public Scine::Utils::Settings {
     useNDDODipoleApprox.setDefaultValue(true);
     _fields.push_back(Utils::SettingsNames::NDDODipoleApproximation, std::move(useNDDODipoleApprox));
 
+    // Method
+    Utils::UniversalSettings::StringDescriptor method("The method to be used.");
+    method.setDefaultValue("mndo");
+    _fields.push_back(Utils::SettingsNames::method, method);
+
     resetToDefaults();
   }
 };

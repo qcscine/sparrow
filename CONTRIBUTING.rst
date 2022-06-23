@@ -27,4 +27,4 @@ from members of the Reiher research group.
 Further Contributors
 --------------------
 
-So far, no one else has contributed to this repository.
+- Sebastian Ehlert (`@awvwgk <https://github.com/awvwgk>`_), University of Bonn (various bug reports)

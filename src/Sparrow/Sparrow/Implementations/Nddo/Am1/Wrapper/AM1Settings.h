@@ -40,6 +40,12 @@ class AM1Settings : public AM1TypeSettings {
  public:
   static constexpr const char* settingsDescription = "AM1Settings";
   AM1Settings() : AM1TypeSettings(settingsDescription) {
+    // Method
+    Utils::UniversalSettings::StringDescriptor method("The method to be used.");
+    method.setDefaultValue("am1");
+    _fields.push_back(Utils::SettingsNames::method, method);
+
+    resetToDefaults();
   }
 };
 
@@ -47,6 +53,12 @@ class RM1Settings : public AM1TypeSettings {
  public:
   static constexpr const char* settingsDescription = "RM1Settings";
   RM1Settings() : AM1TypeSettings(settingsDescription) {
+    // Method
+    Utils::UniversalSettings::StringDescriptor method("The method to be used.");
+    method.setDefaultValue("rm1");
+    _fields.push_back(Utils::SettingsNames::method, method);
+
+    resetToDefaults();
   }
 };
 
@@ -54,6 +66,12 @@ class PM3Settings : public AM1TypeSettings {
  public:
   static constexpr const char* settingsDescription = "PM3Settings";
   PM3Settings() : AM1TypeSettings(settingsDescription) {
+    // Method
+    Utils::UniversalSettings::StringDescriptor method("The method to be used.");
+    method.setDefaultValue("pm3");
+    _fields.push_back(Utils::SettingsNames::method, method);
+
+    resetToDefaults();
   }
 };
 
