@@ -24,6 +24,7 @@
 #include <Utils/Optimizer/GradientBased/SteepestDescent.h>
 #include <Utils/UniversalSettings/SettingsNames.h>
 #include <chrono>
+#include <iomanip>
 
 namespace Scine {
 namespace Sparrow {
@@ -44,12 +45,26 @@ Spectrum IRCalculator::calculate(const Utils::PositionCollection& positions, int
   // Optimize or project after.
   auto startOpt = std::chrono::system_clock::now();
   if (settings_->getString(optimizationProfileOption) != "none") {
+    std::shared_ptr<std::ofstream> optimizationOut =
+        std::make_shared<std::ofstream>("optimization" + std::to_string(structureIndex) + ".out");
+    *optimizationOut << std::setw(5) << "#" << std::string(44, '=') << "#" << std::endl;
+    *optimizationOut << std::setw(5) << "#" << std::setw(20) << "Iteration" << std::setw(20) << "Energy" << std::setw(5)
+                     << "#" << std::endl;
+    *optimizationOut << std::setw(5) << "#" << std::string(44, '=') << "#" << std::endl;
+    auto observer = [&](const int& it, const double& en, const Eigen::VectorXd& gr) -> void {
+      *optimizationOut << std::setw(5) << "" << std::setw(20) << it << std::setw(20) << en << std::setw(5) << "" << std::endl;
+    };
+    calculator_->getLog().output.add("optimize_observer", optimizationOut);
     calculator_->modifyPositions(positions);
     Utils::GeometryOptimizer<Utils::Bfgs> optimizer(*calculator_);
+    optimizer.addObserver(std::move(observer));
     auto profile = profileFactory(optimizer.getSettings(), settings_->getString(optimizationProfileOption));
     optimizer.setSettings(profile->toSettings());
     // optimizer.transformCoordinates = false;
     optimizer.optimize(*(calculator_->getStructure()), calculator_->getLog());
+    *optimizationOut << "END!" << std::endl;
+    optimizationOut->close();
+    calculator_->getLog().output.remove("optimize_observer");
   }
   auto endOpt = std::chrono::system_clock::now();
   out << std::chrono::duration_cast<std::chrono::milliseconds>(endOpt - startOpt).count() << " ";

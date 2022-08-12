@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Release 3.1.0
+-------------
+
+- Added parameter sets trans3d-0-1 (Sc, Ti, Fe, Co, Ni) and borg-0-1 (B)
+- Enforce "C" locale for Molden files
+- Various bugfixes and improvements
+
 Release 3.0.1
 -------------
 

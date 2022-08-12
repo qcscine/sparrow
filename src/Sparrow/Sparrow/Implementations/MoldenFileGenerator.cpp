@@ -44,6 +44,7 @@ void MoldenFileGenerator::generateWavefunctionInformation(std::ostream& out) con
   out << "Written by Sparrow, the semiempirical library "
          "of the SCINE software package"
       << std::endl;
+  out.imbue(std::locale("C"));
   generateAtomBlock(out);
   generateGTOBlock(out);
   generateMolecularOrbitalsBlock(out);

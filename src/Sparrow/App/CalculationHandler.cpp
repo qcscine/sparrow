@@ -34,7 +34,8 @@ namespace Sparrow {
 
 CalculationHandler::CalculationHandler(CommandLineOptions& options) : commandLineOptions_(options) {
   try {
-    methodWrapper_ = Core::ModuleManager::getInstance().get<Core::Calculator>(commandLineOptions_.getSelectedMethodName());
+    methodWrapper_ = Core::ModuleManager::getInstance().get<Core::Calculator>(commandLineOptions_.getSelectedMethodName(),
+                                                                              "Sparrow");
   }
   catch (std::exception& e) {
     throw MethodNotAvailableException(commandLineOptions_.getSelectedMethodName());

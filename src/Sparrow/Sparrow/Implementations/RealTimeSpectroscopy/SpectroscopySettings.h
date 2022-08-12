@@ -214,7 +214,7 @@ struct TightOptimizationProfile : public GeometryOptimizationProfile {
   ~TightOptimizationProfile() final = default;
   void applyProfile(Utils::Settings& settings) final {
     settings.modifyInt(Utils::Bfgs::bfgsGdiisMaxStore, 8);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 400);
+    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 1000);
   }
 };
 struct MediumOptimizationProfile : public GeometryOptimizationProfile {

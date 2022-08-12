@@ -1,0 +1,47 @@
+(c) 2017, Thomas Frauenheim, Universität Bremen
+All rights reserved
+
+This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+International License. To view a copy of this license, consult the LICENSE file
+or visit http://creativecommons.org/licenses/by-sa/4.0/ .
+
+NOTE: The rights holder(s) for this work explicitly require that the attribution
+conditions of this license are enforced. Use in part or in whole of this data is
+permitted only under the condition that the scientific background of the
+Licensed Material will be CITED IN ANY PUBLICATIONS ARISING FROM ITS USE. The
+required references are specified in this file and must be included in resulting works.
+
+
+SVN repository information:
+---------------------------
+$Id: README  2007-07-9 Guishan Zheng $
+$URL: $
+
+The set has been developed for organic molecules including O, N, C, H
+with first row transition metal elements Sc, Ti, Fe, Co, and Ni.
+Tests for molecules containing atomic pairs between H/C/N/O and Sc/Ti/Fe/Co/Ni
+are published in  JCTC07 paper.
+
+The current parameters works quite well for geometries, from which the bond lengths
+usualy differ from B3LYP/SDD+6-31G* (SDD for TM elements, 6-31G* for O, N, C, H)  at 
+the accuracy level of 0.06A-0.1A on average while the bond angles differ by about 
+10-20 degree. The reaction energy values predicted by the current open-shell DFTB code 
+on average differ about 15 Kcal/mol. The spin splitting energy is often qualitatively 
+correct but the absolute value can be off by as large as 30-50 kcal/mol. In general, 
+the energetics predicted by DFTB has to be taken with causion and needs more thorough 
+tests for molecules that contain these parameterized transition metal elements.
+
+For more detailed information about the set of parameter performance, pls refer to 
+the paper JCTC07.
+
+
+Relevant Publications
+---------------------
+
+[JCTC07] Zheng, G.; Witek, H. A.; Bobadova-Parvanova, P.; Irle, S.; Musaev, D. G.; Prabhakar, R.; Morokuma, K.; Lundberg, M.; Elstner, M.; Kohler, C.; Frauenheim, T.  J. Chem. Theory and Comput.,3(4),1349-136 (2007).
+
+
+Required references
+-------------------
+[JCTC07] Zheng, G.; Witek, H. A.; Bobadova-Parvanova, P.; Irle, S.; Musaev, D. G.; Prabhakar, R.; Morokuma, K.; Lundberg, M.; Elstner, M.; Kohler, C.; Frauenheim, T.  J. Chem. Theory and Comput.,3(4),1349-136 (2007).
+

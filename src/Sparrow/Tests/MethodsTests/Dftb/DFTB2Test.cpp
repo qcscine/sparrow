@@ -560,5 +560,134 @@ TEST_F(ADFTB2Calculation, GetsCorrectAtomicHessians) {
   ASSERT_NEAR(ah.getAtomicHessian(0)(2, 2), 0.55436681809146315, 1e-6);
 }
 
+TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForCoComplex) {
+  std::stringstream ss("8\n\n"
+                       "Co    -0.0947841961    0.0542107769    0.2719105074\n"
+                       "O     -2.8865621749   -0.3928440120   -0.3094733154\n"
+                       "O      2.5152237470    0.6051735623    1.3747143456\n"
+                       "C     -1.7828787564   -0.2201043822   -0.0964346185\n"
+                       "O      0.8429878933   -0.4820973727   -2.4182169590\n"
+                       "H     -0.5624976624    0.3217268493    1.6135135795\n"
+                       "C      1.4939672661    0.3853190465    0.9252282712\n"
+                       "C      0.4745438835   -0.2713844680   -1.3612418109\n");
+  auto as = Utils::XyzStreamHandler::read(ss);
+
+  method.setScfMixer(scf_mixer_t::fock_diis);
+  method.setMaxIterations(10000);
+  method.setConvergenceCriteria({{}, 1e-6});
+
+  method.setAtomCollection(as);
+  method.initializeFromParameterPath("trans3d-0-1");
+  method.calculate(Derivative::First, log);
+
+  // Check number of atoms and orbitals
+  ASSERT_THAT(method.getNumberAtoms(), Eq(8));
+  ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(34));
+
+  // Check energy
+  ASSERT_THAT(method.getEnergy(), DoubleNear(-17.1512552737, 1e-5));
+
+  // Check atomic charges
+  std::vector<double> expectedCharges = {0.25059332,  -0.10229016, -0.10228875, 0.13467283,
+                                         -0.11066338, -0.25545559, 0.13467202,  0.05075972};
+  for (unsigned long long i = 0; i < expectedCharges.size(); i++) {
+    SCOPED_TRACE("... for the charge " + std::to_string(i) + ":");
+    EXPECT_THAT(method.getAtomicCharges()[i], DoubleNear(expectedCharges[i], 1e-4));
+  }
+
+  // Check force
+  Eigen::RowVector3d f0(0.000245267388, -0.000139851946, -0.000703921747);
+  Eigen::RowVector3d f1(0.000498579755, -0.000028853548, -0.000352593246);
+  Eigen::RowVector3d f2(-0.000176331440, -0.000153352472, -0.000562721571);
+  Eigen::RowVector3d f3(-0.052892558126, -0.007659772236, -0.007610079972);
+  Eigen::RowVector3d f4(0.004003794557, -0.002289258671, -0.011485174294);
+  Eigen::RowVector3d f5(-0.009424512040, 0.005390321540, 0.027033448971);
+  Eigen::RowVector3d f6(0.047305523100, 0.010852332964, 0.023629559624);
+  Eigen::RowVector3d f7(0.010440236806, -0.005971565632, -0.029948517764);
+
+  ASSERT_TRUE((-method.getGradients().row(0) - (f0)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(1) - (f1)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(2) - (f2)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(3) - (f3)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(4) - (f4)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(5) - (f5)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(6) - (f6)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(7) - (f7)).norm() < 1e-5);
+}
+
+TEST_F(ADFTB2Calculation, GetsSameResultAsDFTBPlusForBH) {
+  std::stringstream ss("2\n\n"
+                       "B      0.0 0.0 0.0\n"
+                       "H      1.0 0.0 0.0\n");
+  auto as = Utils::XyzStreamHandler::read(ss);
+
+  method.setScfMixer(scf_mixer_t::fock_diis);
+  method.setMaxIterations(10000);
+  method.setConvergenceCriteria({{}, 1e-6});
+
+  method.setAtomCollection(as);
+  method.initializeFromParameterPath("borg-0-1");
+  method.calculate(Derivative::First, log);
+
+  // Check number of atoms and orbitals
+  ASSERT_THAT(method.getNumberAtoms(), Eq(2));
+  ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(5));
+
+  // Check energy
+  ASSERT_THAT(method.getEnergy(), DoubleNear(-1.2439301670, 1e-5));
+
+  // Check atomic charges
+  std::vector<double> expectedCharges = {0.03249036, -0.03249036};
+
+  for (unsigned long long i = 0; i < expectedCharges.size(); i++) {
+    SCOPED_TRACE("... for the charge " + std::to_string(i) + ":");
+    EXPECT_THAT(method.getAtomicCharges()[i], DoubleNear(expectedCharges[i], 1e-4));
+  }
+
+  // Check force
+  Eigen::RowVector3d f0(-0.162415248703, 0.0, 0.0);
+  Eigen::RowVector3d f1(0.162415248703, 0.0, 0.0);
+
+  ASSERT_TRUE((-method.getGradients().row(0) - (f0)).norm() < 1e-5);
+  ASSERT_TRUE((-method.getGradients().row(1) - (f1)).norm() < 1e-5);
+}
+
+TEST_F(ADFTB2Calculation, WorksForAllTrans3dCombinations) {
+  std::stringstream ss("8\n\n"
+                       "X     -0.0947841961    0.0542107769    0.2719105074\n"
+                       "N     -2.8865621749   -0.3928440120   -0.3094733154\n"
+                       "O      2.5152237470    0.6051735623    1.3747143456\n"
+                       "C     -1.7828787564   -0.2201043822   -0.0964346185\n"
+                       "O      0.8429878933   -0.4820973727   -2.4182169590\n"
+                       "H     -0.5624976624    0.3217268493    1.6135135795\n"
+                       "C      1.4939672661    0.3853190465    0.9252282712\n"
+                       "C      0.4745438835   -0.2713844680   -1.3612418109\n");
+  std::vector<std::string> elements = {"Fe", "Ni", "Sc", "Ti", "Co"};
+  for (const auto& ele : elements) {
+    auto s = ss.str();
+    s.replace(3, 1, ele);
+    if (ele == "Sc" || ele == "Co") {
+      std::replace(s.begin(), s.end(), 'N', 'O');
+    }
+    std::stringstream mod(s);
+    auto as = Utils::XyzStreamHandler::read(mod);
+
+    method.setScfMixer(scf_mixer_t::fock_diis);
+    method.setMaxIterations(10000);
+    method.setConvergenceCriteria({{}, 1e-6});
+
+    method.setAtomCollection(as);
+    method.initializeFromParameterPath("trans3d-0-1");
+    method.calculate(Derivative::First, log);
+
+    // Check number of atoms and orbitals
+    ASSERT_THAT(method.getNumberAtoms(), Eq(8));
+    ASSERT_THAT(method.getNumberAtomicOrbitals(), Eq(34));
+
+    // Check energy
+    ASSERT_LT(method.getEnergy(), 0.0);
+  }
+}
+
 } // namespace Sparrow
 } // namespace Scine

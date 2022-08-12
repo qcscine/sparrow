@@ -1,0 +1,26 @@
+(c) 2017, Thomas Frauenheim, Universität Bremen
+All rights reserved
+
+This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+International License. To view a copy of this license, consult the LICENSE file
+or visit http://creativecommons.org/licenses/by-sa/4.0/ .
+
+NOTE: The rights holder(s) for this work explicitly require that the attribution
+conditions of this license are enforced. Use in part or in whole of this data is
+permitted only under the condition that the scientific background of the
+Licensed Material will be CITED IN ANY PUBLICATIONS ARISING FROM ITS USE. The
+required references are specified in this file and must be included in resulting works.
+
+
+The set is intended as addition to the mio-set for
+organic molecules.  The parameterization was done on molecular reference systems
+but seems to work also for boron systems with periodic boundary conditions
+[JCTC12].
+
+Required references
+-------------------
+
+[JCTC12] 	J. Chem. Theory Comput., 2012, 8, pp 1153–1163.
+
+
+
