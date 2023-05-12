@@ -9,6 +9,7 @@
 #include <Core/ModuleManager.h>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/dll/shared_library.hpp>
+#include <boost/filesystem.hpp>
 
 namespace Scine {
 namespace Sparrow {
@@ -22,7 +23,7 @@ void SparrowInitializer::initialize() {
 
   auto& manager = Core::ModuleManager::getInstance();
   if (!manager.moduleLoaded("Sparrow")) {
-    std::vector<fs::path> trialPaths{{appPath.parent_path() / moduleName, basePath / moduleName, basePath / "lib" / moduleName}};
+    std::vector<fs::path> trialPaths{appPath.parent_path() / moduleName, basePath / moduleName, basePath / "lib" / moduleName};
 
     for (const auto& trialPath : trialPaths) {
       if (fs::exists(trialPath) && fs::is_regular_file(trialPath)) {

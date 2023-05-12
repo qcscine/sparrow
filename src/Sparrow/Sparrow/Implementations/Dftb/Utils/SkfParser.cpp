@@ -18,6 +18,7 @@
 #include "boost/spirit/include/phoenix.hpp"
 #include "boost/spirit/include/phoenix_operator.hpp"
 #include "boost/spirit/include/qi.hpp"
+#include <fstream>
 #include <iostream>
 
 BOOST_FUSION_ADAPT_STRUCT(Scine::Sparrow::dftb::RepulsionParameters::Spline, (double, start), (double, end),

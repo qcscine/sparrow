@@ -10,6 +10,7 @@
 #include "Utils/Geometry/ElementTypes.h"
 #include "boost/functional/hash.hpp"
 #include <unordered_map>
+#include <vector>
 
 namespace Scine {
 namespace Sparrow {

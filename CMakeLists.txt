@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.9)
 # tree must then provide a properly namespaced target with the same name as
 # your project.
 project(Sparrow
-  VERSION 3.1.0
+  VERSION 4.0.0
   DESCRIPTION "Library for fast and agile quantum chemical calculations with semiempirical methods."
 )
 

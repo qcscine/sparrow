@@ -21,7 +21,7 @@ namespace Sparrow {
  * @class PM6MethodWrapper PM6MethodWrapper.h
  * @brief A method wrapper running PM6 calculations.
  */
-class PM6MethodWrapper final : public Utils::CloneInterface<PM6MethodWrapper, NDDOMethodWrapper> {
+class PM6MethodWrapper final : public Utils::CloneInterface<PM6MethodWrapper, NDDOMethodWrapper, Core::Calculator> {
  public:
   static constexpr const char* model = "PM6";
 

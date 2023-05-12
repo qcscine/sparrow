@@ -14,7 +14,8 @@ namespace Scine {
 namespace Sparrow {
 class TDDFTBData;
 
-class DFTBMethodWrapper : public Utils::CloneInterface<Utils::Abstract<DFTBMethodWrapper>, GenericMethodWrapper> {
+class DFTBMethodWrapper
+  : public Utils::CloneInterface<Utils::Abstract<DFTBMethodWrapper>, GenericMethodWrapper, Core::Calculator> {
  public:
   /**
    * @brief Constructor.

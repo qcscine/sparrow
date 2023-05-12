@@ -199,64 +199,64 @@ struct VeryTightOptimizationProfile : public GeometryOptimizationProfile {
   VeryTightOptimizationProfile(const Utils::Settings& settings) : GeometryOptimizationProfile(settings){};
   ~VeryTightOptimizationProfile() final = default;
   void applyProfile(Utils::Settings& settings) final {
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepMaxCoeffKey, 2.0e-5);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepRMSKey, 1.0e-5);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradMaxCoeffKey, 2.0e-5);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradRMSKey, 1.0e-5);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvDeltaValueKey, 1.0e-7);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 1000);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvRequirementKey, 4);
-    settings.modifyInt(Utils::Bfgs::bfgsGdiisMaxStore, 10);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepMaxCoeff, 2.0e-5);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepRMS, 1.0e-5);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradMaxCoeff, 2.0e-5);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradRMS, 1.0e-5);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::deltaValue, 1.0e-7);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::maxIter, 1000);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::requirement, 4);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Bfgs::gdiisMaxStore, 10);
   }
 };
 struct TightOptimizationProfile : public GeometryOptimizationProfile {
   TightOptimizationProfile(const Utils::Settings& settings) : GeometryOptimizationProfile(settings){};
   ~TightOptimizationProfile() final = default;
   void applyProfile(Utils::Settings& settings) final {
-    settings.modifyInt(Utils::Bfgs::bfgsGdiisMaxStore, 8);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 1000);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Bfgs::gdiisMaxStore, 8);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::maxIter, 1000);
   }
 };
 struct MediumOptimizationProfile : public GeometryOptimizationProfile {
   MediumOptimizationProfile(const Utils::Settings& settings) : GeometryOptimizationProfile(settings){};
   ~MediumOptimizationProfile() final = default;
   void applyProfile(Utils::Settings& settings) final {
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepMaxCoeffKey, 5.0e-4);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepRMSKey, 5.0e-3);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradMaxCoeffKey, 5.0e-4);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradRMSKey, 5.0e-4);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvDeltaValueKey, 5.0e-6);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 100);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvRequirementKey, 2);
-    settings.modifyInt(Utils::Bfgs::bfgsGdiisMaxStore, 8);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepMaxCoeff, 5.0e-4);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepRMS, 5.0e-3);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradMaxCoeff, 5.0e-4);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradRMS, 5.0e-4);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::deltaValue, 5.0e-6);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::maxIter, 100);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::requirement, 2);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Bfgs::gdiisMaxStore, 8);
   }
 };
 struct LooseOptimizationProfile : public GeometryOptimizationProfile {
   LooseOptimizationProfile(const Utils::Settings& settings) : GeometryOptimizationProfile(settings){};
   ~LooseOptimizationProfile() final = default;
   void applyProfile(Utils::Settings& settings) final {
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepMaxCoeffKey, 5.0e-3);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepRMSKey, 1.0e-2);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradMaxCoeffKey, 1.0e-3);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradRMSKey, 5.0e-3);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvDeltaValueKey, 1.0e-5);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 100);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvRequirementKey, 2);
-    settings.modifyInt(Utils::Bfgs::bfgsGdiisMaxStore, 8);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepMaxCoeff, 5.0e-3);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepRMS, 1.0e-2);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradMaxCoeff, 1.0e-3);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradRMS, 5.0e-3);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::deltaValue, 1.0e-5);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::maxIter, 100);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::requirement, 2);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Bfgs::gdiisMaxStore, 8);
   }
 };
 struct VeryLooseOptimizationProfile : public GeometryOptimizationProfile {
   VeryLooseOptimizationProfile(const Utils::Settings& settings) : GeometryOptimizationProfile(settings){};
   ~VeryLooseOptimizationProfile() final = default;
   void applyProfile(Utils::Settings& settings) final {
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepMaxCoeffKey, 1.0e-2);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvStepRMSKey, 5.0e-2);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradMaxCoeffKey, 5.0e-3);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvGradRMSKey, 1.0e-2);
-    settings.modifyDouble(Utils::GradientBasedCheck::gconvDeltaValueKey, 1.0e-4);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvMaxIterKey, 50);
-    settings.modifyInt(Utils::GradientBasedCheck::gconvRequirementKey, 2);
-    settings.modifyInt(Utils::Bfgs::bfgsGdiisMaxStore, 8);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepMaxCoeff, 1.0e-2);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::stepRMS, 5.0e-2);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradMaxCoeff, 5.0e-3);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::gradRMS, 1.0e-2);
+    settings.modifyDouble(Utils::SettingsNames::Optimizations::Convergence::deltaValue, 1.0e-4);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::maxIter, 50);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Convergence::requirement, 2);
+    settings.modifyInt(Utils::SettingsNames::Optimizations::Bfgs::gdiisMaxStore, 8);
   }
 };
 

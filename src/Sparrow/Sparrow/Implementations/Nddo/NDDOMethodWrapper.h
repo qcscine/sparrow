@@ -27,7 +27,8 @@ class DipoleMatrixCalculator;
  * @class NDDOMethodWrapper
  * @brief Abstract class acting as a genericWrapper for NDDO methods.
  */
-class NDDOMethodWrapper : public Utils::CloneInterface<Utils::Abstract<NDDOMethodWrapper>, GenericMethodWrapper> {
+class NDDOMethodWrapper
+  : public Utils::CloneInterface<Utils::Abstract<NDDOMethodWrapper>, GenericMethodWrapper, Core::Calculator> {
  public:
   /**
    * @brief Constructor.

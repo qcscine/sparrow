@@ -25,7 +25,7 @@ namespace Sparrow {
  * @class DFTB3MethodWrapper DFTB3MethodWrapper.h
  * @brief A method wrapper handling DFTB3 calculations.
  */
-class DFTB3MethodWrapper final : public Utils::CloneInterface<DFTB3MethodWrapper, DFTBMethodWrapper> {
+class DFTB3MethodWrapper final : public Utils::CloneInterface<DFTB3MethodWrapper, DFTBMethodWrapper, Core::Calculator> {
  public:
   static constexpr const char* model = "DFTB3";
 

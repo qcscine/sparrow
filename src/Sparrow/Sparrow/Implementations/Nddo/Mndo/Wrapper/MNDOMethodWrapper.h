@@ -22,7 +22,7 @@ namespace Sparrow {
  * @class MNDOMethodWrapper MNDOMethodWrapper.h
  * @brief A method wrapper handling MNDO calculations.
  */
-class MNDOMethodWrapper final : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMethodWrapper> {
+class MNDOMethodWrapper final : public Utils::CloneInterface<MNDOMethodWrapper, NDDOMethodWrapper, Core::Calculator> {
  public:
   static constexpr const char* model = "MNDO";
 

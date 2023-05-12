@@ -25,7 +25,7 @@ namespace Sparrow {
  * @brief A method wrapper handling DFTB2 calculations,
  * also known as SCC-DFTB, self-consistent charge DFTB.
  */
-class DFTB2MethodWrapper final : public Utils::CloneInterface<DFTB2MethodWrapper, DFTBMethodWrapper> {
+class DFTB2MethodWrapper final : public Utils::CloneInterface<DFTB2MethodWrapper, DFTBMethodWrapper, Core::Calculator> {
  public:
   static constexpr const char* model = "DFTB2";
 

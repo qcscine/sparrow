@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Release 4.0.0
+-------------
+
+- Various bugfixes and improvements
+
 Release 3.1.0
 -------------
 

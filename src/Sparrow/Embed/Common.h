@@ -8,6 +8,7 @@
 #define INCLUDE_SPARROW_EMBED_COMMON_H
 
 #include "boost/optional.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <vector>

@@ -6,7 +6,8 @@ User Manual
 
 The user manuals are available for download as PDF files:
 
-- :download:`Download Latest User Manual PDF <https://scine.ethz.ch/static/download/manuals/v3.1.0/sparrow_manual.pdf>`
+- :download:`Download Latest User Manual PDF <https://scine.ethz.ch/static/download/manuals/v4.0.0/sparrow_manual.pdf>`
+- :download:`Download User Manual PDF v4.0.0 <https://scine.ethz.ch/static/download/manuals/v4.0.0/sparrow_manual.pdf>`
 - :download:`Download User Manual PDF v3.1.0 <https://scine.ethz.ch/static/download/manuals/v3.1.0/sparrow_manual.pdf>`
 - :download:`Download User Manual PDF v3.0.1 <https://scine.ethz.ch/static/download/manuals/v3.0.1/sparrow_manual.pdf>`
 - :download:`Download User Manual PDF v3.0.0 <https://scine.ethz.ch/static/download/manuals/v3.0.0/sparrow_manual.pdf>`

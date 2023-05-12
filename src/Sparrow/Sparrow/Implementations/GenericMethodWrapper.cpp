@@ -244,6 +244,7 @@ void GenericMethodWrapper::assembleResults(const std::string& description) {
   if (requiredProperties_.containsSubSet(Utils::Property::Thermochemistry)) {
     resultsAutoCompleter.addOneWantedProperty(Utils::Property::Thermochemistry);
     resultsAutoCompleter.setTemperature(settings().getDouble(Utils::SettingsNames::temperature));
+    resultsAutoCompleter.setPressure(settings().getDouble(Utils::SettingsNames::pressure));
     resultsAutoCompleter.setMolecularSymmetryNumber(settings().getInt(Utils::SettingsNames::symmetryNumber));
   }
 

@@ -27,7 +27,7 @@ namespace Sparrow {
  */
 template<class AM1Type>
 class AM1TypeMethodWrapper
-  : public Utils::CloneInterface<Utils::Abstract<AM1TypeMethodWrapper<AM1Type>>, NDDOMethodWrapper> {
+  : public Utils::CloneInterface<Utils::Abstract<AM1TypeMethodWrapper<AM1Type>>, NDDOMethodWrapper, Core::Calculator> {
  public:
   /// @brief Constructor initializing the NDDOMethodWrapper with this instance of the class.
   AM1TypeMethodWrapper();
@@ -65,7 +65,8 @@ class AM1TypeMethodWrapper
   nddo::AM1Method method_;
 };
 
-class AM1MethodWrapper final : public Utils::CloneInterface<AM1MethodWrapper, AM1TypeMethodWrapper<AM1MethodWrapper>> {
+class AM1MethodWrapper final
+  : public Utils::CloneInterface<AM1MethodWrapper, AM1TypeMethodWrapper<AM1MethodWrapper>, Core::Calculator> {
  public:
   static constexpr const char* model = "AM1";
   AM1MethodWrapper();
@@ -78,7 +79,8 @@ class AM1MethodWrapper final : public Utils::CloneInterface<AM1MethodWrapper, AM
   ~AM1MethodWrapper() final;
 };
 
-class RM1MethodWrapper final : public Utils::CloneInterface<RM1MethodWrapper, AM1TypeMethodWrapper<RM1MethodWrapper>> {
+class RM1MethodWrapper final
+  : public Utils::CloneInterface<RM1MethodWrapper, AM1TypeMethodWrapper<RM1MethodWrapper>, Core::Calculator> {
  public:
   static constexpr const char* model = "RM1";
   RM1MethodWrapper();
@@ -91,7 +93,8 @@ class RM1MethodWrapper final : public Utils::CloneInterface<RM1MethodWrapper, AM
   ~RM1MethodWrapper() final;
 };
 
-class PM3MethodWrapper final : public Utils::CloneInterface<PM3MethodWrapper, AM1TypeMethodWrapper<PM3MethodWrapper>> {
+class PM3MethodWrapper final
+  : public Utils::CloneInterface<PM3MethodWrapper, AM1TypeMethodWrapper<PM3MethodWrapper>, Core::Calculator> {
  public:
   static constexpr const char* model = "PM3";
   PM3MethodWrapper();
