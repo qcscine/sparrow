@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -17,8 +17,8 @@ CISMatrixAOFockBuilder<restrictedness, spinBlock>::CISMatrixAOFockBuilder(CISDat
   : cisData_(std::move(cisData)) {
   c1_ = excitedStatesParam.c1;
   c2_ = excitedStatesParam.c2;
-  coulombContainer_ = std::make_shared<std::vector<std::map<int, std::unique_ptr<Eigen::MatrixXd>>>>();
-  exchangeContainer_ = std::make_shared<std::vector<std::map<int, std::unique_ptr<Eigen::MatrixXd>>>>();
+  coulombContainer_ = std::make_shared<std::vector<std::map<int, std::shared_ptr<Eigen::MatrixXd>>>>();
+  exchangeContainer_ = std::make_shared<std::vector<std::map<int, std::shared_ptr<Eigen::MatrixXd>>>>();
   initialize();
   calculateMatrices();
 }

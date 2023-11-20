@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -119,12 +119,14 @@ void DFTBCommon::initialize(const Utils::ElementTypeCollection& elementTypes) {
     });
   }
 
-  // Create SKPairs
-  for (auto& atomPair : parameters.pairData) {
-    const auto& pairZ = atomPair.first;
-    pairParameters.emplace(std::piecewise_construct, std::forward_as_tuple(pairZ),
-                           std::forward_as_tuple(atomParameters[pairZ.first].get(), atomParameters[pairZ.second].get(),
-                                                 std::move(atomPair.second)));
+  if (nAtoms > 0) {
+    // Create SKPairs
+    for (auto& atomPair : parameters.pairData) {
+      const auto& pairZ = atomPair.first;
+      pairParameters.emplace(std::piecewise_construct, std::forward_as_tuple(pairZ),
+                             std::forward_as_tuple(atomParameters[pairZ.first].get(),
+                                                   atomParameters[pairZ.second].get(), std::move(atomPair.second)));
+    }
   }
 
   // Check completeness of the parameters w.r.t. the elements

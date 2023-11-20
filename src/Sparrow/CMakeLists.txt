@@ -32,13 +32,19 @@ set_target_properties(Sparrow PROPERTIES
   WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
+if(MSVC)
+  target_compile_definitions(Sparrow PUBLIC BOOST_ALL_NO_LIB)
+endif()
+
 # Add an option to repropduce the standard PM6 errors
 # This is needed until a new reparametrization of PM6 is done with the right method.
 option(REPRODUCE_PM6_ERRORS "Reproduce the errors of standard PM6 implementations" ON)
 
-target_compile_options(Sparrow PRIVATE
-  $<$<BOOL:${OpenMP_CXX_FOUND}>:${OpenMP_CXX_FLAGS}>
-)
+if(SCINE_PARALLELIZE)
+  target_compile_options(Sparrow PRIVATE
+    $<$<BOOL:${OpenMP_CXX_FOUND}>:${OpenMP_CXX_FLAGS}>
+  )
+endif()
 target_compile_definitions(Sparrow
  PRIVATE
   $<$<CONFIG:Debug>:EIGEN_INITIALIZE_MATRICES_BY_NAN>
@@ -54,6 +60,10 @@ target_link_libraries(Sparrow
     Boost::filesystem
     $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
 )
+
+if(MSVC)
+  target_compile_options(Sparrow PRIVATE /openmp- /bigobj /MP)
+endif()
 
 # Add namespaced aliases
 add_library(Scine::Sparrow ALIAS Sparrow)
@@ -97,6 +107,10 @@ if(SCINE_BUILD_TESTS)
     set(TEST_SELECTION "")
   endif()
 
+  if(MSVC)
+    target_compile_options(Sparrow_tests PRIVATE /bigobj /MP /openmp-)
+  endif()
+
   # App tests
   add_test(
     NAME Sparrow_App
@@ -122,9 +136,17 @@ endif()
 add_executable(SparrowApp ${SPARROW_APP_FILES})
 add_executable(Scine::SparrowApp ALIAS SparrowApp)
 
+if(MSVC)
+  target_compile_definitions(SparrowApp PUBLIC BOOST_ALL_DYN_LINK)
+endif()
+
 set_target_properties(SparrowApp PROPERTIES OUTPUT_NAME sparrow)
 if(APPLE)
   set_target_properties(SparrowApp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+endif()
+
+if(MSVC)
+  target_compile_options(SparrowApp PRIVATE /bigobj /MP /openmp-)
 endif()
 
 target_link_libraries(SparrowApp PRIVATE
@@ -145,6 +167,10 @@ target_link_libraries(RTSpectroscopyDriver
     yaml-cpp
     ${CMAKE_DL_LIBS}
 )
+
+if(MSVC)
+  target_compile_options(RTSpectroscopyDriver PRIVATE /bigobj /MP /openmp-)
+endif()
 
 # Add link library specific to MinGW
 if(WIN32 AND MINGW)

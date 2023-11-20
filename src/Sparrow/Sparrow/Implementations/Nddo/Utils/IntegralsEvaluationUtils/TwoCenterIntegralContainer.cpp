@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -51,7 +51,7 @@ void TwoCenterIntegralContainer::initializePair(unsigned int i, unsigned int j) 
 
 void TwoCenterIntegralContainer::update(Utils::DerivativeOrder order) {
 #pragma omp parallel for schedule(dynamic)
-  for (unsigned i = 0; i < nAtoms_; ++i) {
+  for (int i = 0; i < nAtoms_; ++i) {
     for (unsigned int j = i + 1; j < nAtoms_; j++) {
       updatePair(i, j, order);
     }

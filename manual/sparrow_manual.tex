@@ -21,7 +21,7 @@
 %\savebox{\scineimage}{\includegraphics[height=5\baselineskip]{scine_darkblue.png}}
 
 
-\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 4.0.0}}
+\title[SCINE Sparrow manual]{User Manual \vskip 0.5em {\setlength{\parindent}{0pt} \Huge SCINE Sparrow 5.0.0}}
 \author[The SCINE Sparrow Developers]{The SCINE Sparrow Developers: \newline \noindent Francesco Bosia, Tamara Husch, Charlotte H.~M\"uller, Severin Polonius, Jan-Grimo Sobez, Miguel Steiner, Jan P.~Unsleber, Alain C.~Vaucher, Thomas Weymuth, and Markus Reiher}
 \publisher{ETH Z\"urich}
 
@@ -235,7 +235,7 @@ respect to the nuclear coordinates, and Hessians rapidly. The SCINE \textsc{Spar
 \textsc{Interactive}, SCINE \textsc{ReaDuct}, and SCINE \textsc{Chemoton}. However, as with all SCINE modules it is also 
 a stand-alone program which can be applied on its own or easily interfaced to other programs.
 
-SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 4.0.0
+SCINE \textsc{Sparrow} is a command-line tool that implements many popular semiempirical models. SCINE \textsc{Sparrow} 5.0.0
 provides the \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, non-SCC DFTB (\texttt{DFTB0}), \texttt{DFTB2}, and \texttt{DFTB3} methods 
 (open- and closed-shell formalisms are implemented). 
 The application of semiempirical models usually allows for rapid calculation of electronic energies and energy gradients 
@@ -356,7 +356,7 @@ The default temperature is 298.15\,K. The maximum allowed temperature is 10'000\
 modes and the vibrational frequencies. This option has no effect if the Hessian is not calculated (see above).
 \item \texttt{-{}-bond\_orders}, \texttt{-B}: If given, the bond order matrix will be calculated.
 \item \texttt{-{}-method}, \texttt{-M}: With this option, the desired calculation method can be set. Options in
-\textsc{Sparrow} 4.0.0 are \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, \texttt{DFTB0}, \texttt{DFTB2}, and
+\textsc{Sparrow} 5.0.0 are \texttt{MNDO}, \texttt{AM1}, \texttt{RM1}, \texttt{PM3}, \texttt{PM6}, \texttt{DFTB0}, \texttt{DFTB2}, and
 \texttt{DFTB3}. By default, \texttt{PM6} is selected.
 \item \texttt{-{}-output\_to\_file}, \texttt{-o}: If this option is given, the output will not only be printed to the screen, 
 but also to files. By default, the energy is stored in a file named ``energy.dat'', the nuclear gradients in a file named
@@ -531,7 +531,7 @@ structure.elements = [su.ElementType.H, su.ElementType.H]
 structure.positions = [[-0.7, 0, 0], [0.7, 0, 0]]
 
 # Get calculator
-manager = su.core.ModuleManager()
+manager = su.core.ModuleManager.get_instance()
 calculator = manager.get('calculator', 'AM1')
 
 # Configure Calculator
@@ -564,7 +564,7 @@ import scine_utilities as su
 import scine_sparrow
 
 # Load xyz into calculator
-manager = su.core.ModuleManager()
+manager = su.core.ModuleManager.get_instance()
 calculator = manager.get('calculator', 'AM1')
 calculator.structure = su.io.read('h2.xyz')[0]
 
@@ -600,7 +600,7 @@ structure.positions = [[0.94815,    0.05810,    0.05008],
 structure.positions = structure.positions * su.BOHR_PER_ANGSTROM
 
 # Get excited-state calculator
-manager = su.core.ModuleManager()
+manager = su.core.ModuleManager.get_instance()
 excited_states_calculator = manager.get('calculator_with_reference', 'TD-DFTB')
 # Generate a suitable ground-state reference calculator
 excited_states_calculator.reference_calculator = manager.get('calculator', 'DFTB2')
@@ -650,7 +650,7 @@ structure.positions = [[0.94815,    0.05810,    0.05008],
 structure.positions = structure.positions * su.BOHR_PER_ANGSTROM
 
 # Get orbital steering calculator
-manager = su.core.ModuleManager()
+manager = su.core.ModuleManager.get_instance()
 orbital_steering_calculator = manager.get('calculator_with_reference',
 'orbital_steering')
 # Generate a suitable reference calculator
@@ -706,8 +706,8 @@ We kindly ask you to cite the appropriate references in any publication of resul
 \vspace{1.0cm}
 
 \begin{itemize}
-\item Primary reference for Sparrow 4.0.0:
-F.~Bosia, T.~Husch, C.~H.~M\"uller, S.~Polonius, J.-G.~Sobez, M.~Steiner, J.~P.~Unsleber, A.~C.~Vaucher, T.~Weymuth, M.~Reiher, \href{https://doi.org/10.5281/zenodo.3244105}{"qcscine/sparrow: Release 4.0.0 (Version 4.0.0)"}, Zenodo, 2023.
+\item Primary reference for Sparrow 5.0.0:
+F.~Bosia, T.~Husch, C.~H.~M\"uller, S.~Polonius, J.-G.~Sobez, M.~Steiner, J.~P.~Unsleber, A.~C.~Vaucher, T.~Weymuth, M.~Reiher, \href{https://doi.org/10.5281/zenodo.3244105}{"qcscine/sparrow: Release 5.0.0 (Version 5.0.0)"}, Zenodo, 2023.
 \item Presentation of the formalism of MNDO-type and OMx models: \newline
 T.~Husch, A.~C.~Vaucher, M.~Reiher \href{https://doi.org/10.1002/qua.25799}{"Semiempirical Molecular Orbital Models Based on the Neglect of Diatomic Differential Overlap Approximation"}, \textit{Int.~J.~Quantum Chem.}, \textbf{2018}, \textit{118}, e25799.
 \item Presentation of DFTB approaches: \newline

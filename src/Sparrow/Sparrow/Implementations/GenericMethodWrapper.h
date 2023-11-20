@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 #ifndef SPARROW_GENERICMETHODWRAPPER_H
@@ -42,6 +42,8 @@ class GenericMethodWrapper : public Utils::CloneInterface<Utils::Abstract<Generi
   GenericMethodWrapper();
   /// @brief Default Destructor.
   ~GenericMethodWrapper() override;
+  /// @brief Copy Constructor
+  GenericMethodWrapper(const GenericMethodWrapper& rhs);
   /**
    * @brief Sets new structure and initializes the underlying method with the parameter given in the settings.
    * @param structure The structure to be assigned.

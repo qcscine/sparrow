@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -35,6 +35,9 @@ namespace Sparrow {
 GenericMethodWrapper::GenericMethodWrapper() = default;
 
 GenericMethodWrapper::~GenericMethodWrapper() = default;
+
+GenericMethodWrapper::GenericMethodWrapper(const GenericMethodWrapper& rhs) : CloneInterface(rhs) {
+}
 
 Utils::Settings& GenericMethodWrapper::settings() {
   return *settings_;

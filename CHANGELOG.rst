@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Release 5.0.0
+-------------
+
+- Improve support for compilation on Windows (MSVC)
+- Update address in license
+
 Release 4.0.0
 -------------
 

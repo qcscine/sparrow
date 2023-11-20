@@ -1,7 +1,7 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
@@ -11,6 +11,7 @@
 #include "CISPseudoDensityBuilder.h"
 #include <Sparrow/Implementations/TimeDependent/TimeDependentUtils.h>
 #include <Utils/Math/IterativeDiagonalizer/SigmaVectorEvaluator.h>
+
 namespace Scine {
 namespace Sparrow {
 class CISData;
@@ -43,7 +44,7 @@ class CISMatrixAOFockBuilder : public CISMatrixAOFockBuilderBase<restrictedness>
   CISData cisData_;
   int nAtoms_{cisData_.AOInfo.getNAtoms()};
   int nAOs_{cisData_.AOInfo.getNAtomicOrbitals()};
-  std::shared_ptr<std::vector<std::map<int, std::unique_ptr<Eigen::MatrixXd>>>> coulombContainer_, exchangeContainer_;
+  std::shared_ptr<std::vector<std::map<int, std::shared_ptr<Eigen::MatrixXd>>>> coulombContainer_, exchangeContainer_;
   static constexpr const double sparseThreshold_ = 1e-8;
   double c1_;
   double c2_;

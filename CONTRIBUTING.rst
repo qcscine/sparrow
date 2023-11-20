@@ -28,3 +28,4 @@ Further Contributors
 --------------------
 
 - Sebastian Ehlert (`@awvwgk <https://github.com/awvwgk>`_), University of Bonn (various bug reports)
+- Juuso Lehtivarjo, NMR Solutions Ltd.

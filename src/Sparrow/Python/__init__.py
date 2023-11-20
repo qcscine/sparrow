@@ -1,5 +1,5 @@
 __copyright__ = """This code is licensed under the 3-clause BSD license.
-Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.
+Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.
 See LICENSE.txt for details.
 """
 
@@ -10,7 +10,7 @@ from distutils import ccompiler
 shlib_suffix = ccompiler.new_compiler().shared_lib_extension
 sparrow_module_filename = "sparrow.module" + shlib_suffix
 
-manager = utils.core.ModuleManager()
+manager = utils.core.ModuleManager.get_instance()
 current_path = os.path.dirname(os.path.realpath(__file__))
 lib_path = os.path.dirname(os.path.dirname(os.path.dirname(current_path)))
 if not manager.module_loaded('Sparrow'):

@@ -1,5 +1,5 @@
 __copyright__ = """This code is licensed under the 3-clause BSD license.
-Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.
+Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.
 See LICENSE.txt for details.
 """
 
@@ -384,8 +384,8 @@ class TestSparrowFast(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from MOPAC 2016 is 2787.80; actual value from Sparrow should be 2788.57
-        self.assertAlmostEqual(calculation.get_frequencies()[11], 2788.57, places=2)
+        # Reference value from MOPAC 2016 is 2787.80; actual value from Sparrow should be 2788.55
+        self.assertAlmostEqual(calculation.get_frequencies()[11], 2788.55, places=2)
 
         # Check that using a different number of CPUs yields the same Hessian
         parallel_hessian = calculation.get_hessian()
@@ -415,8 +415,8 @@ class TestSparrowFast(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from DFTB+ 18.2 is -136.73; actual value from Sparrow should be -136.824
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -136.824, 2)
+        # Reference value from DFTB+ 18.2 is -136.73; actual value from Sparrow should be -136.615
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -136.615, 2)
 
     # TODO: Try to find a way to check that Sparrow fails due to missing parameters
     # def test_energy_sft_3_mndo_charge_0_multiplicity_1_unrestricted(self):
@@ -642,8 +642,8 @@ class TestSparrowSlow(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from MOPAC 2016 is -316.4; actual value from Sparrow should be -320.529
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -320.529, places=2)
+        # Reference value from MOPAC 2016 is -316.4; actual value from Sparrow should be -320.713
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -320.713, places=2)
 
     def test_hessian_sft_1_am1_charge_0_multiplicity_1_restricted(self):
         calculation = Calculation(
@@ -653,8 +653,8 @@ class TestSparrowSlow(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from MOPAC 2016 is -406.5; actual value from Sparrow should be -410.378
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -410.378, places=2)
+        # Reference value from MOPAC 2016 is -406.5; actual value from Sparrow should be -410.523
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -410.523, places=2)
 
     def test_hessian_sft_1_rm1_charge_0_multiplicity_1_restricted(self):
         calculation = Calculation(
@@ -664,7 +664,7 @@ class TestSparrowSlow(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -112.5, places=1)
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -112.562, places=1)
 
     def test_hessian_sft_1_pm3_charge_0_multiplicity_1_restricted(self):
         calculation = Calculation(
@@ -674,8 +674,8 @@ class TestSparrowSlow(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from MOPAC 2016 is -202.3; actual value from Sparrow should be -202.165
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -202.165, places=2)
+        # Reference value from MOPAC 2016 is -202.3; actual value from Sparrow should be -202.18
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -202.18, places=2)
 
     def test_hessian_sft_1_dftb2_charge_0_multiplicity_1_restricted(self):
         calculation = Calculation(
@@ -687,7 +687,7 @@ class TestSparrowSlow(unittest.TestCase):
         calculation.run()
 
         # Reference value from DFTB+ 18.2 is -165.02
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -158.752, 2)
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -158.922, 2)
 
     def test_hessian_sft_1_dftb3_charge_0_multiplicity_1_restricted(self):
         calculation = Calculation(
@@ -697,8 +697,8 @@ class TestSparrowSlow(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from DFTB+ 18.2 is -71.33; actual value from Sparrow should be -69.3909
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -69.3909, 2)
+        # Reference value from DFTB+ 18.2 is -71.33; actual value from Sparrow should be -69.2154
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -69.2154, 2)
 
     # In order to convert the MOPAC Hessian into atomic units, remove their mass-weighting and then multiply them by
     # 0.0642.
@@ -710,8 +710,8 @@ class TestSparrowSlow(unittest.TestCase):
             calculate_atomic_hessians=False, wavefunction=False,
             thermochemistry=False, scf_mixer='diis', symmetry_number=1)
         calculation.run()
-        # Reference value from MOPAC 2016 is -122.7; actual value from Sparrow should be -125.522
-        self.assertAlmostEqual(calculation.get_frequencies()[0], -125.522, places=2)
+        # Reference value from MOPAC 2016 is -122.7; actual value from Sparrow should be -125.561
+        self.assertAlmostEqual(calculation.get_frequencies()[0], -125.561, places=2)
 
         # Check that using a different number of CPUs yields the same Hessian
         parallel_hessian = calculation.get_hessian()

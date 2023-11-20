@@ -1,5 +1,5 @@
 __copyright__ = """This code is licensed under the 3-clause BSD license.
-Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.
+Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.
 See LICENSE.txt for details.
 """
 
@@ -14,7 +14,7 @@ class TestCalculatorPythonBindings(unittest.TestCase):
         structure = su.AtomCollection(2)
         structure.elements = [su.ElementType.H, su.ElementType.H]
         structure.positions = [[-0.7, 0, 0], [0.7, 0, 0]]
-        manager = su.core.ModuleManager()
+        manager = su.core.ModuleManager.get_instance()
         self.calculator = manager.get('calculator', 'PM6')
         self.calculator.structure = structure
 
@@ -35,12 +35,12 @@ class TestCalculatorPythonBindings(unittest.TestCase):
         self.calculator.set_required_properties([su.Property.Hessian])
         results = self.calculator.calculate()
         expected_hessian = [
-            [ 0.60217399,  0.00000000,  0.00000000, -0.60217399,  0.00000000,  0.00000000],
-            [ 0.00000000, -0.01762776,  0.00000000,  0.00000000,  0.01762776,  0.00000000],
-            [ 0.00000000,  0.00000000, -0.01762776,  0.00000000,  0.00000000,  0.01762776],
-            [-0.60217399,  0.00000000,  0.00000000,  0.60217399,  0.00000000,  0.00000000],
-            [ 0.00000000,  0.01762776,  0.00000000,  0.00000000, -0.01762776,  0.00000000],
-            [ 0.00000000,  0.00000000,  0.01762776,  0.00000000,  0.00000000, -0.01762776]
+            [ 0.60221448,  0.00000000,  0.00000000, -0.60221448,  0.00000000,  0.00000000],
+            [ 0.00000000, -0.01761590,  0.00000000,  0.00000000,  0.01761590,  0.00000000],
+            [ 0.00000000,  0.00000000, -0.01761590,  0.00000000,  0.00000000,  0.01761590],
+            [-0.60221448,  0.00000000,  0.00000000,  0.60221448,  0.00000000,  0.00000000],
+            [ 0.00000000,  0.01761590,  0.00000000,  0.00000000, -0.01761590,  0.00000000],
+            [ 0.00000000,  0.00000000,  0.01761590,  0.00000000,  0.00000000, -0.01761590]
         ]
         for i in range(len(expected_hessian)):
             for j in range(len(expected_hessian)):

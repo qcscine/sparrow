@@ -1,13 +1,14 @@
 /**
  * @file
  * @copyright This code is licensed under the 3-clause BSD license.\n
- *            Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.\n
+ *            Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.\n
  *            See LICENSE.txt for details.
  */
 
 #ifndef SPARROW_ATOMPAIRDIPOLE_H
 #define SPARROW_ATOMPAIRDIPOLE_H
 
+#include <Utils/DataStructures/AtomicGtos.h>
 #include <Utils/Typenames.h>
 #include <Eigen/Core>
 #include <array>

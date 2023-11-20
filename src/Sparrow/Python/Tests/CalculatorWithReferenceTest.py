@@ -1,5 +1,5 @@
 __copyright__ = """This code is licensed under the 3-clause BSD license.
-Copyright ETH Zurich, Laboratory of Physical Chemistry, Reiher Group.
+Copyright ETH Zurich, Department of Chemistry and Applied Biosciences, Reiher Group.
 See LICENSE.txt for details.
 """
 
@@ -31,7 +31,7 @@ class TestCalculatorWithReferencePythonBindings(unittest.TestCase):
         # transform to bohr
         structure.positions = structure.positions * su.BOHR_PER_ANGSTROM
         methane.positions = methane.positions * su.BOHR_PER_ANGSTROM
-        manager = su.core.ModuleManager()
+        manager = su.core.ModuleManager.get_instance()
 
         self.calculator = manager.get('calculator', 'PM3')
         self.calculator.settings["self_consistence_criterion"] = 1e-9
