@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Release 5.1.0
+-------------
+
+- Make compatible with Unity builds
+
 Release 5.0.0
 -------------
 

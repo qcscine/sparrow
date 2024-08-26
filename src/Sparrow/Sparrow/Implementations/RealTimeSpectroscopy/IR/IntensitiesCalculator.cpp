@@ -9,7 +9,6 @@
 #include "IntensitiesCalculator.h"
 #include "../Utils/LineWidthGenerator.h"
 #include <cmath>
-#include <iostream>
 
 namespace Scine {
 namespace Sparrow {

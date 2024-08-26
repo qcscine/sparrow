@@ -49,6 +49,13 @@ T. Husch, A. C. Vaucher, M. Reiher, "Semiempirical molecular orbital models
 based on the neglect of diatomic differential overlap approximation", *Int.
 J. Quantum Chem.*, **2018**, *118*, e25799.
 
+Furthermore, when publishing results obtained with any SCINE module, please cite the following paper:
+
+T. Weymuth, J. P. Unsleber, P. L. Türtscher, M. Steiner, J.-G. Sobez, C. H. Müller, M. Mörchen,
+V. Klasovita, S. A. Grimmel, M. Eckhoff, K.-S. Csizi, F. Bosia, M. Bensberg, M. Reiher,
+"SCINE—Software for chemical interaction networks", *J. Chem. Phys.*, **2024**, *160*, 222501
+(DOI `10.1063/5.0206974 <https://doi.org/10.1063/5.0206974>`_).
+
 Support and Contact
 -------------------
 

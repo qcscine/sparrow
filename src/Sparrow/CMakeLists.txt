@@ -17,6 +17,10 @@ if(NOT TARGET Boost::filesystem OR NOT TARGET Boost::program_options)
   find_package(Boost REQUIRED COMPONENTS program_options filesystem)
 endif()
 
+set_source_files_properties(
+    ${SPARROW_UNITY_DISABLE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+)
+
 # Sparrow is a Scine module and is always shared, never linked against
 add_library(Sparrow SHARED ${SPARROW_MODULE_FILES})
 

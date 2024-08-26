@@ -20,14 +20,6 @@ namespace Scine {
 namespace Sparrow {
 namespace RealTimeSpectroscopy {
 
-constexpr double unitaryChargeSquared = 1.6021765e-19 * 1.6021765e-19;
-constexpr double coulombForceConstant = 8.9875517873681e9;
-constexpr double avogadrosNumber = 6.02214199e23;
-constexpr double c = 299792458.;
-constexpr double atomicMassUnit = 1.6605387280149467e-27;
-constexpr double conversionFactor =
-    unitaryChargeSquared * M_PI * coulombForceConstant * avogadrosNumber / (3. * c * c) / atomicMassUnit / 1000.;
-
 UvVisCalculator::UvVisCalculator() : settings_(std::make_shared<UvVisSettings>()) {
 }
 

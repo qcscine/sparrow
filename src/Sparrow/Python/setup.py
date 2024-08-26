@@ -6,7 +6,7 @@ See LICENSE.txt for details.
 import setuptools
 
 # Read README.rst for the long description
-with open("README.rst", "r") as fh:
+with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 
