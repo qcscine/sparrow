@@ -25,7 +25,6 @@ target_link_libraries(RealTimeSpectroscopy
   PUBLIC
     Scine::Sparrow
     PRIVATE
-    cereal
     ${CMAKE_DL_LIBS}
   )
 

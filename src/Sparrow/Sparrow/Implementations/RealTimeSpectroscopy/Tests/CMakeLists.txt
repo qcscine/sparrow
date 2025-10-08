@@ -10,7 +10,6 @@ target_link_libraries(RTSpectroscopyTest
     gmock
     Scine::RealTimeSpectroscopy
     Scine::Core
-    cereal
     $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>
     ${CMAKE_DL_LIBS}
 )

@@ -313,9 +313,9 @@ void CalculationHandler::printResultsToFile() const {
     auto printLambda = [&](CISCalculationType type) {
       const auto& excitedStates = type == CISCalculationType::singlet
                                       ? excitedStatesResults_.get<Utils::Property::ExcitedStates>().singlet
-                                      : type == CISCalculationType::triplet
-                                            ? excitedStatesResults_.get<Utils::Property::ExcitedStates>().triplet
-                                            : excitedStatesResults_.get<Utils::Property::ExcitedStates>().unrestricted;
+                                  : type == CISCalculationType::triplet
+                                      ? excitedStatesResults_.get<Utils::Property::ExcitedStates>().triplet
+                                      : excitedStatesResults_.get<Utils::Property::ExcitedStates>().unrestricted;
 
       std::string multiplicity = type == CISCalculationType::singlet ? "singlet" : "triplet";
       if (type == CISCalculationType::unrestricted)

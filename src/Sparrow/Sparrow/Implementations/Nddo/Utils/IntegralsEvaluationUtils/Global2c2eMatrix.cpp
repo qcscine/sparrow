@@ -21,8 +21,12 @@ namespace multipole {
 
 Global2c2eMatrix::Global2c2eMatrix(int l1, int l2, const ChargeSeparationParameter& D1, const ChargeSeparationParameter& D2,
                                    const KlopmanParameter& r1, const KlopmanParameter& r2)
-  : d1_(l1 == 0 ? 1 : l1 == 1 ? 10 : 40),
-    d2_(l2 == 0 ? 1 : l2 == 1 ? 10 : 40),
+  : d1_(l1 == 0   ? 1
+        : l1 == 1 ? 10
+                  : 40),
+    d2_(l2 == 0   ? 1
+        : l2 == 1 ? 10
+                  : 40),
     dist1(D1),
     dist2(D2),
     rho1(r1),

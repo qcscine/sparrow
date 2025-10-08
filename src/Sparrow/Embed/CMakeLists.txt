@@ -6,5 +6,5 @@ add_executable(Embed
 )
 target_include_directories(Embed PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(Embed
-  PRIVATE Scine::Sparrow cereal
+  PRIVATE Scine::Sparrow
 )

@@ -51,7 +51,7 @@ void TwoCenterIntegralContainer::initializePair(unsigned int i, unsigned int j) 
 
 void TwoCenterIntegralContainer::update(Utils::DerivativeOrder order) {
 #pragma omp parallel for schedule(dynamic)
-  for (int i = 0; i < nAtoms_; ++i) {
+  for (unsigned int i = 0; i < nAtoms_; ++i) {
     for (unsigned int j = i + 1; j < nAtoms_; j++) {
       updatePair(i, j, order);
     }

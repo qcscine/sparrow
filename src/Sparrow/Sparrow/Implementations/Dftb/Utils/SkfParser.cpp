@@ -20,6 +20,7 @@
 #include "boost/spirit/include/qi.hpp"
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 BOOST_FUSION_ADAPT_STRUCT(Scine::Sparrow::dftb::RepulsionParameters::Spline, (double, start), (double, end),
                           (double, c0), (double, c1), (double, c2), (double, c3))

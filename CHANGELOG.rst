@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Release 5.2.0
+-------------
+
+- Improve support for compilation on Windows (MSVC)
+
 Release 5.1.0
 -------------
 
